@@ -17,6 +17,7 @@ ZERO = Decimal('0')
 def evaluate_plan(state, specification):
     plan = specification if isinstance(specification, PlanSpec) else PlanSpec.model_validate(specification)
     result = {'name': plan.name, 'actions': plan.model_dump(mode='json')['actions'], 'basis': 'simulated',
+              'goal_satisfied': False, 'goal_status': 'unknown', 'explanation': '',
               'feasible': False, 'violations': [], 'dependencies': [], 'tradeoffs': [], 'timeline': {'available': False},
               'borrowing': '0.00', 'financing_cost': '0.00', 'action_count': len(plan.actions), 'deferred_liabilities': '0.00'}
     if not state['complete']:
@@ -32,6 +33,17 @@ def evaluate_plan(state, specification):
     borrowing = cost = ZERO
     restrictions = {c.casefold() for c in policy['restricted_categories']}
     for index, action in enumerate(plan.actions):
+        if action.kind == 'collect':
+            overdue = next((row for row in state['overdue'] if f"tx:{row['id']}" == action.event_id and row['direction'] == 'inflow'), None)
+            if (not overdue or action.event_id in touched or action.amount <= 0 or action.amount > Decimal(overdue['amount'])
+                    or not action.date or not as_of < date.fromisoformat(action.date) <= end):
+                result['violations'].append('Assumed overdue collection requires an authorized unpaid receivable, bounded amount and future date in the horizon; each receipt can be changed only once.')
+                continue
+            touched.add(action.event_id)
+            events.append({'id': action.event_id + ':assumed-recovery', 'date': action.date, 'amount': str(action.amount),
+                           'direction': 'inflow', 'category': 'Collection assumption', 'description': 'Unconfirmed overdue receipt'})
+            result['dependencies'].append('Customer confirmation and actual receipt are required. Recovery is hypothetical, not guaranteed cash; nonpayment reasons remain unknown unless recorded.')
+            continue
         if action.kind == 'finance':
             if not action.date or not as_of < date.fromisoformat(action.date) <= end or action.amount <= 0:
                 result['violations'].append('Financing requires a positive amount and date inside the planning horizon.')
@@ -76,6 +88,7 @@ def evaluate_plan(state, specification):
                 continue
             event['date'] = shifted.isoformat()
             result['dependencies'].append('Customer agreement and actual receipt are required.' if event['direction'] == 'inflow' else 'Supplier agreement is required; no payment permission is implied.')
+            result['tradeoffs'].append('Timing changes do not change total payments or ending cash when both dates remain inside the horizon; they may only bridge an interim gap.')
             result['tradeoffs'].append(f"Move {event['id']} from {original_day} to {shifted}; its amount is unchanged.")
         elif action.kind == 'split':
             later = original_day + timedelta(days=action.days)
@@ -85,12 +98,14 @@ def evaluate_plan(state, specification):
                 continue
             event['amount'] = str(money(action.amount))
             events.append({**event, 'id': event['id'] + ':remainder', 'date': later.isoformat(), 'amount': str(money(amount - action.amount))})
+            result['tradeoffs'].append('Splitting defers part of the same obligation; the total remains payable inside this horizon and ending cash is unchanged.')
             result['dependencies'].append('Supplier must approve the installment split; late fees are not known.')
         elif action.kind == 'reduce':
             if event['direction'] != 'outflow' or action.amount <= 0 or action.amount > Decimal(event['amount']):
                 result['violations'].append('A reduction must be positive and no greater than its outflow.')
                 continue
             event['amount'] = str(money(Decimal(event['amount']) - action.amount))
+            result['dependencies'].append('Adjustability is UNKNOWN: a genuine supplier invoice is not freely discretionary. Confirm cancellation, credit note or scope change; otherwise the full amount remains owed.')
             result['dependencies'].append('The owner and counterparty must confirm the cost can be cancelled or reduced without undisclosed penalties.')
             result['tradeoffs'].append('Expense reduction may reduce service or growth; no automatic revenue benefit is assumed.')
     result['borrowing'], result['financing_cost'] = str(money(borrowing)), str(money(cost))
@@ -100,19 +115,28 @@ def evaluate_plan(state, specification):
     result['events'] = events
     result['feasible'] = not result['violations']
     if result['timeline'].get('available'):
+        result['goal_satisfied'] = result['feasible'] and Decimal(result['timeline']['funding_gap']) == 0
+        result['goal_status'] = 'reserve met under assumptions' if result['goal_satisfied'] else 'reserve unresolved'
+        result['explanation'] = ('Action feasibility is not financial-goal satisfaction. Remaining reserve gap: '
+                                 + result['timeline']['funding_gap'] + ' ' + state['currency'] + '. External dependencies still require confirmation.')
         result['remaining_gap'] = result['timeline']['funding_gap']
         result['cash_required'] = result['timeline']['funding_gap']
         result['expected_ending_cash'] = result['timeline']['ending_balance']
     return result
 
 
-def compare_plans(state, specifications):
+def compare_plans(state, specifications, allow_borrowing=True):
     if len(specifications) > 8:
         raise ValueError('Compare at most eight bounded plans.')
     plans = []
     for specification in specifications:
         try:
-            plans.append(evaluate_plan(state, specification))
+            plan = evaluate_plan(state, specification)
+            if not allow_borrowing and any(action['kind'] == 'finance' for action in plan['actions']):
+                plan['feasible'] = plan['goal_satisfied'] = False
+                plan['goal_status'] = 'borrowing constraint violated'
+                plan['violations'].append('Borrowing is excluded by the financial question.')
+            plans.append(plan)
         except (ValueError, ValidationError) as exc:
             # Invalid schemas never become partially valid financial claims.
             raise ValueError('Invalid counterfactual plan. Check event references, dates and bounded numeric inputs.') from exc
@@ -129,7 +153,11 @@ def compare_plans(state, specifications):
 
     plans.sort(key=rank)
     recommended = next((p['name'] for p in plans if p['feasible']), None)
+    best = next((p for p in plans if p['name'] == recommended), None)
     return {'plans': plans, 'recommended': recommended,
+            'recommendation_status': best['goal_status'] if best else 'unknown',
+            'unresolved_gap': best.get('remaining_gap') if best else None,
+            'recommendation_note': 'Best among evaluated candidates, not globally optimal. ' + (best['explanation'] if best else 'No eligible plan with sufficient evidence.'),
             'objective': 'Hard payroll/critical-supplier/category constraints, then minimize reserve gap, '
                          + ('payment-first intraday gap, ' if cautious else '')
                          + 'borrowing, full financing cost, then number of actions. Best among evaluated plans only; not a globally optimal solution.',
@@ -154,7 +182,7 @@ def suggested_plans(state):
         if delay > 0:
             plans.append({'name': 'Discuss supplier timing', 'actions': [{'kind': 'shift', 'event_id': outflow['id'], 'days': delay}]})
             plans.append({'name': 'Discuss a split payment', 'actions': [{'kind': 'split', 'event_id': outflow['id'], 'days': delay, 'amount': str(money(Decimal(outflow['amount'])/2))}]})
-    discretionary = next((e for e in state['events'] if e['direction'] == 'outflow' and e['category'].casefold() in ('marketing', 'discretionary', 'inventory') and not e['critical'] and not e['payroll']), None)
+    discretionary = next((e for e in state['events'] if e['direction'] == 'outflow' and e['category'].casefold() in ('marketing', 'discretionary') and not e['critical'] and not e['payroll']), None)
     if discretionary:
         plans.append({'name': 'Review discretionary spending', 'actions': [{'kind': 'reduce', 'event_id': discretionary['id'], 'amount': str(money(Decimal(discretionary['amount'])/2))}]})
     gap = Decimal(state['projection']['funding_gap'])

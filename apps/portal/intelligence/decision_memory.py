@@ -39,6 +39,8 @@ def decide(user, business_id, decision_id, target, selected_plan='', feedback=''
             selected = decision.selected_snapshot
         if not selected or not selected['feasible'] or not selected['timeline'].get('available'):
             raise ValidationError('Choose a feasible evaluated plan with sufficient financial data.')
+        if decision.investigation.result['focus'].get('analysis', {}).get('intent', {}).get('no_borrowing') and any(a['kind'] == 'finance' for a in selected['actions']):
+            raise ValidationError('Borrowing is excluded by this investigation question. Start a new investigation to change that instruction.')
         if decision.investigation.result['focus']['missing_information']:
             raise ValidationError('Resolve the investigation’s missing information and investigate again before accepting.')
         current = build_state(business)

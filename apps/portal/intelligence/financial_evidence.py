@@ -11,6 +11,11 @@ def evidence_graph(state, comparison):
                       'currency': state['currency'], 'date': event['date'], 'source': event['source'],
                       'source_id': event['source_id'], 'basis': event['basis']})
         edges.append({'from': event['id'], 'to': 'cash_timeline', 'relationship': event['direction']})
+    for receipt in state['overdue']:
+        if receipt['direction'] == 'inflow':
+            nodes.append({'id': f"tx:{receipt['id']}", 'kind': 'receivable', 'label': 'Unpaid receipt; not included as guaranteed cash',
+                          'amount': receipt['amount'], 'currency': state['currency'], 'date': receipt['date'],
+                          'source': 'transaction', 'source_id': receipt['id'], 'basis': 'recorded unpaid invoice'})
     nodes.append({'id': 'cash_timeline', 'kind': 'projection', 'label': 'Dated cash timeline', 'amount': state['projection'].get('minimum_balance'),
                   'formula': 'cash[d] = cash[d−1] + dated receipts[d] − dated payments[d]', 'basis': 'estimated'})
     edges.append({'from': 'cash', 'to': 'cash_timeline', 'relationship': 'opening point'})

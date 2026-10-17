@@ -68,3 +68,11 @@
 - Fixed equivalent empty-mapping digest mismatch with compatibility lookup for legacy digests. Added import service authorization/business locks, confirmation-time identity/setup revalidation, and explicit correction/reference identity semantics; no migration.
 - Accounting formulas preserved: sample import yields revenue 650, expenses 100, surplus 550, cash increase 150 and receivables 400. Pending earned receivables are not paid cash.
 - New import integrity tests plus original flow/workflow regressions pass (40 tests). Further reasoning/forecast/report work follows; PostgreSQL verification and authenticated push pending this checkpoint.
+
+## Question-specific reasoning checkpoint
+- Import checkpoint cbf66aa preserved; full suite now 132 passed, Ruff/Django/migration checks clean.
+- Added deterministic collections/expense/liquidity intent evidence, overdue references/dates/days/totals, recorded-note caveats, period/category comparisons and explicit no-borrowing constraints.
+- Added bounded hypothetical overdue-recovery actions without changing recorded cash; future and due-today receipts are not labeled overdue. Saved evidence graph includes recovery source invoices.
+- Action feasibility now distinct from reserve-goal satisfaction; comparison displays unresolved gaps and best-among-evaluated scope. Timing/split explanations and unknown invoice adjustability are explicit; automatic reduction suggestions limited to marketing/discretionary categories.
+- No-borrowing is applied to suggestions, custom comparisons, decision modifications and configured-provider tool requests. Existing saved snapshots remain historical; new fingerprint fields cause appropriate stale warnings.
+- Independent case 70860 cash / 70000 reserve / 5400 bill / 2700 reduction: minimum 68160, remaining gap 1840; feasible but reserve unresolved. No claimed optimization or predictive accuracy improvement.

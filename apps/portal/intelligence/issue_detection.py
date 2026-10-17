@@ -48,8 +48,8 @@ def detect_issues(state):
     collections = [e for e in near if e['direction'] == 'inflow' and critical_dates and e['date'] <= max(critical_dates)]
     if collections:
         add('collection_dependency', 'Critical payments depend on expected collections', 'medium', 'Unconfirmed receipts are dated before payroll or protected obligations.', [e['id'] for e in collections], sum(Decimal(e['amount']) for e in collections))
-    if any(e['direction'] == 'inflow' for e in state['overdue']):
-        add('overdue_receivables', 'Some customer collections are overdue', 'medium', 'Pending receivables have due dates at or before the analysis date; they are not presumed collected.', [f"tx:{e['id']}" for e in state['overdue'] if e['direction'] == 'inflow'])
+    if any(e['direction'] == 'inflow' and e['date'] < state['as_of'] for e in state['overdue']):
+        add('overdue_receivables', 'Some customer collections are overdue', 'medium', 'Pending receivables have due dates at or before the analysis date; they are not presumed collected.', [f"tx:{e['id']}" for e in state['overdue'] if e['direction'] == 'inflow' and e['date'] < state['as_of']])
     previous, current = Decimal(trends['previous_expenses']), Decimal(trends['expenses'])
     if previous > 0 and current > previous * (1 + Decimal(policy['expense_increase_percent']) / 100):
         add('expense_increase', 'Recorded expenses grew beyond your review threshold', 'medium', f"Latest 30-day expenses exceed previous 30 days by more than {policy['expense_increase_percent']}%.", amount=current - previous)

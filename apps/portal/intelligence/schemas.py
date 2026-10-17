@@ -22,7 +22,7 @@ class CashEvent(StrictModel):
 
 
 class PlanAction(StrictModel):
-    kind: Literal['shift', 'split', 'reduce', 'finance']
+    kind: Literal['shift', 'split', 'reduce', 'finance', 'collect']
     event_id: str = ''
     days: int = Field(default=0, ge=-90, le=90)
     amount: Decimal = Field(default=Decimal('0'), ge=0, le=Decimal('1000000000'), decimal_places=2)

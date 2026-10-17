@@ -80,6 +80,7 @@ def build_state(business, as_of=None):
     if business.opening_balance is not None and business.opening_date <= as_of and not capped and not foreign_currency:
         cash = money(business.opening_balance + sum((cash_effect(r) for r in valid if business.opening_date <= r.date <= as_of), ZERO))
     events, undated, overdue, categories = [], [], [], defaultdict(lambda: ZERO)
+    previous_categories = defaultdict(lambda: ZERO)
     current_revenue = current_expenses = previous_revenue = previous_expenses = ZERO
     observed_in = observed_out = ZERO
     covered = {(r.recurring_obligation_id, r.due_date or r.date) for r in valid if r.recurring_obligation_id}
@@ -94,6 +95,8 @@ def build_state(business, as_of=None):
         elif as_of - timedelta(days=59) <= row.date < as_of - timedelta(days=29):
             previous_revenue += row.amount if row.kind in ('income', 'receivable') else -row.amount if row.kind == 'refund' else ZERO
             previous_expenses += row.amount if row.kind in ('expense', 'payable') else ZERO
+            if row.kind in ('expense', 'payable'):
+                previous_categories[row.category] += row.amount
         direction = 'inflow' if row.kind in ('income', 'receivable', 'loan_disbursement') else 'outflow'
         if row.kind == 'transfer':
             continue
@@ -102,7 +105,8 @@ def build_state(business, as_of=None):
             undated.append({'source': 'transaction', 'id': row.pk, 'amount': str(row.amount), 'direction': direction})
             continue
         if due and due <= as_of and row.status == 'pending':
-            overdue.append({'source': 'transaction', 'id': row.pk, 'date': due.isoformat(), 'amount': str(row.amount), 'direction': direction})
+            overdue.append({'source': 'transaction', 'id': row.pk, 'date': due.isoformat(), 'amount': str(row.amount), 'direction': direction, 'description': row.description,
+                            'reference': row.reference, 'recorded_note': row.notes[:1000], 'days_overdue': (as_of-due).days})
             if direction == 'inflow':
                 continue  # Never presume overdue receipts will arrive tomorrow.
             due = as_of + timedelta(days=1)
@@ -147,6 +151,6 @@ def build_state(business, as_of=None):
              'undated': undated, 'overdue': overdue, 'projection': projection, 'limitations': list(dict.fromkeys(limitations)),
              'trends': {k: str(money(v)) for k, v in {'revenue': current_revenue, 'expenses': current_expenses, 'previous_revenue': previous_revenue,
                         'previous_expenses': previous_expenses, 'cash_inflows': observed_in, 'cash_outflows': observed_out, 'recurring_outflows': recurring_total}.items()},
-             'expense_categories': [{'category': key, 'amount': str(money(value)), 'share_percent': str(money(value / current_expenses * 100)) if current_expenses else None} for key, value in sorted(categories.items(), key=lambda item: -item[1])]}
+             'expense_categories': [{'category': key, 'amount': str(money(value)), 'previous_amount': str(money(previous_categories[key])), 'share_percent': str(money(value / current_expenses * 100)) if current_expenses else None} for key, value in sorted(categories.items(), key=lambda item: -item[1])]}
     state['fingerprint'] = hashlib.sha256(json.dumps(state, sort_keys=True).encode()).hexdigest()
     return state
