@@ -6,6 +6,7 @@ from django.db import transaction
 from django.utils import timezone
 from ..models import FinancialIssue
 from .financial_state import build_state
+from .categories import is_debt_service_category
 
 
 def detect_issues(state):
@@ -41,7 +42,7 @@ def detect_issues(state):
         add('near_term_payables', 'Near-term payments exceed cash above your reserve', 'high', 'Seven-day outflows > max(known cash − reserve, 0).', [e['id'] for e in outflows], sum(Decimal(e['amount']) for e in outflows))
     if any(e['payroll'] for e in outflows) and len(outflows) >= 2:
         add('overlapping_commitments', 'Payroll overlaps other near-term cash demands', 'high', 'Recorded payroll and other payments share the next seven-day window.', [e['id'] for e in outflows])
-    loan_events = [e for e in outflows if e['category'].casefold() in ('loan repayment', 'debt service')]
+    loan_events = [e for e in outflows if is_debt_service_category(e['category'])]
     if loan_events:
         add('loan_repayments', 'Loan repayments are approaching', 'medium', 'Debt-service category outflows due within seven days.', [e['id'] for e in loan_events], sum(Decimal(e['amount']) for e in loan_events))
     critical_dates = [e['date'] for e in outflows if e['payroll'] or e['critical']]
@@ -103,6 +104,6 @@ def health_dimensions(state):
         {'name': 'Expense pressure', 'value': t['expenses'], 'basis': 'recorded last 30 days', 'rule': 'Compare with previous expenses ' + t['previous_expenses'], 'status': 'review trend'},
         {'name': 'Receivable exposure', 'value': str(sum(Decimal(e['amount']) for e in state['events'] if e['direction'] == 'inflow')), 'basis': 'unconfirmed future collections', 'rule': 'Scheduled inflows are not current cash', 'status': 'collection-dependent'},
         {'name': 'Data completeness', 'value': str(state['complete']), 'basis': 'user assertion and validation', 'rule': 'Opening balance, currency, due dates and cash-completeness assertion', 'status': 'usable with limitations' if state['complete'] else 'unknown'},
-        {'name': 'Financing burden', 'value': str(sum(Decimal(e['amount']) for e in state['events'] if e['category'].casefold() in ('debt service', 'loan repayment') and e['direction'] == 'outflow')), 'basis': 'recorded dated obligations', 'rule': 'Known debt-service amounts only; missing debts remain unknown', 'status': 'not independently verified'},
+        {'name': 'Financing burden', 'value': str(sum(Decimal(e['amount']) for e in state['events'] if is_debt_service_category(e['category']) and e['direction'] == 'outflow')), 'basis': 'recorded dated obligations', 'rule': 'Known debt-service amounts only; missing debts remain unknown', 'status': 'not independently verified'},
         {'name': 'Short-term resilience', 'value': p.get('funding_gap'), 'basis': 'estimated dated-only timeline', 'rule': 'max(reserve − lowest closing balance, 0)', 'status': 'unknown' if not p.get('available') else 'review' if Decimal(p['funding_gap']) > 0 else 'no gap under recorded assumptions'},
     ]

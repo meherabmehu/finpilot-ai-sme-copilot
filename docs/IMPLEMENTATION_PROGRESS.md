@@ -119,3 +119,9 @@
 - Original standalone package: 978 passed / 1 optional skip; all 172 scenarios validate; reference 172 passed, negative control 172 failed. Neither is a FinPilot result.
 - Added dev-only expected-blind adapter and CLI, actual ORM/services, explicit opt-in, per-case rollback, isolated SQLite or newly provisioned local PostgreSQL databases with finally cleanup. No production dependencies/migrations/startup import.
 - Verified pre-fix PostgreSQL application baseline after adapter debugging: 172 selected, 171 executed, 133 pass, 38 partial, 0 failed, 1 blocked (PAIR-17-B payroll alias), no detected critical failures. Overall suppressed, not a full score. Remaining work: justified fixes, reruns, supplemental actual pair/lifecycle checks and final regressions.
+
+## Confirmed-defect checkpoint
+- Reproduced the compound payroll-category protection failure, and exact-match debt-service under-reporting. Added explicit category-token vocabulary shared by state/detection/health, with negative tests for unrelated substrings and employer on-costs. No inference from vendor/description or arbitrary policy changes.
+- Exposed bounded beyond-horizon commitments and actual missing-input blocking reasons; excluded amounts remain excluded from projected cash. Added horizon dates/basis to deterministic liquidity explanations. Additive snapshot fields can invalidate old pending acceptances: users must reinvestigate; old saved snapshots are not rewritten.
+- Same adapter/scorer, disposable PostgreSQL, post-fix full run: all 172 executed, 147 pass, 25 partial, 0 failed/blocked, 0 detected critical classes, weighted score 0.915639. This is deterministic local-service coverage, not LLM/production/prediction accuracy.
+- SQLite full application regressions: 176 passed / 2 PostgreSQL-specific skipped. Confirmed-defect and core state/memory/question targeted tests: 41 passed. Original earned receivable/accrual revenue and amortization formulas preserved.

@@ -53,6 +53,7 @@ def analyze_question(state, question):
     if 'liquidity' in intent['categories']:
         projection = state['projection']
         lines = [f"Actual recorded cash (opening cash + paid ledger only): {state['known_cash'] or 'Unknown'} {state['currency']}; reserve {state['policy']['reserve']}."]
+        lines.append(f"Planning horizon: {state['as_of']} to {state['end_date']}; estimated from dated commitments only, not guaranteed future trading.")
         if projection.get('available'):
             lines.append(f"Dated-only minimum estimate {projection['minimum_balance']} on {projection['lowest_date']}; reserve gap {projection['funding_gap']}. Future receipts are uncertain, not actual cash.")
         else:
