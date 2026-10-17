@@ -21,3 +21,11 @@ E: deduplicate linked forecast schedules and improve reliability disclosures/bac
 F/G/H: professional report sections, typed safe spreadsheet values, isolated PostgreSQL concurrency tests if available, security coverage, local browser checks and deployment/provider/evaluation adapter handoff.
 
 No production database changes, live-provider claims, scheduler activation or paid infrastructure are authorized by this audit.
+
+## Verified outcomes
+- Same-file re-confirmation is non-mutating, with a clearer preview; equivalent empty mapping digests and same-reference corrected append bypasses were corrected. Reference/type/currency identity rules and ambiguous no-reference handling are documented.
+- Revenue/cash accounting and amortization formulas were preserved after independent known-answer checks; neither pending-earned revenue nor different product fees was misclassified as a bug.
+- Question-specific evidence, hypothetical overdue recovery, no-borrowing enforcement, unresolved-goal status, structured reports and numeric spreadsheet cells are now implemented.
+- Explicit linked forecast occurrence duplication and misleading gross same-day flow display were corrected. Historical moving-average overlap remains a disclosed limitation; error definitions were made consistent and no accuracy improvement is claimed.
+- Manual record retry keys, service reauthorization, cross-resource tests, safe monitoring failure reporting and command/manual timestamps were strengthened. A void restoring an identical active financial state also restores the original snapshot fingerprint; this was correctly treated as a non-bug in tests.
+- Final checks: 147 passed / 2 PostgreSQL-only skipped on SQLite; 149 passed / 0 skipped on isolated PostgreSQL 17; 63 Chromium checks, build, collectstatic, Django/deploy/migration/Ruff checks passed. Live provider, production runtime and scheduler remain unverified; future evaluation ZIP is not integrated.

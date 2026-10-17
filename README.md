@@ -72,3 +72,9 @@ The existing five pages now include a record-backed Watchtower, owner financial 
 See [architecture](docs/AGENTIC_ARCHITECTURE.md), [decision workflow](docs/DECISION_INTELLIGENCE.md), [memory](docs/DECISION_MEMORY.md), [evidence](docs/EVIDENCE_AND_EXPLAINABILITY.md), [synthetic demo](docs/DEMO_GUIDE.md) and [actual progress / blockers](docs/IMPLEMENTATION_PROGRESS.md). Current exports include financial issues, investigation evidence, simulated comparisons, decisions and outcomes.
 
 `python manage.py monitor_finances --business BUSINESS_UUID` refreshes internal issues and reviews decisions. It does not install a scheduler or send notifications. Production scheduler/provider/PostgreSQL verification remains operator-dependent. Collect static assets before running tests against manifest storage.
+
+
+### Final quality hardening
+Repeat imports are explicitly non-mutating; corrected files follow documented append-only event-reference rules. Investigations now distinguish overdue collections, expense growth and liquidity pressure and honor no-borrowing instructions. Comparisons prominently separate action feasibility from unresolved reserve goals. Forecasts deduplicate linked commitments and disclose baseline/error limitations; loan comparisons show their own fees. Decision reports use readable tables and numeric safe XLSX cells.
+
+Latest verification: 147 SQLite tests passed (two PostgreSQL-only skipped), 149 tests passed on isolated PostgreSQL 17, and 63 Chromium layout/workflow checks passed. No live-provider, deployed-scheduler or production-runtime claim is made. See [audit](docs/QUALITY_HARDENING_AUDIT.md), [accounting/imports](docs/ACCOUNTING_AND_IMPORTS.md), [forecast reliability](docs/FORECASTING.md), [provider readiness](docs/AI_PROVIDER_READINESS.md), [monitoring operations](docs/MONITORING_OPERATIONS.md), [future evaluation adapter](docs/EVALUATION_ADAPTER.md) and [verification](docs/TESTING.md).

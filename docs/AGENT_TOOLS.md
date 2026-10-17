@@ -7,3 +7,5 @@ LLM arithmetic is not authoritative: financial facts must derive from determinis
 With no API key/model, chat returns labeled deterministic cash, timeline, simulated alternatives, dependencies and missing information. This is not fabricated generative output. The Advisor page offers the same saved investigation entry as Planning. Internal deterministic traces are collapsed on investigation detail.
 
 Live provider execution was not verified during this continuation. No credentials are shipped. Financial metadata sent to a configured provider requires the operator's privacy controls and user authority.
+
+See AI_PROVIDER_READINESS.md for exact environment names, provider compatibility, runtime/token budgets, synthetic mocked integration tests and cost/privacy controls. Current no-provider explanations are intent-specific (collections, expenses, liquidity) and configured-provider tools honor explicit no-borrowing constraints. No live provider connection is claimed.

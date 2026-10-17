@@ -1,6 +1,30 @@
 # Verification
 
-## Continuation verification — 2026-10-17 (latest)
+## Final quality hardening verification (latest)
+
+Starting commit 3fd006e, branch feat/finpilot-platform. Unchanged baseline after requirements installation, npm ci/build and collectstatic: 124 passed. Initial missing Django/Ruff executables were workspace dependency prerequisites, not application failures.
+
+Final executed checks:
+- SQLite: **147 passed, 2 skipped** (only PostgreSQL-specific concurrency tests), 39.92 seconds.
+- Disposable local PostgreSQL 17: **149 passed, 0 skipped**, 43.45 seconds, including concurrent preview/confirmation and accept/monitor threads. Created a fresh local role/database; pytest created/destroyed its separate test database. No production database used.
+- Django check, makemigrations --check --dry-run: passed, no new migrations.
+- DEBUG=false `check --deploy`: passed using ephemeral secret and isolated local database settings, not deployed production verification.
+- Frontend build, collectstatic, Ruff, diff whitespace and staged credential-pattern checks passed.
+- Chromium: actual question → modification → acceptance → monitoring, **63 page-width checks**, no page-level horizontal overflow or JavaScript errors; five pages, all planning tabs and saved detail at 320/375/390/768/1024/1440/1920. Synthetic local DB only.
+- PDF parsed using pypdf for section/currency/escaping assertions; CSV/XLSX exported and numeric cells/formula safety checked. A synthetic two-investigation PDF (12 pages including appendices) was rasterized and its first page visually inspected. This is not an exhaustive visual review of every export/page.
+
+Independent Decimal annuity check: principal 10000, nominal annual 12%, 12 months, fee 200 yields payment 888.49, interest 661.86, financing cost 861.86, total repayment+fees 10861.86. Product fee 100 yields 10761.86. Sum of actual scheduled payments plus fees reconciles, including the final adjusted installment. No amortization-formula change was needed.
+
+New regressions cover repeat/corrected/ambiguous-reference imports, earned-vs-cash semantics, question-specific overdue/expense evidence, no-borrowing custom plans, unresolved reserve gaps, linked forecast schedules and WAPE diagnostics, structured report sections/types, resource ID tenant boundaries, viewer/CSRF denials, mocked malicious tools/descriptions, safe monitoring failures, source-record outcome changes, manual record replay and generic production denial. These are scoped security checks, not a penetration test or proof of all possible race interleavings.
+
+Not verified live: provider/SMTP, installed scheduler, production migration/deploy/runtime, external evaluation ZIP, Safari/physical hardware or comprehensive assistive-technology/contrast audit. No paid service or production setting was activated.
+
+To run local SQLite checks, use README build/collectstatic commands. For PostgreSQL use an explicitly disposable database, a role allowed to create its own pytest test database, and the standard POSTGRES_* or DATABASE_URL configuration. Do NOT point tests at a production database or enable --reuse-db on shared business databases.
+
+## Previous continuation verification (historical)
+
+
+## Continuation verification — 2026-10-17 (historical)
 
 Executed locally on Python 3.13.16 / Django 5.2.18 / SQLite:
 

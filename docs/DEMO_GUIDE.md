@@ -48,3 +48,18 @@ python manage.py seed_decision_demo --reset
 ```
 
 Other businesses are not reset. This reset is intentionally destructive only for the named demo's local synthetic history; do not add real records to it. For a finite browser workflow including seven-width layout checks, install Playwright Chromium/dependencies and run `python -m scripts.browser_decisions` after seeding. The script creates a synthetic investigation and accepts a plan; it never targets the hosted website.
+
+
+## Extended collections / reserve / trade-off demonstration
+
+On the isolated local DEBUG database only:
+
+```bash
+python manage.py seed_decision_demo --reset --extended
+```
+
+The dedicated synthetic Decision Lab business now has cash 1000, reserve 200, overdue customer invoice 400 due nine days ago, baseline minimum -300 and ending 200. Marketing expenses are 200 versus prior 100; total recorded current expenses are 1700 versus prior 100 because pending supplier/payroll/inventory/discretionary commitments also count as recorded operating expenses. The tool must explain this earned/recorded basis instead of describing all growth as waste.
+
+Ask “Identify overdue collections and improve cash flow without taking a loan.” Review the invoice reference and unknown nonpayment reason, compare recovery in one versus seven days, and inspect obligations falling before uncertain receipts. The discretionary campaign reduction has operational dependencies; genuine supplier invoices are not presumed freely cancellable. Build a combined collection/timing alternative using the action rows, save a modification and explicitly accept it. A remaining reserve gap must stay visible whenever the chosen plan does not close it.
+
+Change the reserve/borrowing preferences, investigate again, and compare against the older preserved snapshot; do the same in a separate existing synthetic business to demonstrate isolation and business-specific policies. Do not modify real businesses to stage the demo. Use the default simple timing scenario for scripted `--follow-up`; extended recovery/split/financing outcomes require separately recorded synthetic actual activity, not fabricated observations. Export investigation evidence in PDF/CSV/XLSX and show the distinct simulated/observed sections. `python -m scripts.browser_decisions` now exercises modification and all planning tabs (63 viewport checks).
