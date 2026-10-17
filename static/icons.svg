@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+<symbol id="dashboard" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></symbol>
+<symbol id="business" viewBox="0 0 24 24"><path d="M3 10h18L19 3H5zM5 10v11h14V10M9 21v-7h6v7M3 10q2 5 5 0 2 5 5 0 3 5 8 0"/></symbol>
+<symbol id="sparkles" viewBox="0 0 24 24"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5zM20 2v4M18 4h4"/></symbol>
+<symbol id="chart" viewBox="0 0 24 24"><path d="M4 3v17h17M8 15l4-5 4 3 5-7"/></symbol>
+<symbol id="report" viewBox="0 0 24 24"><path d="M14 3H5v18h14V8zM14 3v6h5M8 13h8M8 17h6"/></symbol>
+<symbol id="arrow" viewBox="0 0 24 24"><path d="M4 12h16M14 6l6 6-6 6"/></symbol>
+<symbol id="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+<symbol id="shield" viewBox="0 0 24 24"><path d="m12 3 8 3v6q0 6-8 10-8-4-8-10V6zM8 12l3 3 5-6"/></symbol>
+<symbol id="bell" viewBox="0 0 24 24"><path d="M5 16h14l-2-4V8a5 5 0 0 0-10 0v4zM10 20h4"/></symbol>
+<symbol id="upload" viewBox="0 0 24 24"><path d="M12 16V3M7 8l5-5 5 5M4 15v6h16v-6"/></symbol>
+<symbol id="download" viewBox="0 0 24 24"><path d="M12 3v13M7 11l5 5 5-5M4 16v5h16v-5"/></symbol>
+<symbol id="wallet" viewBox="0 0 24 24"><path d="M4 6h15v15H4zM4 6V3h12v3M15 11h6v5h-6z"/></symbol>
+<symbol id="trend" viewBox="0 0 24 24"><path d="m3 17 6-6 4 4 8-10M15 5h6v6"/></symbol>
+<symbol id="help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 8a3 3 0 1 1 4 3c-1 1-1 2-1 3M12 17h.01"/></symbol>
+<symbol id="send" viewBox="0 0 24 24"><path d="m3 3 19 9-19 9 4-9zM7 12h15"/></symbol>
+<symbol id="check" viewBox="0 0 24 24"><path d="m5 12 4 4L20 5"/></symbol>
+</svg>

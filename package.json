@@ -1,0 +1,1 @@
+{"name":"finpilot-ai","private":true,"scripts":{"build":"tailwindcss -i frontend/input.css -o static/css/tailwind.css --minify && node scripts/copy-assets.mjs"},"devDependencies":{"@tailwindcss/cli":"^4.1.0","tailwindcss":"^4.1.0","chart.js":"^4.4.9","htmx.org":"^2.0.4"},"overrides":{"@parcel/watcher":"^2.6.0"}}

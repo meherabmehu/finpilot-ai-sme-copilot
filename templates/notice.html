@@ -1,0 +1,1 @@
+{% extends 'base.html' %}{% block body %}<main class="notice-page"><a href="/" class="brand">FinPilot AI</a><section class="panel"><span class="action-icon blue">{% include 'partials/icon.html' with name='shield' %}</span><h1>{{ title }}</h1><p>{{ body }}</p><a class="button primary" href="{% url 'login' %}">Go to sign in →</a></section></main>{% endblock %}
