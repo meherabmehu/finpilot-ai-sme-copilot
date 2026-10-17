@@ -120,7 +120,7 @@ class BusinessForm(forms.ModelForm):
 class TransactionForm(forms.ModelForm):
     class Meta:
         model = Transaction
-        fields = ["date", "description", "amount", "kind", "category", "account", "status", "due_date", "reference", "notes"]
+        fields = ["date", "description", "amount", "kind", "category", "account", "status", "due_date", "reference", "notes", "is_critical", "recurring_obligation"]
         widgets = {
             "date": forms.DateInput(attrs={"type": "date"}),
             "due_date": forms.DateInput(attrs={"type": "date"}),
@@ -131,6 +131,7 @@ class TransactionForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.business = business
         self.fields["account"].queryset = business.accounts.all()
+        self.fields["recurring_obligation"].queryset = business.recurring_obligations.all()
         self.fields["account"].label_from_instance = lambda obj: obj.name
         self.fields["date"].initial = timezone.localdate()
         self.fields["account"].initial = business.accounts.first()
@@ -169,9 +170,14 @@ class LoanForm(forms.Form):
 
 
 class RecurringForm(forms.ModelForm):
+    category = forms.CharField(max_length=80, required=False, initial='General')
+
+    def clean_category(self):
+        return self.cleaned_data.get('category') or 'General'
+
     class Meta:
         model = RecurringObligation
-        fields = ["description", "amount", "direction", "next_due", "frequency"]
+        fields = ["description", "amount", "direction", "next_due", "frequency", "category", "is_critical"]
         widgets = {"next_due": forms.DateInput(attrs={"type": "date"})}
 
 

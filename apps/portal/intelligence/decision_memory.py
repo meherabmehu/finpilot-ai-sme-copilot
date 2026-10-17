@@ -10,7 +10,7 @@ from django.utils import timezone
 
 from ..access import authorized_business, audit
 from ..engine import summary, money, cash_effect
-from ..models import FinancialDecision, DecisionEvent
+from ..models import FinancialDecision, DecisionEvent, Business
 from .financial_state import build_state
 from .scenario_engine import evaluate_plan
 
@@ -21,6 +21,7 @@ TRANSITIONS = {'proposed': {'accepted', 'rejected', 'modified'}, 'modified': {'a
 @transaction.atomic
 def decide(user, business_id, decision_id, target, selected_plan='', feedback='', modified_plan=None):
     business = authorized_business(user, business_id, write=True)
+    Business.objects.select_for_update().get(pk=business.pk)
     decision = get_object_or_404(FinancialDecision.objects.select_for_update(), pk=decision_id, business=business)
     if target == decision.state and target != 'modified':
         return decision  # Retry-safe; no duplicate lifecycle events.
@@ -43,6 +44,8 @@ def decide(user, business_id, decision_id, target, selected_plan='', feedback=''
         current = build_state(business)
         if current['fingerprint'] != decision.investigation.snapshot['fingerprint']:
             raise ValidationError('Financial data or preferences changed. Run a fresh investigation before committing to a plan.')
+        if target == 'modified' and decision.state == 'modified' and decision.selected_snapshot == selected and decision.feedback == feedback[:4000]:
+            return decision
         decision.selected_plan = selected['name']
         decision.selected_snapshot = selected
         decision.expected = {'balance_at_review': selected['timeline']['ending_balance'], 'minimum_balance': selected['timeline']['minimum_balance'],

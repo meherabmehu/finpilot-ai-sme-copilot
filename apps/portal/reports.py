@@ -4,10 +4,11 @@ from django.http import HttpResponse
 from django.utils import timezone
 from .engine import summary, forecast
 from .imports import safe_cell
-from .access import audit
+from .access import audit, authorized_business
 
 
 def export_report(user, business, format, start, end, report_type="summary"):
+    business = authorized_business(user, business.pk)
     values = summary(business, start, end)
     rows = [
         ["FinPilot financial report", business.name],
@@ -17,7 +18,41 @@ def export_report(user, business, format, start, end, report_type="summary"):
         ["Source", "Synthetic demonstration records" if business.is_demo else "User-entered records; completeness unverified"],
         ["Basis", "Recorded operating summary; not audited net profit. Cash balance is as of period end."],
     ]
-    if report_type == "transactions":
+    if report_type in ('decisions', 'investigations', 'issues'):
+        rows.append(['Basis', 'Historical investigation snapshots and SIMULATED alternatives; observed outcomes are separately labeled. No causal improvement or external execution is inferred.'])
+        if report_type == 'issues':
+            rows.append(['Issue', 'Severity', 'Status', 'Calculated rule', 'Amount', 'As of'])
+            for issue in business.financial_issues.order_by('-checked_at'):
+                rows.append([issue.title, issue.severity, issue.status, issue.evidence.get('rule'), issue.evidence.get('amount'), issue.evidence.get('as_of')])
+        else:
+            for item in business.investigations.filter(created_at__date__gte=start, created_at__date__lte=end).select_related('decision').order_by('-created_at'):
+                decision = item.decision
+                rows.extend([
+                    ['Investigation', str(item.pk), item.question, item.created_at.isoformat()],
+                    ['Snapshot', item.snapshot['as_of'], item.snapshot['fingerprint'], item.snapshot['currency']],
+                    ['Calculated recorded cash', item.snapshot['known_cash']],
+                    ['Decision', decision.state, decision.selected_plan, 'Review', decision.review_date.isoformat()],
+                    ['Expected (SIMULATED)', str(decision.expected)],
+                    ['Observed outcome (if available)', str(decision.outcome)],
+                    ['Owner feedback', decision.feedback],
+                    ['Ranking', item.result['comparison']['objective']],
+                ])
+                for plan in item.result['comparison']['plans']:
+                    timeline = plan['timeline']
+                    rows.extend([
+                        ['SIMULATED plan', plan['name'], 'Within constraints', plan['feasible']],
+                        ['Minimum cash', timeline.get('minimum_balance', 'Unknown'), 'Lowest date', timeline.get('lowest_date', 'Unknown')],
+                        ['Reserve gap', timeline.get('funding_gap', 'Unknown'), 'Borrowing', plan['borrowing'], 'Full cost', plan['financing_cost']],
+                        ['Beyond-horizon liabilities', plan['deferred_liabilities']],
+                    ])
+                    for note in plan['dependencies'] + plan['tradeoffs'] + plan['violations']:
+                        rows.append(['Plan assumption / constraint', note])
+                if report_type == 'investigations':
+                    for node in item.result['evidence_graph']['nodes']:
+                        rows.append(['Evidence', node['id'], node.get('label'), node.get('amount'), node.get('date'), node.get('basis'), node.get('source'), node.get('formula')])
+                for note in item.snapshot['limitations']:
+                    rows.append(['Limitation', note])
+    elif report_type == "transactions":
         rows.append(["Date", "Description", "Type", "Amount", "Currency", "Status", "Category", "Reference"])
         rows.extend(
             [

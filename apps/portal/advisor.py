@@ -131,7 +131,26 @@ def run_tool(user, business_id, name, arguments):
 def answer(user, business, question, trace=None):
     authorized_business(user, business.pk)
     if not settings.LLM_API_KEY or not settings.LLM_MODEL:
-        return "AI Advisor not configured. Set LLM_API_KEY, LLM_BASE_URL and LLM_MODEL. The deterministic analysis below remains available."
+        state = build_state(business)
+        from .intelligence.investigation import question_context
+        focus = question_context(question, state)
+        comparison = compare_plans(state, suggested_plans(state))
+        parts = ["LLM provider not configured — deterministic investigation, not a generated AI answer.",
+                 f"Recorded cash as of {state['as_of']}: {state['known_cash'] or 'Unknown'} {state['currency']}."]
+        if state['projection'].get('available'):
+            timeline = state['projection']
+            parts.append(f"Dated-only minimum cash: {timeline['minimum_balance']} on {timeline['lowest_date']}; reserve funding gap: {timeline['funding_gap']}.")
+        else:
+            parts.append(state['projection']['reason'])
+        parts.extend(focus['missing_information'])
+        for plan in comparison['plans'][:4]:
+            parts.append(f"Simulated: {plan['name']} — remaining gap {plan.get('remaining_gap', 'unknown')}; financing {plan['borrowing']}; full financing cost {plan['financing_cost']}.")
+            parts.extend(plan['violations'] + plan['dependencies'])
+        if not focus['missing_information']:
+            parts.append("Best evaluated option for review: " + (comparison['recommended'] or 'Unknown; complete records first.'))
+        parts.extend(state['limitations'])
+        parts.append('Open the Financial Planning Decision Lab to save evidence and review alternatives. No external action has been taken.')
+        return "\n\n".join(parts)
     tools = [
         {
             "type": "function",

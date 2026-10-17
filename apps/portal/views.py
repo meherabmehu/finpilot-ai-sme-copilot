@@ -244,8 +244,10 @@ def my_business(request, business_id):
         authorized_business(request.user, business_id, write=True)
         form = BusinessForm(request.POST, instance=business)
         if form.is_valid():
-            form.save()
-            audit(request.user, business, "business.updated", business.pk)
+            with db_transaction.atomic():
+                Business.objects.select_for_update().get(pk=business.pk)
+                form.save()
+                audit(request.user, business, "business.updated", business.pk)
             messages.success(request, "Business details updated.")
             return redirect(reverse("my_business", args=[business.pk]))
     rows = business.transactions.filter(archived=False)
@@ -315,6 +317,7 @@ def transaction_edit(request, business_id, pk=None):
     form = TransactionForm(request.POST or None, instance=item, business=business)
     if request.method == "POST" and form.is_valid():
         with db_transaction.atomic():
+            Business.objects.select_for_update().get(pk=business.pk)
             item = form.save(commit=False)
             item.business = business
             item.currency = business.currency
@@ -567,7 +570,22 @@ def issue_detail(request, business_id, pk):
 def decision_update(request, business_id, pk):
     business = authorized_business(request.user, business_id, write=True)
     item = get_object_or_404(FinancialDecision, business=business, pk=pk)
-    form = DecisionForm(request.POST)
+    payload = request.POST.copy()
+    if payload.get('target') == 'modified' and not payload.get('modified_plan'):
+        import json
+        actions = []
+        for index in range(3):
+            kind = payload.get(f'kind_{index}')
+            if kind:
+                actions.append({'kind': kind, 'event_id': payload.get(f'event_{index}', ''),
+                                'days': payload.get(f'days_{index}') or 0,
+                                'amount': payload.get(f'amount_{index}') or '0',
+                                'date': payload.get(f'date_{index}', ''),
+                                'annual_rate': payload.get(f'rate_{index}') or '0',
+                                'months': payload.get(f'months_{index}') or 12,
+                                'fee': payload.get(f'fee_{index}') or '0'})
+        payload['modified_plan'] = json.dumps({'name': payload.get('plan_name', ''), 'actions': actions})
+    form = DecisionForm(payload)
     if form.is_valid():
         try:
             decide(request.user, business.pk, item.pk, **form.cleaned_data)

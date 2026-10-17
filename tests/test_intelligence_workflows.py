@@ -95,3 +95,74 @@ def test_bad_input_is_safe(client, owner, business, investigation):
     assert response.status_code == 302
     investigation.decision.refresh_from_db()
     assert investigation.decision.state == 'proposed'
+
+
+def test_friendly_modified_plan_retry(client, owner, business, investigation):
+    client.force_login(owner)
+    original = next(p for p in investigation.result['comparison']['plans'] if p['name'] == 'Discuss supplier timing')
+    action = original['actions'][0]
+    payload = {'target': 'modified', 'plan_name': 'My supplier proposal', 'kind_0': 'shift',
+               'event_0': action['event_id'], 'days_0': action['days'], 'feedback': 'Subject to supplier agreement'}
+    url = reverse('decision_update', args=[business.pk, investigation.decision.pk])
+    client.post(url, payload)
+    client.post(url, payload)
+    decision = investigation.decision
+    decision.refresh_from_db()
+    assert decision.state == 'modified'
+    assert decision.events.filter(to_state='modified').count() == 1
+    client.post(url, {'target': 'accepted', 'selected_plan': decision.selected_plan})
+    decision.refresh_from_db()
+    assert decision.state == 'accepted'
+
+
+@pytest.mark.parametrize('kind', ['decisions', 'investigations', 'issues'])
+@pytest.mark.parametrize('format', ['csv', 'xlsx', 'pdf'])
+def test_agentic_exports(client, owner, business, investigation, kind, format):
+    client.force_login(owner)
+    response = client.get(reverse('reports', args=[business.pk]), {'type': kind, 'format': format})
+    assert response.status_code == 200
+    assert len(response.content) > 100
+    if format == 'csv':
+        assert b'SIMULATED' in response.content
+        if kind == 'investigations':
+            assert b'opening balance + paid inflows' in response.content
+
+
+def test_no_provider_analysis_is_useful(owner, business, investigation, settings):
+    from apps.portal.advisor import answer
+    settings.LLM_API_KEY = ''
+    settings.LLM_MODEL = ''
+    result = answer(owner, business, investigation.question)
+    assert 'deterministic investigation' in result
+    assert '-300.00' in result
+    assert 'Supplier agreement' in result
+    assert 'Simulated:' in result
+
+
+def test_debug_demo_reconciles_and_resets(settings, monkeypatch, db):
+    from io import StringIO
+    from django.core.management import call_command, CommandError
+    from apps.portal.models import Business
+    from apps.portal.intelligence.financial_state import build_state
+    from apps.portal.intelligence.decision_memory import decide
+    monkeypatch.setenv('DEMO_PASSWORD', 'synthetic-test-password-only')
+    settings.DEBUG = True
+    output = StringIO()
+    call_command('seed_decision_demo', stdout=output)
+    demo = Business.objects.get(is_demo=True)
+    assert build_state(demo)['projection']['minimum_balance'] == '-300.00'
+    assert build_state(demo)['projection']['ending_balance'] == '300.00'
+    owner = demo.memberships.get().user
+    item = run_investigation(owner, demo.pk, 'Can I cover supplier and payroll?')
+    assert len(item.result['comparison']['plans']) >= 3
+    decide(owner, demo.pk, item.decision.pk, 'accepted', item.result['recommended'])
+    call_command('seed_decision_demo', follow_up=True, stdout=output)
+    item.decision.refresh_from_db()
+    assert item.decision.outcome['actual_balance'] == '300.00'
+    assert item.decision.outcome['difference'] == '0.00'
+    call_command('seed_decision_demo', reset=True, stdout=output)
+    assert demo.decisions.count() == 0
+    assert demo.transactions.count() == 4
+    settings.DEBUG = False
+    with pytest.raises(CommandError):
+        call_command('seed_decision_demo', stdout=output)
