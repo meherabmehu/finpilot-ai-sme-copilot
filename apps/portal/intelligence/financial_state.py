@@ -140,6 +140,7 @@ def build_state(business, as_of=None):
     projection = cash_timeline(cash, events, as_of, days, Decimal(policy['reserve'])) if complete else {'available': False, 'reason': 'Confirm opening cash, currency consistency, dated obligations and complete records before estimating liquidity.'}
     state = {'business_id': str(business.pk), 'currency': business.currency, 'as_of': as_of.isoformat(), 'end_date': end.isoformat(),
              'known_cash': str(cash) if cash is not None else None, 'cash_basis': 'calculated from recorded paid movements and opening balance' if cash is not None else 'unknown',
+             'opening_date': business.opening_date.isoformat(),
              'opening_balance': str(business.opening_balance) if business.opening_balance is not None else None,
              'complete': complete, 'record_count': len(rows), 'policy': policy,
              'period_start': (as_of - timedelta(days=29)).isoformat(), 'events': [event.model_dump(mode='json') for event in sorted(events, key=lambda e: (e.date, e.id))],

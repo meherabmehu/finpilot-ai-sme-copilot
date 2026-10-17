@@ -227,7 +227,9 @@ def dashboard(request, business_id):
             "end": end,
         }
     )
-    data['watchtower'] = detect_issues(data['financial_state'])[:5]
+    saved_issues = dict(business.financial_issues.values_list('code', 'pk'))
+    data['watchtower'] = [issue | {'saved_id': saved_issues.get(issue['code'])}
+                          for issue in detect_issues(data['financial_state'])[:5]]
     data['monitoring'] = business.monitoring_runs.order_by('-started_at').first()
     data['active_decisions'] = business.decisions.filter(state__in=['accepted', 'monitoring']).count()
     return render(request, "dashboard.html", data)
@@ -284,8 +286,10 @@ def my_business(request, business_id):
 
 @login_required
 @require_POST
+@db_transaction.atomic
 def recurring_add(request, business_id):
     business = authorized_business(request.user, business_id, write=True)
+    business = Business.objects.select_for_update().get(pk=business.pk)
     form = RecurringForm(request.POST)
     if form.is_valid():
         item = form.save(commit=False)
@@ -300,8 +304,10 @@ def recurring_add(request, business_id):
 
 @login_required
 @require_POST
+@db_transaction.atomic
 def recurring_disable(request, business_id, pk):
     business = authorized_business(request.user, business_id, write=True)
+    business = Business.objects.select_for_update().get(pk=business.pk)
     item = get_object_or_404(RecurringObligation, business=business, pk=pk)
     item.active = False
     item.save(update_fields=["active"])
@@ -338,8 +344,10 @@ def transaction_edit(request, business_id, pk=None):
 
 @login_required
 @require_POST
+@db_transaction.atomic
 def transaction_archive(request, business_id, pk):
     business = authorized_business(request.user, business_id, write=True)
+    business = Business.objects.select_for_update().get(pk=business.pk)
     item = get_object_or_404(Transaction, pk=pk, business=business)
     item.archived = True
     item.save(update_fields=["archived"])
@@ -367,8 +375,10 @@ def upload(request, business_id):
 
 @login_required
 @require_POST
+@db_transaction.atomic
 def import_confirm(request, business_id, pk):
     business = authorized_business(request.user, business_id, write=True)
+    business = Business.objects.select_for_update().get(pk=business.pk)
     get_object_or_404(DataImport, pk=pk, business=business)
     try:
         count = confirm_import(business, request.user, pk)

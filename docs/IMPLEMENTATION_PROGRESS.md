@@ -34,3 +34,12 @@
 - Added DEBUG-only seed_decision_demo with explicit synthetic reset/follow-up. Test verifies known cash 1000, baseline minimum -300, ending 300, at least three alternatives and observed-versus-expected difference 0 for the chosen timing plan.
 - Verification: 20 integration/demo tests passed. Full suite before demo addition: 118 passed. Frontend npm ci/build succeeded; collectstatic succeeded; Ruff passed. Regression during development (missing legacy recurring category) fixed with a backward-compatible General default.
 - Remaining: financial edge-case regression review, browser/responsive sweep, full final verification and architecture/security documentation. PostgreSQL contention and live scheduler/provider remain unverified.
+
+## Checkpoint 3 — validation and safety hardening
+- Parent checkpoint d6080cc. Fixed snapshot freshness checks for issue refresh; business/opening-date fingerprinting; acceptance reloads business after locking; serialized additional record/recurrence/import mutations. Policy form disallows negative reserves.
+- Added same-day payment-first regression, stale/foreign issue-state denials, opening-date fingerprint regression and formula-injection checks for new evidence exports.
+- Fixed a Dashboard title-block duplication discovered on inspection, moved the single Watchtower directly below stats, and used the existing scroll container for expanded timelines.
+- Final code verification: Django check passed; migration drift: none; frontend build and collectstatic passed; pytest 124 passed; Ruff passed. Local SQLite migrations through existing 0004 applied successfully. No new migration created.
+- Chromium: finite local login → investigation → acceptance → monitoring flow passed. 42 page-width checks (five primary pages plus saved detail at 320/375/390/768/1024/1440/1920), with detail sections expanded, reported zero page overflow and zero JavaScript errors. This is not an accessibility audit or physical-device verification.
+- Management command actually invoked on the local synthetic business; MonitoringRun completed, four detected issues, three reviewed decisions, notification_sent false. No deployed scheduler was inspected.
+- Public fetch reconfirmed remote still at 14664dd. Secure push remains blocked. No external provider, production database/deployment or PostgreSQL contention check was performed.

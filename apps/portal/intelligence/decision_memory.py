@@ -21,7 +21,7 @@ TRANSITIONS = {'proposed': {'accepted', 'rejected', 'modified'}, 'modified': {'a
 @transaction.atomic
 def decide(user, business_id, decision_id, target, selected_plan='', feedback='', modified_plan=None):
     business = authorized_business(user, business_id, write=True)
-    Business.objects.select_for_update().get(pk=business.pk)
+    business = Business.objects.select_for_update().get(pk=business.pk)
     decision = get_object_or_404(FinancialDecision.objects.select_for_update(), pk=decision_id, business=business)
     if target == decision.state and target != 'modified':
         return decision  # Retry-safe; no duplicate lifecycle events.

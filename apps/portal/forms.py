@@ -74,6 +74,7 @@ class SignupForm(UserCreationForm):
 
 
 class BusinessForm(forms.ModelForm):
+    low_cash_threshold = forms.DecimalField(min_value=0, max_digits=18, decimal_places=2, initial=0)
     country = forms.ChoiceField(choices=COUNTRIES[:-1])
     currency = forms.ChoiceField(choices=CURRENCIES)
     category = forms.ChoiceField(

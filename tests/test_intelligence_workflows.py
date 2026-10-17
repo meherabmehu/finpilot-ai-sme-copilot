@@ -166,3 +166,27 @@ def test_debug_demo_reconciles_and_resets(settings, monkeypatch, db):
     settings.DEBUG = False
     with pytest.raises(CommandError):
         call_command('seed_decision_demo', stdout=output)
+
+
+def test_investigation_export_escapes_formula_questions(client, owner, business):
+    import io
+    import openpyxl
+    item = run_investigation(owner, business.pk, '=HYPERLINK("https://invalid.example","click")')
+    client.force_login(owner)
+    url = reverse('reports', args=[business.pk])
+    response = client.get(url, {'type': 'investigations', 'format': 'csv'})
+    assert "'=HYPERLINK" in response.content.decode()
+    response = client.get(url, {'type': 'investigations', 'format': 'xlsx'})
+    book = openpyxl.load_workbook(io.BytesIO(response.content))
+    cells = [cell for row in book.active for cell in row]
+    assert any(str(cell.value).startswith("'=HYPERLINK") for cell in cells)
+    assert all(cell.data_type != 'f' for cell in cells)
+    assert item.snapshot['business_id'] == str(business.pk)
+
+
+def test_dashboard_title_and_single_watchtower(client, owner, business):
+    client.force_login(owner)
+    response = client.get(reverse('dashboard', args=[business.pk]))
+    body = response.content.decode()
+    assert '<title>Dashboard · FinPilot AI</title>' in body
+    assert body.count('<h2>Financial Watchtower</h2>') == 1

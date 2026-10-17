@@ -87,5 +87,5 @@ def run_investigation(user, business_id, question, issue_id=None, request_key=No
         decision = FinancialDecision.objects.create(business=business, investigation=item, review_date=date.fromisoformat(state['end_date']))
         DecisionEvent.objects.create(decision=decision, user=user, to_state='proposed', details={'source': 'completed deterministic investigation'})
         audit(user, business, 'investigation.completed', item.pk, {'tools': len(trace), 'snapshot': state['fingerprint']})
-    refresh_issues(business, state)
+    refresh_issues(business)
     return item

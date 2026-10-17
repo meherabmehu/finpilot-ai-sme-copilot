@@ -1,7 +1,8 @@
 """Retryable monitoring; detection and internal attention are separate from notifications."""
 
+from django.db import transaction
 from django.utils import timezone
-from ..models import MonitoringRun
+from ..models import MonitoringRun, Business
 from .financial_state import build_state
 from .issue_detection import refresh_issues
 from .decision_memory import monitor_decision
@@ -10,8 +11,10 @@ from .decision_memory import monitor_decision
 def monitor_business(business):
     run = MonitoringRun.objects.create(business=business)
     try:
-        state = build_state(business)
-        detected = refresh_issues(business, state)
+        with transaction.atomic():
+            business = Business.objects.select_for_update().get(pk=business.pk)
+            state = build_state(business)
+            detected = refresh_issues(business, state)
         reviewed = 0
         for decision in business.decisions.filter(state__in=['accepted', 'monitoring']).iterator(chunk_size=100):
             monitor_decision(decision)

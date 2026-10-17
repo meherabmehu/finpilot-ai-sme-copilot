@@ -34,6 +34,7 @@ def export_report(user, business, format, start, end, report_type="summary"):
                     ['Decision', decision.state, decision.selected_plan, 'Review', decision.review_date.isoformat()],
                     ['Expected (SIMULATED)', str(decision.expected)],
                     ['Observed outcome (if available)', str(decision.outcome)],
+                    ['Selected plan (SIMULATED)', str(decision.selected_snapshot)],
                     ['Owner feedback', decision.feedback],
                     ['Ranking', item.result['comparison']['objective']],
                 ])

@@ -65,8 +65,13 @@ def detect_issues(state):
 def refresh_issues(business, state=None):
     # Serialize same-business refreshes. No provider calls run under this lock.
     from ..models import Business
-    Business.objects.select_for_update().get(pk=business.pk)
-    state = state or build_state(business)
+    business = Business.objects.select_for_update().get(pk=business.pk)
+    if state is not None and state['business_id'] != str(business.pk):
+        raise ValueError('Financial snapshot does not belong to this business.')
+    current = build_state(business)
+    if state is not None and state['fingerprint'] != current['fingerprint']:
+        raise ValueError('Financial snapshot is stale; refresh and retry.')
+    state = current
     now = timezone.now()
     detected = detect_issues(state)
     for values in detected:

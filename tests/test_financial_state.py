@@ -81,3 +81,32 @@ def test_health_dimensions_are_explicit_not_a_blended_score(business, entry):
     assert len(dimensions) == 8
     assert all('rule' in dimension and 'basis' in dimension for dimension in dimensions)
     assert Decimal(next(d['value'] for d in dimensions if d['name'] == 'Cash coverage (days)')) == 70
+
+
+def test_same_day_estimates_disclose_payment_first_risk(business, entry):
+    due = timezone.localdate()+timedelta(days=2)
+    entry(kind='receivable', status='pending', amount=900, due_date=due)
+    entry(kind='payable', status='pending', amount=1500, due_date=due)
+    state = build_state(business)
+    assert state['known_cash'] == '1000.00'
+    assert state['projection']['minimum_balance'] == '400.00'
+    assert state['projection']['intraday_gap'] == '500.00'
+    assert 'assumed' in state['events'][0]['basis']
+
+
+def test_refresh_rejects_foreign_and_stale_snapshots(business, entry):
+    import pytest
+    state = build_state(business)
+    entry(amount=10)
+    with pytest.raises(ValueError, match='stale'):
+        refresh_issues(business, state)
+    state['business_id'] = 'not-this-business'
+    with pytest.raises(ValueError, match='belong'):
+        refresh_issues(business, state)
+
+
+def test_fingerprint_includes_opening_date(business):
+    before = build_state(business)
+    business.opening_date -= timedelta(days=1)
+    business.save()
+    assert build_state(business)['fingerprint'] != before['fingerprint']
