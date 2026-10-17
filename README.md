@@ -1,0 +1,62 @@
+# FinPilot AI
+
+A Django financial copilot for SMEs, built for the 2026 FinTechathon, Topic E. One account can manage independent business workspaces through exactly five primary pages: Dashboard, My Business, AI Advisor, Financial Planning, and Reports.
+
+## Local setup (PowerShell)
+
+Python 3.13 or 3.14 and Node 24 are supported by this checkout. PostgreSQL is required in production. SQLite is an explicit local development fallback.
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python -m pip install -r requirements.txt
+Copy-Item .env.example .env
+# Edit .env: use a random SECRET_KEY; set PostgreSQL and SMTP if available.
+$env:DEBUG='true'
+npm.cmd ci
+npm.cmd run build
+.\.venv\Scripts\python manage.py migrate
+.\.venv\Scripts\python manage.py collectstatic --noinput
+.\.venv\Scripts\python manage.py runserver 127.0.0.1:8000
+```
+
+Open http://127.0.0.1:8000. Register, then use the verification link printed in the development server console. In production configure SMTP. The environment's `DEBUG` variable overrides `.env`; set it explicitly when needed.
+
+## Synthetic demonstration
+
+```powershell
+$env:DEBUG='true'
+$env:DEMO_PASSWORD='Choose-your-own-long-demo-password'
+.\.venv\Scripts\python manage.py seed_demo
+.\.venv\Scripts\python manage.py monitor_finances
+```
+
+Sign in as `demo@finpilot.local` with the password you supplied. Three synthetic businesses contain six months of distinct records. The command is idempotent and disabled when DEBUG is false. Existing demo account passwords are not reset by rerunning it. Never use this seed in production.
+
+## Validation
+
+```powershell
+$env:DEBUG='true'
+.\.venv\Scripts\python manage.py check
+.\.venv\Scripts\python manage.py makemigrations --check --dry-run
+.\.venv\Scripts\python -m pytest -q
+.\.venv\Scripts\ruff check .
+.\.venv\Scripts\python -m playwright install chromium
+.\.venv\Scripts\python scripts/browser_check.py
+```
+
+Browser checks require a running local server, seeded demo, and the same `DEMO_PASSWORD`. They create local-only screenshots under ignored `test-results/`.
+
+## Project layout
+
+- `config/`: settings, URL routing and WSGI.
+- `apps/portal/`: normalized models, authorization, forms, views, imports, reports, financial engine, read-only AI adapter and management commands.
+- `templates/`: public website, authentication, onboarding and five portal pages.
+- `frontend/`, `static/`: locally compiled Tailwind, custom responsive CSS, vanilla JS, vendored Chart.js and HTMX.
+- `tests/`: financial known-answer, isolation, permissions, import, auth and export checks.
+- `docs/`: architecture, deployment, methodology, security, limitations and presentation guide.
+
+## Configuration-dependent integrations
+
+`LLM_API_KEY`, `LLM_BASE_URL` and `LLM_MODEL` enable an OpenAI-compatible chat-completions API. No API calls or genuine AI claims are made without these settings. This is protocol interoperability, not a universal adapter for every provider's API. SMTP enables external email delivery. No bank API, payment execution, ML training or downloaded trained model is included.
+
+See [deployment](docs/DEPLOYMENT.md), [security](docs/SECURITY.md), [limitations](docs/LIMITATIONS.md), and [testing](docs/TESTING.md). The UI follows the supplied references with a quieter blue/navy palette and responsive layouts.
