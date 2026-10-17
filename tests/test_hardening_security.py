@@ -176,3 +176,18 @@ def test_production_denial_is_generic(client, owner, business, settings):
     assert response.status_code == 404
     assert b'Traceback' not in response.content and b'opening_balance' not in response.content
     assert response['X-Content-Type-Options'] == 'nosniff'
+
+
+def test_legacy_alert_uses_business_expense_growth_policy(owner, business, entry):
+    from apps.portal.models import FinancialPolicy
+    today = timezone.localdate()
+    entry(kind='expense',amount=100,date=today-timedelta(days=40))
+    entry(kind='expense',amount=140)
+    policy = FinancialPolicy.objects.create(business=business,expense_increase_percent=50)
+    call_command('monitor_finances',business=str(business.pk))
+    assert not business.alerts.get(code='expense_increase').active
+    policy.expense_increase_percent = 25
+    policy.save()
+    call_command('monitor_finances',business=str(business.pk))
+    alert = business.alerts.get(code='expense_increase')
+    assert alert.active and '25%' in alert.message

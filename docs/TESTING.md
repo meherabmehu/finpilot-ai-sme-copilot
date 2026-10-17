@@ -5,8 +5,8 @@
 Starting commit 3fd006e, branch feat/finpilot-platform. Unchanged baseline after requirements installation, npm ci/build and collectstatic: 124 passed. Initial missing Django/Ruff executables were workspace dependency prerequisites, not application failures.
 
 Final executed checks:
-- SQLite: **147 passed, 2 skipped** (only PostgreSQL-specific concurrency tests), 39.92 seconds.
-- Disposable local PostgreSQL 17: **149 passed, 0 skipped**, 43.45 seconds, including concurrent preview/confirmation and accept/monitor threads. Created a fresh local role/database; pytest created/destroyed its separate test database. No production database used.
+- SQLite: **149 passed, 2 skipped** (only PostgreSQL-specific concurrency tests), 40.51 seconds.
+- Disposable local PostgreSQL 17: **151 passed, 0 skipped**, 44.00 seconds, including concurrent preview/confirmation and accept/monitor threads. Created a fresh local role/database; pytest created/destroyed its separate test database. No production database used.
 - Django check, makemigrations --check --dry-run: passed, no new migrations.
 - DEBUG=false `check --deploy`: passed using ephemeral secret and isolated local database settings, not deployed production verification.
 - Frontend build, collectstatic, Ruff, diff whitespace and staged credential-pattern checks passed.
@@ -17,7 +17,7 @@ Independent Decimal annuity check: principal 10000, nominal annual 12%, 12 month
 
 New regressions cover repeat/corrected/ambiguous-reference imports, earned-vs-cash semantics, question-specific overdue/expense evidence, no-borrowing custom plans, unresolved reserve gaps, linked forecast schedules and WAPE diagnostics, structured report sections/types, resource ID tenant boundaries, viewer/CSRF denials, mocked malicious tools/descriptions, safe monitoring failures, source-record outcome changes, manual record replay and generic production denial. These are scoped security checks, not a penetration test or proof of all possible race interleavings.
 
-Not verified live: provider/SMTP, installed scheduler, production migration/deploy/runtime, external evaluation ZIP, Safari/physical hardware or comprehensive assistive-technology/contrast audit. No paid service or production setting was activated.
+Not verified live: provider/SMTP, installed scheduler, production migration/deploy/runtime, external evaluation ZIP, Safari/physical hardware or comprehensive assistive-technology/contrast audit. No paid service or production setting was activated. Final compatibility checks also cover no-borrowing enforcement on legacy saved investigations and business-specific expense thresholds in legacy alert cards.
 
 To run local SQLite checks, use README build/collectstatic commands. For PostgreSQL use an explicitly disposable database, a role allowed to create its own pytest test database, and the standard POSTGRES_* or DATABASE_URL configuration. Do NOT point tests at a production database or enable --reuse-db on shared business databases.
 

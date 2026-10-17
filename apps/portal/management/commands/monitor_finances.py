@@ -25,6 +25,8 @@ class Command(BaseCommand):
                 self.stderr.write('A business monitoring run failed; inspect MonitoringRun and retry. No sensitive details logged.')
                 failures += 1
                 continue
+            from apps.portal.intelligence.financial_state import policy_for
+            expense_threshold = policy_for(business)['expense_increase_percent']
             current = summary(business, today - timedelta(days=29))
             previous = summary(business, today - timedelta(days=59), today - timedelta(days=30))
             newest = business.transactions.filter(archived=False).order_by("-date").first()
@@ -54,8 +56,8 @@ class Command(BaseCommand):
                     "Supplier payments are due within seven days.",
                 ),
                 "expense_increase": (
-                    previous["expenses"] > 0 and current["expenses"] > previous["expenses"] * Decimal("1.25"),
-                    "Recorded operating expenses increased by over 25% against the preceding 30 days.",
+                    previous["expenses"] > 0 and current["expenses"] > previous["expenses"] * (1 + Decimal(expense_threshold)/100),
+                    f"Recorded operating expenses increased by over {expense_threshold}% against the preceding 30 days.",
                 ),
                 "revenue_decline": (
                     previous["revenue"] > 0 and current["revenue"] < previous["revenue"] * Decimal(".8"),

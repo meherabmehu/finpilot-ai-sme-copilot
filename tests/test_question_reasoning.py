@@ -77,3 +77,14 @@ def test_no_borrowing_constraint_applies_to_custom_modification(owner, business,
     assert question_comparison(item.snapshot, item.result['analysis'], [plan])['recommended'] is None
     with pytest.raises(ValidationError, match='Borrowing is excluded'):
         decide(owner, business.pk, item.decision.pk, 'modified', modified_plan=plan)
+
+
+def test_legacy_investigation_also_honors_original_no_loan_question(owner, business, entry):
+    FinancialPolicy.objects.create(business=business,max_borrowing=1000)
+    entry(kind='payable',status='pending',amount=1200,due_date=timezone.localdate()+timedelta(days=3))
+    item = run_investigation(owner,business.pk,'Cash alternatives without a loan')
+    item.result['focus'].pop('analysis')  # simulate a saved pre-hardening result, without rewriting its question/evidence
+    item.save(update_fields=['result'])
+    with pytest.raises(ValidationError,match='Borrowing is excluded'):
+        decide(owner,business.pk,item.decision.pk,'modified',modified_plan={'name':'Loan','actions':[
+            {'kind':'finance','amount':'300','date':(timezone.localdate()+timedelta(days=1)).isoformat()}]})

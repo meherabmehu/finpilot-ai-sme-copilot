@@ -106,3 +106,10 @@
 - Ready for the documented synthetic competition walkthrough with explicit limitations. Not a claim of production certification or independent validation of LLM answers/prediction accuracy. Remaining tasks: external scheduler/provider/evaluation package, production deployment observation, broader accessibility/device testing and production-specific operations.
 - Release review: backward-compatible fields in existing JSON snapshots; no destructive database migration or production data change. An ordinary branch push may trigger the existing Vercel webhook. Do not separately deploy or seed production.
 - GitHub delivery status for this hardening batch is recorded after the normal push below; do not infer deployment success merely from Git delivery.
+
+
+## Final legacy compatibility checks and delivery
+- First verified normal hardening push succeeded: 3fd006e → 65795ca, publishing all six initial hardening commits. No force-push, remote rewrite or separate deployment command. No credential in source/remote URL/commit; authentication was ephemeral.
+- Final inspection additionally found that old saved investigation results lack new intent fields and legacy alert cards had a fixed expense-growth threshold. Added original-question no-borrowing enforcement for legacy modifications and made legacy alerts use each business's configured expense threshold. Original snapshots stay unchanged.
+- Final full suites after these compatibility fixes: **149 passed / 2 PostgreSQL-only skipped on SQLite**, **151 passed / 0 skipped on isolated PostgreSQL 17**, Ruff clean. Two new regressions verify those exact legacy cases. All earlier workflow and concurrency tests retained.
+- Production Vercel deployment/runtime, actual SMTP/LLM and installed scheduler remain unverified; do not conflate successful Git push with production validation. The external evaluation ZIP remains unavailable; adapter specification is ready for handoff.
