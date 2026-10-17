@@ -26,4 +26,18 @@ Verify the provider deploy reaches a successful state, `/health/` returns 200 fr
 
 Prepared configuration is not proof of a completed deployment. The live URL must come from the provider's successful deployment result.
 
+## Verified deployment — 17 October 2026
+
+- Public URL: https://finpilot-ai-sme-copilot.vercel.app
+- Vercel project: `finpilot-ai-sme-copilot`, scope `meherabmehus-projects`.
+- Verified production deployment: `dpl_5dLAtKnEMBat7F8SSkc82C2Fh2uZ`, status READY.
+- Backend: Django 5.2.18 / Python 3.13; function and database region Singapore.
+- Database: free Neon integration resource `finpilot-postgres`; all checked-in migrations applied. No local SQLite or demo records were uploaded.
+- HTTPS landing, login, signup and responsive CSS returned 200. `/health/` returned 200 and `ok` from an actual database query. Anonymous workspace access redirects to login.
+- `scripts/live_check.py` passed 16 responsive public page checks at 320, 390, 768 and 1440px, plus a real CSRF-protected invalid-credentials login POST. No JavaScript errors were observed.
+- Local regression suite: 77 tests passed. External SMTP and LLM credentials remain unconfigured; email delivery and genuine AI answers are not claimed.
+- GitHub repository connection is enabled in Vercel. Cloud cron monitoring and production-account onboarding have not been verified.
+
+Recheck with `python scripts/live_check.py https://finpilot-ai-sme-copilot.vercel.app`. This script neither creates production users nor changes financial records.
+
 Sources: [Render Django](https://render.com/docs/deploy-django), [Render Blueprint specification](https://render.com/docs/blueprint-spec), [Render free-plan limits](https://render.com/docs/free), [Vercel Django](https://vercel.com/docs/frameworks/full-stack/django).
