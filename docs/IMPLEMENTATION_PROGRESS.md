@@ -53,3 +53,11 @@
 - Required release verification: configure secure GitHub credentials, inspect `git status` and current remote HEAD, rerun tests if anything changes, reconcile any new remote work safely, then ordinary push to the same branch. Existing branch may trigger auto-deployment; verify migration 0004 availability/application in deployment before release. Do not separately deploy, force-push, change production settings or seed production.
 - Remaining product limits: policy_feedback is service-only; issue exports are latest persisted monitoring state; external lender metadata isn't independently verified; snapshot immutability is application-level; date interpretation is guided rather than general financial-language understanding. Advanced action counts use JSON; synthetic follow-up is limited to simple timing plans.
 - Recommended next validation: PostgreSQL concurrent mutation/acceptance tests; configured-provider end-to-end execution; scheduler invocation/error alerting; assistive technology and physical-device walkthrough. No production readiness claim is made.
+
+
+## GitHub delivery completed — subsequent authorized push
+- User explicitly authorized using the supplied credential for a normal push. Authentication was scoped to the Git subprocess via an ephemeral environment and temporary secret-free askpass helper; the helper was removed. No credential was written into the repository, remote URL or commit history.
+- Re-fetched the existing branch and confirmed it was an ancestor of local HEAD; no remote work needed reconciliation.
+- Re-ran Django check, migration drift check, pytest (124 passed), Ruff and diff whitespace checks successfully.
+- Normal push succeeded: remote advanced from 14664dd to cd275c2. All four implementation/documentation commits are now published. No force-push, branch creation or separate deployment command occurred.
+- This delivery note supersedes earlier authentication-blocked status. Production deployment, migration application and scheduler/provider verification remain unverified; a push may trigger the existing deployment webhook.
