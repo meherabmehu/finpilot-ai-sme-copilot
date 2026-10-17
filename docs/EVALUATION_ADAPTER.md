@@ -1,6 +1,8 @@
 # Portable evaluation package adapter specification
 
-Status: specification only. `FinPilot-Agentic-Evaluation-Complete.zip` is not present, has not been inspected, and is not claimed integrated. Current fixes and independent known-answer tests do not depend on it.
+Historical specification (superseded by [the actual integration](AGENTIC_EVALUATION_INTEGRATION.md) and [measured results](AGENTIC_EVALUATION_RESULTS.md)). The remainder records the earlier pre-package design, not current integration status.
+
+Original status: specification only. `FinPilot-Agentic-Evaluation-Complete.zip` is not present, has not been inspected, and is not claimed integrated. Current fixes and independent known-answer tests do not depend on it.
 
 ## Boundary and execution
 A future adapter must read versioned JSON/CSV fixture data, never execute code from the archive. Validate ZIP traversal/expanded size before extracting, reject extra schema fields, and run only against a disposable test database. Do not load production financial records. Do not install arbitrary evaluator dependencies or model artifacts automatically.

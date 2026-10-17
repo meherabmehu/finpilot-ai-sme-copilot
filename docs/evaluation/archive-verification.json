@@ -1,0 +1,22 @@
+[
+  {
+    "filename": "FinPilot-Agentic-Evaluation-Complete.zip",
+    "bytes": 1494153,
+    "sha256": "77c1fa20b3f173031ad8e16a2720097643ef9d93e7c736e9feaf3e6097f81f25",
+    "entries": 264,
+    "uncompressed_bytes": 9787907,
+    "crc": "pass",
+    "paths_duplicates_symlinks": "pass",
+    "extracted": "/home/user/evaluation-artifacts/complete"
+  },
+  {
+    "filename": "FinPilot-Agentic-Evaluation-Review.zip",
+    "bytes": 733793,
+    "sha256": "cea3442711c9d3d1c99872c7d3897af9246d22bca9b3359dfba0b50a12b20e95",
+    "entries": 143,
+    "uncompressed_bytes": 4488948,
+    "crc": "pass",
+    "paths_duplicates_symlinks": "pass",
+    "extracted": "/home/user/evaluation-artifacts/review"
+  }
+]

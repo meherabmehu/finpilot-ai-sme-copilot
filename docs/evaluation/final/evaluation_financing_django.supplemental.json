@@ -1,0 +1,18 @@
+{
+  "kind": "actual-application-supplemental-v1",
+  "lifecycle": [],
+  "pairs": [],
+  "suite": "financing",
+  "summary": {
+    "cleanup_confirmed_cases": 14,
+    "ledger_mutation_findings": 0,
+    "lifecycle_assertions": 0,
+    "lifecycle_cases": 0,
+    "literal_matches": 0,
+    "literal_mismatches": 0,
+    "nonwording_mismatches": 0,
+    "pair_groups_checked": 0,
+    "pair_groups_hold": 0
+  },
+  "upstream_score_unchanged": true
+}

@@ -1,0 +1,37 @@
+{
+  "checked_source_commit": "a283348",
+  "application_sqlite": {
+    "passed": 179,
+    "skipped": 2,
+    "seconds": 41.79
+  },
+  "application_postgresql": {
+    "passed": 181,
+    "skipped": 0,
+    "seconds": 44.78
+  },
+  "benchmark_original": {
+    "passed": 978,
+    "skipped": 1,
+    "seconds": 9.79
+  },
+  "original_scenarios_validated": 172,
+  "committed_schema_valid_reports": 9,
+  "ruff": "passed",
+  "django_check": "passed",
+  "migration_drift": "none",
+  "frontend_build": "passed",
+  "collectstatic": "passed",
+  "browser": {
+    "chromium_checks": 63,
+    "overflow": 0,
+    "page_errors": 0
+  },
+  "full_replay_summary_and_categories": "identical",
+  "llm": "not used",
+  "production_database": "never accessed",
+  "deployment": "not performed or verified",
+  "scheduler": "not configured",
+  "push": "blocked: securely configured GITHUB_TOKEN absent",
+  "local_debug_false_deployment_configuration_check": "passed (not production runtime verification)"
+}

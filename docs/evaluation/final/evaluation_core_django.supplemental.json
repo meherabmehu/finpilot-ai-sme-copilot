@@ -1,0 +1,40 @@
+{
+  "kind": "actual-application-supplemental-v1",
+  "lifecycle": [],
+  "pairs": [
+    {
+      "constraint": "collection slip of 5 days",
+      "dimension": "funding_gap",
+      "expected_relation": "differs",
+      "group": "LIQ-005",
+      "holds": true,
+      "values": [
+        {
+          "actual": "70108.00",
+          "scenario_id": "LIQ-005a"
+        },
+        {
+          "actual": "72708.00",
+          "scenario_id": "LIQ-005b"
+        },
+        {
+          "actual": "72708.00",
+          "scenario_id": "LIQ-005c"
+        }
+      ]
+    }
+  ],
+  "suite": "core",
+  "summary": {
+    "cleanup_confirmed_cases": 78,
+    "ledger_mutation_findings": 0,
+    "lifecycle_assertions": 0,
+    "lifecycle_cases": 0,
+    "literal_matches": 0,
+    "literal_mismatches": 0,
+    "nonwording_mismatches": 0,
+    "pair_groups_checked": 1,
+    "pair_groups_hold": 1
+  },
+  "upstream_score_unchanged": true
+}

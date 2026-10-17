@@ -1,0 +1,437 @@
+{
+  "kind": "actual-application-supplemental-v1",
+  "lifecycle": [],
+  "pairs": [
+    {
+      "constraint": "max_borrowing: 0 (A) vs 50,000 (B)",
+      "dimension": "feasible_plans",
+      "expected_relation": "differs",
+      "group": "PAIR-01",
+      "holds": true,
+      "values": [
+        {
+          "actual": [
+            "Delay the subcontractor bill by 7 days",
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-01-A"
+        },
+        {
+          "actual": [
+            "Delay the subcontractor bill by 7 days",
+            "Illustrative financing at 9% for 12 months",
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-01-B"
+        }
+      ]
+    },
+    {
+      "constraint": "protect_payroll: True (A) vs False (B)",
+      "dimension": "feasible_plans",
+      "expected_relation": "differs",
+      "group": "PAIR-02",
+      "holds": true,
+      "values": [
+        {
+          "actual": [
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-02-A"
+        },
+        {
+          "actual": [
+            "Delay payroll by 5 days",
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-02-B"
+        }
+      ]
+    },
+    {
+      "constraint": "max_delay_days: 0 (A) vs 14 (B)",
+      "dimension": "feasible_plans",
+      "expected_relation": "differs",
+      "group": "PAIR-03",
+      "holds": true,
+      "values": [
+        {
+          "actual": [
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-03-A"
+        },
+        {
+          "actual": [
+            "Delay the energy bill by 14 days",
+            "Delay the energy bill by 7 days",
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-03-B"
+        }
+      ]
+    },
+    {
+      "constraint": "protect_critical_suppliers: True (A) vs False (B)",
+      "dimension": "feasible_plans",
+      "expected_relation": "differs",
+      "group": "PAIR-04",
+      "holds": true,
+      "values": [
+        {
+          "actual": [
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-04-A"
+        },
+        {
+          "actual": [
+            "Delay the critical materials bill by 7 days",
+            "Keep recorded schedule",
+            "Split the parts bill"
+          ],
+          "scenario_id": "PAIR-04-B"
+        }
+      ]
+    },
+    {
+      "constraint": "low_cash_threshold: 2,000 (A) vs 25,000 (B)",
+      "dimension": "funding_gap",
+      "expected_relation": "differs",
+      "group": "PAIR-05",
+      "holds": true,
+      "values": [
+        {
+          "actual": "0.00",
+          "scenario_id": "PAIR-05-A"
+        },
+        {
+          "actual": "16900.00",
+          "scenario_id": "PAIR-05-B"
+        }
+      ]
+    },
+    {
+      "constraint": "max_annual_rate: 6 (A) vs 18 (B)",
+      "dimension": "feasible_plans",
+      "expected_relation": "differs",
+      "group": "PAIR-06",
+      "holds": true,
+      "values": [
+        {
+          "actual": [
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-06-A"
+        },
+        {
+          "actual": [
+            "Illustrative financing at 12% for 12 months",
+            "Illustrative financing at 9% for 12 months",
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-06-B"
+        }
+      ]
+    },
+    {
+      "constraint": "risk_tolerance: cautious (A) vs balanced (B)",
+      "dimension": "recommended_plan",
+      "expected_relation": "differs",
+      "group": "PAIR-07",
+      "holds": true,
+      "values": [
+        {
+          "actual": "Move the supplier bill three days later",
+          "scenario_id": "PAIR-07-A"
+        },
+        {
+          "actual": "Keep recorded schedule",
+          "scenario_id": "PAIR-07-B"
+        }
+      ]
+    },
+    {
+      "constraint": "restricted_categories: [] (A) vs ['Advertising & Marketing'] (B)",
+      "dimension": "feasible_plans",
+      "expected_relation": "differs",
+      "group": "PAIR-08",
+      "holds": true,
+      "values": [
+        {
+          "actual": [
+            "Halve the marketing spend",
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-08-A"
+        },
+        {
+          "actual": [
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-08-B"
+        }
+      ]
+    },
+    {
+      "constraint": "horizon_days: 14 (A) vs 60 (B)",
+      "dimension": "minimum_balance",
+      "expected_relation": "differs",
+      "group": "PAIR-09",
+      "holds": true,
+      "values": [
+        {
+          "actual": "25800.00",
+          "scenario_id": "PAIR-09-A"
+        },
+        {
+          "actual": "17300.00",
+          "scenario_id": "PAIR-09-B"
+        }
+      ]
+    },
+    {
+      "constraint": "expense_increase_percent: 10 (A) vs 60 (B)",
+      "dimension": "issue_codes",
+      "expected_relation": "differs",
+      "group": "PAIR-10",
+      "holds": true,
+      "values": [
+        {
+          "actual": [
+            "expense_concentration",
+            "expense_increase"
+          ],
+          "scenario_id": "PAIR-10-A"
+        },
+        {
+          "actual": [
+            "expense_concentration"
+          ],
+          "scenario_id": "PAIR-10-B"
+        }
+      ]
+    },
+    {
+      "constraint": "concentration_percent: 40 (A) vs 95 (B)",
+      "dimension": "issue_codes",
+      "expected_relation": "differs",
+      "group": "PAIR-11",
+      "holds": true,
+      "values": [
+        {
+          "actual": [
+            "expense_concentration",
+            "negative_cash",
+            "same_day_timing"
+          ],
+          "scenario_id": "PAIR-11-A"
+        },
+        {
+          "actual": [
+            "negative_cash",
+            "same_day_timing"
+          ],
+          "scenario_id": "PAIR-11-B"
+        }
+      ]
+    },
+    {
+      "constraint": "max_borrowing/max_delay_days swapped between A and B",
+      "dimension": "feasible_plans",
+      "expected_relation": "differs",
+      "group": "PAIR-12",
+      "holds": true,
+      "values": [
+        {
+          "actual": [
+            "Illustrative financing at 9% for 12 months",
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-12-A"
+        },
+        {
+          "actual": [
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-12-B"
+        }
+      ]
+    },
+    {
+      "constraint": "protect_critical_suppliers: True (A) vs False (B)",
+      "dimension": "violation_count",
+      "expected_relation": "differs",
+      "group": "PAIR-13",
+      "holds": true,
+      "values": [
+        {
+          "actual": 2,
+          "scenario_id": "PAIR-13-A"
+        },
+        {
+          "actual": 1,
+          "scenario_id": "PAIR-13-B"
+        }
+      ]
+    },
+    {
+      "constraint": "max_annual_rate: 5 (A) vs 12 (B), with different goal text",
+      "dimension": "feasible_plans",
+      "expected_relation": "differs",
+      "group": "PAIR-14",
+      "holds": true,
+      "values": [
+        {
+          "actual": [
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-14-A"
+        },
+        {
+          "actual": [
+            "Illustrative financing at 9% for 12 months",
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-14-B"
+        }
+      ]
+    },
+    {
+      "constraint": "horizon_days: 30 (A) vs 60 (B)",
+      "dimension": "issue_codes",
+      "expected_relation": "differs",
+      "group": "PAIR-15",
+      "holds": true,
+      "values": [
+        {
+          "actual": [
+            "low_cash",
+            "reserve_pressure"
+          ],
+          "scenario_id": "PAIR-15-A"
+        },
+        {
+          "actual": [
+            "low_cash",
+            "negative_cash",
+            "same_day_timing"
+          ],
+          "scenario_id": "PAIR-15-B"
+        }
+      ]
+    },
+    {
+      "constraint": "horizon_days: 30 (A) vs 45 (B), same max_delay_days",
+      "dimension": "feasible_plans",
+      "expected_relation": "differs",
+      "group": "PAIR-16",
+      "holds": true,
+      "values": [
+        {
+          "actual": [
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-16-A"
+        },
+        {
+          "actual": [
+            "Delay the mill invoice by 7 days",
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-16-B"
+        }
+      ]
+    },
+    {
+      "constraint": "payroll category spelling only; identical policy and identical amounts",
+      "dimension": "feasible_plans",
+      "expected_relation": "equal",
+      "group": "PAIR-17",
+      "holds": true,
+      "values": [
+        {
+          "actual": [
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-17-A"
+        },
+        {
+          "actual": [
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-17-B"
+        }
+      ]
+    },
+    {
+      "constraint": "restricted_categories: [] (A) vs ['Cost of Goods Sold'] (B)",
+      "dimension": "feasible_plans",
+      "expected_relation": "differs",
+      "group": "PAIR-18",
+      "holds": true,
+      "values": [
+        {
+          "actual": [
+            "Halve the inventory purchase",
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-18-A"
+        },
+        {
+          "actual": [
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-18-B"
+        }
+      ]
+    },
+    {
+      "constraint": "issue_cooldown_hours: 1 (A) vs 168 (B) - a notification setting",
+      "dimension": "minimum_balance",
+      "expected_relation": "equal",
+      "group": "PAIR-19",
+      "holds": true,
+      "values": [
+        {
+          "actual": "5400.00",
+          "scenario_id": "PAIR-19-A"
+        },
+        {
+          "actual": "5400.00",
+          "scenario_id": "PAIR-19-B"
+        }
+      ]
+    },
+    {
+      "constraint": "risk tolerance, borrowing limit, delay limit and restricted categories all differ",
+      "dimension": "recommended_plan",
+      "expected_relation": "differs",
+      "group": "PAIR-20",
+      "holds": true,
+      "values": [
+        {
+          "actual": "Illustrative financing at 12% for 12 months",
+          "scenario_id": "PAIR-20-A"
+        },
+        {
+          "actual": "Keep recorded schedule",
+          "scenario_id": "PAIR-20-B"
+        }
+      ]
+    }
+  ],
+  "suite": "policy",
+  "summary": {
+    "cleanup_confirmed_cases": 40,
+    "ledger_mutation_findings": 0,
+    "lifecycle_assertions": 0,
+    "lifecycle_cases": 0,
+    "literal_matches": 0,
+    "literal_mismatches": 0,
+    "nonwording_mismatches": 0,
+    "pair_groups_checked": 20,
+    "pair_groups_hold": 20
+  },
+  "upstream_score_unchanged": true
+}

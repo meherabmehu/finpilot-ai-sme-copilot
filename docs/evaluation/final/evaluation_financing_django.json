@@ -1,0 +1,2143 @@
+{
+  "adapter": {
+    "description": "Actual local Django services; disposable test database; per-case rollback; no LLM",
+    "is_agent_evaluation": true,
+    "name": "django",
+    "reason": "Isolated local Django configured; no production connection",
+    "requires_credentials": false,
+    "status": "connected",
+    "tested_against_live_application": true,
+    "writes_to_database": true
+  },
+  "blocked_cases": [],
+  "cases": [
+    {
+      "adapter_status": "answered",
+      "category": "financing",
+      "critical_failures": [],
+      "demo": false,
+      "difficulty": "simple",
+      "dimension_reasons": {
+        "cash_accuracy": [
+          "3/3 required values match exactly"
+        ],
+        "evidence_reference": [
+          "4/4 references resolve"
+        ],
+        "financing_arithmetic": [
+          "2/2 required values match exactly",
+          "financing cost reported without naming interest or fees"
+        ],
+        "liquidity_reasoning": [
+          "liquidity interpretation consistent with the oracle"
+        ],
+        "plan_selection": [
+          "recommended 'Request earlier collection' is in the acceptable set ['Request earlier collection']"
+        ],
+        "policy_compliance": [
+          "1/1 required values match exactly"
+        ],
+        "uncertainty_disclosure": [
+          "not disclosed: a non-borrowing alternative (delaying a non-critical bill within the 7-day policy limit) must be compared before recommending borrowing",
+          "not disclosed: borrowing cost includes interest and any fee"
+        ]
+      },
+      "dimensions": {
+        "cash_accuracy": 1.0,
+        "evidence_reference": 1.0,
+        "financing_arithmetic": 0.5,
+        "liquidity_reasoning": 1.0,
+        "plan_selection": 1.0,
+        "policy_compliance": 1.0,
+        "uncertainty_disclosure": 0.5833333333333334
+      },
+      "lifecycle": null,
+      "notes": [],
+      "pair_id": "",
+      "response": {
+        "abstained": false,
+        "calculations": {
+          "blocking_reasons": [],
+          "cash_coverage_days": "18.05",
+          "concentration_breaches_policy": "False",
+          "date_of_cash_minimum": "2026-03-11",
+          "deferred_liabilities": "0.00",
+          "deferred_liabilities_baseline": "0.00",
+          "ending_balance": "15600.00",
+          "event_count": "4",
+          "events_beyond_horizon": "0",
+          "expense_increase_breaches_policy": "False",
+          "expenses_30d": "22610.00",
+          "financing_cost": "450.37",
+          "financing_cost_with_fee": "450.37",
+          "first_shortfall_date": null,
+          "foreign_currency_rows": "0",
+          "funding_gap": "6805.00",
+          "horizon_end_date": "2026-04-01",
+          "inflows_horizon": "12800.00",
+          "intraday_gap": "0.00",
+          "intraday_low_date": "2026-03-11",
+          "known_cash": "13600.00",
+          "largest_category": "Cost of Goods Sold",
+          "largest_category_share": "40.00",
+          "loan_annual_rate": "12.00",
+          "loan_first_month_interest": "68.05",
+          "loan_months": "12",
+          "loan_payment": "604.62",
+          "loan_payment_stressed": "611.00",
+          "loan_principal": "6805.00",
+          "minimum_balance": "4500.00",
+          "opening_balance": "17.70",
+          "outflows_7d": "6200.00",
+          "outflows_horizon": "10800.00",
+          "overdue_payable_total": "0.00",
+          "overdue_receivable_total": "0.00",
+          "payment_exceeds_historical_net_cash": "False",
+          "payroll_total_horizon": "0.00",
+          "previous_expenses_30d": "22610.00",
+          "previous_revenue_30d": "26000.00",
+          "projection_available": "True",
+          "record_count": "32",
+          "recurring_occurrence_dates": [],
+          "recurring_outflows_horizon": "0.00",
+          "repayment_total": "7255.37",
+          "reserve_breach_date": "2026-03-06",
+          "revenue_30d": "26000.00",
+          "state_fingerprint": "c859cb7b2728f9752a392ecb54afbd68c09d4aaa281fdc420cef5cdb10a5e9f2",
+          "suppressed_recurring_occurrences": "0",
+          "total_cost_including_principal": "7255.37",
+          "undated_pending_count": "0"
+        },
+        "error": null,
+        "feasible_plans": [
+          "Request earlier collection",
+          "Illustrative gap financing",
+          "Keep recorded schedule"
+        ],
+        "foreign_tenant_fields": [],
+        "issue_codes": [
+          "reserve_pressure",
+          "near_term_payables"
+        ],
+        "narrative_chars": 2225,
+        "recommended_plan": "Request earlier collection",
+        "records_modified": [],
+        "refusal_reasons": [],
+        "tool_calls": [
+          {
+            "business_id": "69460616-9f50-590d-b24f-2eae44140388",
+            "elapsed_ms": 4,
+            "status": "completed",
+            "tool": "get_financial_state"
+          },
+          {
+            "business_id": "69460616-9f50-590d-b24f-2eae44140388",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "diagnose_rules"
+          },
+          {
+            "business_id": "69460616-9f50-590d-b24f-2eae44140388",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "inspect_payment_timing"
+          },
+          {
+            "business_id": "69460616-9f50-590d-b24f-2eae44140388",
+            "elapsed_ms": 1,
+            "status": "completed",
+            "tool": "compare_counterfactual_plans"
+          },
+          {
+            "business_id": "69460616-9f50-590d-b24f-2eae44140388",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "assemble_evidence"
+          }
+        ],
+        "violations_reported": []
+      },
+      "scenario_id": "FIN-001",
+      "subcategory": "small_shortfall",
+      "verdict": "pass",
+      "weighted_score": 0.890625
+    },
+    {
+      "adapter_status": "answered",
+      "category": "financing",
+      "critical_failures": [],
+      "demo": false,
+      "difficulty": "multi_step",
+      "dimension_reasons": {
+        "cash_accuracy": [
+          "3/3 required values match exactly"
+        ],
+        "evidence_reference": [
+          "4/4 references resolve"
+        ],
+        "financing_arithmetic": [
+          "loan_payment: expected '3803.79', reported None",
+          "financing_cost: expected '2833.52', reported None"
+        ],
+        "liquidity_reasoning": [
+          "liquidity interpretation consistent with the oracle"
+        ],
+        "plan_selection": [
+          "recommended 'Request earlier collection' is in the acceptable set ['Request earlier collection']"
+        ],
+        "policy_compliance": [
+          "borrowing_within_limit: expected 'False', reported None"
+        ],
+        "uncertainty_disclosure": [
+          "not disclosed: the requested amount exceeds the owner's own borrowing limit, so any financing plan is infeasible under policy",
+          "not disclosed: raising the limit is an owner decision, not an agent recommendation"
+        ]
+      },
+      "dimensions": {
+        "cash_accuracy": 1.0,
+        "evidence_reference": 1.0,
+        "financing_arithmetic": 0.0,
+        "liquidity_reasoning": 1.0,
+        "plan_selection": 1.0,
+        "policy_compliance": 0.0,
+        "uncertainty_disclosure": 0.5
+      },
+      "lifecycle": null,
+      "notes": [],
+      "pair_id": "",
+      "response": {
+        "abstained": false,
+        "calculations": {
+          "blocking_reasons": [],
+          "cash_coverage_days": "11.36",
+          "concentration_breaches_policy": "False",
+          "date_of_cash_minimum": "2026-03-21",
+          "deferred_liabilities": "0.00",
+          "deferred_liabilities_baseline": "0.00",
+          "ending_balance": "29100.00",
+          "event_count": "4",
+          "events_beyond_horizon": "0",
+          "expense_increase_breaches_policy": "False",
+          "expenses_30d": "56520.00",
+          "first_shortfall_date": "2026-03-13",
+          "foreign_currency_rows": "0",
+          "funding_gap": "42812.00",
+          "horizon_end_date": "2026-04-01",
+          "inflows_horizon": "38000.00",
+          "intraday_gap": "8900.00",
+          "intraday_low_date": "2026-03-21",
+          "known_cash": "21400.00",
+          "largest_category": "Cost of Goods Sold",
+          "largest_category_share": "40.00",
+          "minimum_balance": "-8900.00",
+          "opening_balance": "-8569.21",
+          "outflows_7d": "16200.00",
+          "outflows_horizon": "30300.00",
+          "overdue_payable_total": "0.00",
+          "overdue_receivable_total": "0.00",
+          "payroll_total_horizon": "0.00",
+          "previous_expenses_30d": "56520.00",
+          "previous_revenue_30d": "64000.00",
+          "projection_available": "True",
+          "record_count": "32",
+          "recurring_occurrence_dates": [],
+          "recurring_outflows_horizon": "0.00",
+          "reserve_breach_date": "2026-03-02",
+          "revenue_30d": "64000.00",
+          "state_fingerprint": "996554c008734e87d78d39352f87731936e4426cd6ca5f427a87969d05b7bf8c",
+          "suppressed_recurring_occurrences": "0",
+          "undated_pending_count": "0"
+        },
+        "error": null,
+        "feasible_plans": [
+          "Request earlier collection",
+          "Combine collection and payment discussions",
+          "Keep recorded schedule",
+          "Discuss supplier timing",
+          "Discuss a split payment"
+        ],
+        "foreign_tenant_fields": [],
+        "issue_codes": [
+          "low_cash",
+          "negative_cash",
+          "same_day_timing",
+          "near_term_payables"
+        ],
+        "narrative_chars": 1035,
+        "recommended_plan": "Request earlier collection",
+        "records_modified": [],
+        "refusal_reasons": [],
+        "tool_calls": [
+          {
+            "business_id": "fd67e0b6-0687-51c4-b3e3-22794113e32e",
+            "elapsed_ms": 6,
+            "status": "completed",
+            "tool": "get_financial_state"
+          },
+          {
+            "business_id": "fd67e0b6-0687-51c4-b3e3-22794113e32e",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "diagnose_rules"
+          },
+          {
+            "business_id": "fd67e0b6-0687-51c4-b3e3-22794113e32e",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "inspect_payment_timing"
+          },
+          {
+            "business_id": "fd67e0b6-0687-51c4-b3e3-22794113e32e",
+            "elapsed_ms": 2,
+            "status": "completed",
+            "tool": "compare_counterfactual_plans"
+          },
+          {
+            "business_id": "fd67e0b6-0687-51c4-b3e3-22794113e32e",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "assemble_evidence"
+          }
+        ],
+        "violations_reported": []
+      },
+      "scenario_id": "FIN-002",
+      "subcategory": "large_funding_gap",
+      "verdict": "partial",
+      "weighted_score": 0.64375
+    },
+    {
+      "adapter_status": "answered",
+      "category": "financing",
+      "critical_failures": [],
+      "demo": false,
+      "difficulty": "multi_step",
+      "dimension_reasons": {
+        "cash_accuracy": [
+          "1/1 required values match exactly"
+        ],
+        "evidence_reference": [
+          "4/4 references resolve"
+        ],
+        "financing_arithmetic": [
+          "4/4 required values match exactly",
+          "financing cost reported without naming interest or fees"
+        ],
+        "liquidity_reasoning": [
+          "liquidity interpretation consistent with the oracle"
+        ],
+        "plan_selection": [
+          "recommended 'Option B: 12% with no fee' is in the acceptable set ['Option B: 12% with no fee']"
+        ],
+        "policy_compliance": [],
+        "uncertainty_disclosure": [
+          "not disclosed: the fee is an upfront cash outflow on the drawdown date",
+          "not disclosed: total cost = interest + fee, and both must be stated"
+        ]
+      },
+      "dimensions": {
+        "cash_accuracy": 1.0,
+        "evidence_reference": 1.0,
+        "financing_arithmetic": 0.5,
+        "liquidity_reasoning": 1.0,
+        "plan_selection": 1.0,
+        "policy_compliance": 1.0,
+        "uncertainty_disclosure": 0.5833333333333334
+      },
+      "lifecycle": null,
+      "notes": [],
+      "pair_id": "",
+      "response": {
+        "abstained": false,
+        "calculations": {
+          "blocking_reasons": [],
+          "cash_coverage_days": "18.91",
+          "concentration_breaches_policy": "False",
+          "date_of_cash_minimum": "2026-03-23",
+          "deferred_liabilities": "264.42",
+          "deferred_liabilities_baseline": null,
+          "ending_balance": "9400.00",
+          "event_count": "4",
+          "events_beyond_horizon": "0",
+          "expense_increase_breaches_policy": "False",
+          "expenses_30d": "24120.00",
+          "financing_cost": "18.46",
+          "financing_cost_with_fee": "18.46",
+          "first_shortfall_date": null,
+          "foreign_currency_rows": "0",
+          "funding_gap": "248.00",
+          "horizon_end_date": "2026-04-01",
+          "inflows_horizon": "13500.00",
+          "intraday_gap": "0.00",
+          "intraday_low_date": "2026-03-23",
+          "known_cash": "15200.00",
+          "largest_category": "Cost of Goods Sold",
+          "largest_category_share": "40.00",
+          "loan_annual_rate": "9",
+          "loan_first_month_interest": "1.86",
+          "loan_months": "12",
+          "loan_payment": "21.69",
+          "loan_payment_stressed": "21.92",
+          "loan_principal": "248.00",
+          "minimum_balance": "9400.00",
+          "opening_balance": "-12365.27",
+          "outflows_7d": "5400.00",
+          "outflows_horizon": "19300.00",
+          "overdue_payable_total": "0.00",
+          "overdue_receivable_total": "0.00",
+          "payment_exceeds_historical_net_cash": "False",
+          "payroll_total_horizon": "12800.00",
+          "previous_expenses_30d": "24120.00",
+          "previous_revenue_30d": "31000.00",
+          "projection_available": "True",
+          "record_count": "32",
+          "recurring_occurrence_dates": [],
+          "recurring_outflows_horizon": "0.00",
+          "repayment_total": "260.26",
+          "reserve_breach_date": "2026-03-23",
+          "revenue_30d": "31000.00",
+          "state_fingerprint": "a297cf09092b33990fc5db95b304e4ad18c32754e2d100e9ee95b0052ce6c65c",
+          "suppressed_recurring_occurrences": "0",
+          "total_cost_including_principal": "266.46",
+          "undated_pending_count": "0"
+        },
+        "error": null,
+        "feasible_plans": [
+          "Option B: 12% with no fee",
+          "Option A: 9% with a 2.5% arrangement fee"
+        ],
+        "foreign_tenant_fields": [],
+        "issue_codes": [
+          "reserve_pressure"
+        ],
+        "narrative_chars": 2214,
+        "recommended_plan": "Option B: 12% with no fee",
+        "records_modified": [],
+        "refusal_reasons": [],
+        "tool_calls": [
+          {
+            "business_id": "4c462584-6f72-58b1-9f2d-0f3dc20816f7",
+            "elapsed_ms": 4,
+            "status": "completed",
+            "tool": "get_financial_state"
+          },
+          {
+            "business_id": "4c462584-6f72-58b1-9f2d-0f3dc20816f7",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "diagnose_rules"
+          },
+          {
+            "business_id": "4c462584-6f72-58b1-9f2d-0f3dc20816f7",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "inspect_payment_timing"
+          },
+          {
+            "business_id": "4c462584-6f72-58b1-9f2d-0f3dc20816f7",
+            "elapsed_ms": 2,
+            "status": "completed",
+            "tool": "compare_counterfactual_plans"
+          },
+          {
+            "business_id": "4c462584-6f72-58b1-9f2d-0f3dc20816f7",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "assemble_evidence"
+          }
+        ],
+        "violations_reported": []
+      },
+      "scenario_id": "FIN-003",
+      "subcategory": "financing_fee_sensitivity",
+      "verdict": "pass",
+      "weighted_score": 0.890625
+    },
+    {
+      "adapter_status": "answered",
+      "category": "financing",
+      "critical_failures": [],
+      "demo": false,
+      "difficulty": "multi_step",
+      "dimension_reasons": {
+        "evidence_reference": [
+          "4/4 references resolve"
+        ],
+        "financing_arithmetic": [
+          "loan_payment: expected '10977.27', reported None",
+          "loan_payment_stressed: expected '11093.20', reported None",
+          "payment_increase: expected '115.93', reported None",
+          "financing_cost: expected '8177.21', reported None",
+          "affordability_headroom: expected '-13077.27', reported None"
+        ],
+        "liquidity_reasoning": [
+          "liquidity interpretation consistent with the oracle"
+        ],
+        "plan_selection": [
+          "recommended 'Request earlier collection' is in the acceptable set ['Request earlier collection']"
+        ],
+        "policy_compliance": [],
+        "uncertainty_disclosure": [
+          "all 4 required disclosures covered"
+        ]
+      },
+      "dimensions": {
+        "evidence_reference": 1.0,
+        "financing_arithmetic": 0.0,
+        "liquidity_reasoning": 1.0,
+        "plan_selection": 1.0,
+        "policy_compliance": 1.0,
+        "uncertainty_disclosure": 1.0
+      },
+      "lifecycle": null,
+      "notes": [],
+      "pair_id": "",
+      "response": {
+        "abstained": false,
+        "calculations": {
+          "blocking_reasons": [],
+          "cash_coverage_days": "5.08",
+          "concentration_breaches_policy": "False",
+          "date_of_cash_minimum": "2026-03-22",
+          "deferred_liabilities": "0.00",
+          "deferred_liabilities_baseline": "0.00",
+          "ending_balance": "16500.00",
+          "event_count": "4",
+          "events_beyond_horizon": "0",
+          "expense_increase_breaches_policy": "False",
+          "expenses_30d": "242100.00",
+          "first_shortfall_date": "2026-03-22",
+          "foreign_currency_rows": "0",
+          "funding_gap": "123550.00",
+          "horizon_end_date": "2026-04-01",
+          "inflows_horizon": "41000.00",
+          "intraday_gap": "2500.00",
+          "intraday_low_date": "2026-03-22",
+          "known_cash": "41000.00",
+          "largest_category": "Cost of Goods Sold",
+          "largest_category_share": "40.00",
+          "minimum_balance": "-2500.00",
+          "opening_balance": "49413.81",
+          "outflows_7d": "27500.00",
+          "outflows_horizon": "65500.00",
+          "overdue_payable_total": "0.00",
+          "overdue_receivable_total": "0.00",
+          "payroll_total_horizon": "38000.00",
+          "previous_expenses_30d": "242100.00",
+          "previous_revenue_30d": "240000.00",
+          "projection_available": "True",
+          "record_count": "32",
+          "recurring_occurrence_dates": [],
+          "recurring_outflows_horizon": "0.00",
+          "reserve_breach_date": "2026-03-02",
+          "revenue_30d": "240000.00",
+          "state_fingerprint": "a466ebc77d014ec2bbd4c0849d8d9dc9a70b6e0402311d9e76b85e31db2dd364",
+          "suppressed_recurring_occurrences": "0",
+          "undated_pending_count": "0"
+        },
+        "error": null,
+        "feasible_plans": [
+          "Request earlier collection",
+          "Keep recorded schedule"
+        ],
+        "foreign_tenant_fields": [],
+        "issue_codes": [
+          "low_cash",
+          "negative_cash",
+          "same_day_timing",
+          "near_term_payables"
+        ],
+        "narrative_chars": 931,
+        "recommended_plan": "Request earlier collection",
+        "records_modified": [],
+        "refusal_reasons": [],
+        "tool_calls": [
+          {
+            "business_id": "6f88f3df-ba8f-5ec5-9066-4061bde05fab",
+            "elapsed_ms": 4,
+            "status": "completed",
+            "tool": "get_financial_state"
+          },
+          {
+            "business_id": "6f88f3df-ba8f-5ec5-9066-4061bde05fab",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "diagnose_rules"
+          },
+          {
+            "business_id": "6f88f3df-ba8f-5ec5-9066-4061bde05fab",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "inspect_payment_timing"
+          },
+          {
+            "business_id": "6f88f3df-ba8f-5ec5-9066-4061bde05fab",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "compare_counterfactual_plans"
+          },
+          {
+            "business_id": "6f88f3df-ba8f-5ec5-9066-4061bde05fab",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "assemble_evidence"
+          }
+        ],
+        "violations_reported": []
+      },
+      "scenario_id": "FIN-004",
+      "subcategory": "interest_rate_sensitivity",
+      "verdict": "pass",
+      "weighted_score": 0.846154
+    },
+    {
+      "adapter_status": "answered",
+      "category": "financing",
+      "critical_failures": [],
+      "demo": false,
+      "difficulty": "conflicting",
+      "dimension_reasons": {
+        "cash_accuracy": [
+          "2/2 required values match exactly"
+        ],
+        "evidence_reference": [
+          "4/4 references resolve"
+        ],
+        "financing_arithmetic": [
+          "affordability_headroom: expected '1797.67', reported None",
+          "financing cost reported without naming interest or fees"
+        ],
+        "liquidity_reasoning": [
+          "liquidity interpretation consistent with the oracle"
+        ],
+        "plan_selection": [
+          "recommended 'Illustrative gap financing' is in the acceptable set ['Illustrative gap financing']"
+        ],
+        "policy_compliance": [],
+        "uncertainty_disclosure": [
+          "all 4 required disclosures covered"
+        ]
+      },
+      "dimensions": {
+        "cash_accuracy": 1.0,
+        "evidence_reference": 1.0,
+        "financing_arithmetic": 0.5,
+        "liquidity_reasoning": 1.0,
+        "plan_selection": 1.0,
+        "policy_compliance": 1.0,
+        "uncertainty_disclosure": 1.0
+      },
+      "lifecycle": null,
+      "notes": [],
+      "pair_id": "",
+      "response": {
+        "abstained": false,
+        "calculations": {
+          "blocking_reasons": [],
+          "cash_coverage_days": "16.31",
+          "concentration_breaches_policy": "False",
+          "date_of_cash_minimum": "2026-03-26",
+          "deferred_liabilities": "9027.94",
+          "deferred_liabilities_baseline": "0.00",
+          "ending_balance": "3120.00",
+          "event_count": "4",
+          "events_beyond_horizon": "0",
+          "expense_increase_breaches_policy": "False",
+          "expenses_30d": "15450.00",
+          "financing_cost": "560.44",
+          "financing_cost_with_fee": "560.44",
+          "first_shortfall_date": null,
+          "foreign_currency_rows": "0",
+          "funding_gap": "8467.50",
+          "horizon_end_date": "2026-04-01",
+          "inflows_horizon": "1250.00",
+          "intraday_gap": "0.00",
+          "intraday_low_date": "2026-03-26",
+          "known_cash": "8400.00",
+          "largest_category": "Cost of Goods Sold",
+          "largest_category_share": "40.00",
+          "loan_annual_rate": "12.00",
+          "loan_first_month_interest": "84.68",
+          "loan_months": "12",
+          "loan_payment": "752.33",
+          "loan_payment_stressed": "760.27",
+          "loan_principal": "8467.50",
+          "minimum_balance": "3120.00",
+          "opening_balance": "-1816.78",
+          "outflows_7d": "4100.00",
+          "outflows_horizon": "6530.00",
+          "overdue_payable_total": "0.00",
+          "overdue_receivable_total": "0.00",
+          "payment_exceeds_historical_net_cash": "False",
+          "payroll_total_horizon": "0.00",
+          "previous_expenses_30d": "15450.00",
+          "previous_revenue_30d": "18000.00",
+          "projection_available": "True",
+          "record_count": "32",
+          "recurring_occurrence_dates": [],
+          "recurring_outflows_horizon": "0.00",
+          "repayment_total": "9027.94",
+          "reserve_breach_date": "2026-03-02",
+          "revenue_30d": "18000.00",
+          "state_fingerprint": "49dac37d77692eb749b447710ac33aa3aebfccd08b537b682f12854f1529b138",
+          "suppressed_recurring_occurrences": "0",
+          "total_cost_including_principal": "9027.94",
+          "undated_pending_count": "0"
+        },
+        "error": null,
+        "feasible_plans": [
+          "Illustrative gap financing",
+          "Keep recorded schedule",
+          "Request earlier collection"
+        ],
+        "foreign_tenant_fields": [],
+        "issue_codes": [
+          "low_cash",
+          "reserve_pressure",
+          "near_term_payables"
+        ],
+        "narrative_chars": 2210,
+        "recommended_plan": "Illustrative gap financing",
+        "records_modified": [],
+        "refusal_reasons": [],
+        "tool_calls": [
+          {
+            "business_id": "15029b11-931a-5023-9c86-4e11c6ab0e45",
+            "elapsed_ms": 4,
+            "status": "completed",
+            "tool": "get_financial_state"
+          },
+          {
+            "business_id": "15029b11-931a-5023-9c86-4e11c6ab0e45",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "diagnose_rules"
+          },
+          {
+            "business_id": "15029b11-931a-5023-9c86-4e11c6ab0e45",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "inspect_payment_timing"
+          },
+          {
+            "business_id": "15029b11-931a-5023-9c86-4e11c6ab0e45",
+            "elapsed_ms": 1,
+            "status": "completed",
+            "tool": "compare_counterfactual_plans"
+          },
+          {
+            "business_id": "15029b11-931a-5023-9c86-4e11c6ab0e45",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "assemble_evidence"
+          }
+        ],
+        "violations_reported": []
+      },
+      "scenario_id": "FIN-005",
+      "subcategory": "insufficient_repayment_capacity",
+      "verdict": "pass",
+      "weighted_score": 0.9375
+    },
+    {
+      "adapter_status": "answered",
+      "category": "financing",
+      "critical_failures": [],
+      "demo": false,
+      "difficulty": "conflicting",
+      "dimension_reasons": {
+        "cash_accuracy": [
+          "3/3 required values match exactly"
+        ],
+        "evidence_reference": [
+          "4/4 references resolve"
+        ],
+        "liquidity_reasoning": [
+          "liquidity interpretation consistent with the oracle"
+        ],
+        "plan_selection": [
+          "recommended 'Request earlier collection' is in the acceptable set ['Request earlier collection']"
+        ],
+        "policy_compliance": [
+          "reducible_outflow_total: expected '5900.00', reported None"
+        ],
+        "uncertainty_disclosure": [
+          "not disclosed: max_borrowing is 0, so every financing plan is a policy violation",
+          "not disclosed: the remaining options all depend on a counterparty agreeing"
+        ]
+      },
+      "dimensions": {
+        "cash_accuracy": 1.0,
+        "evidence_reference": 1.0,
+        "liquidity_reasoning": 1.0,
+        "plan_selection": 1.0,
+        "policy_compliance": 0.0,
+        "uncertainty_disclosure": 0.75
+      },
+      "lifecycle": null,
+      "notes": [],
+      "pair_id": "",
+      "response": {
+        "abstained": false,
+        "calculations": {
+          "blocking_reasons": [],
+          "cash_coverage_days": "14.98",
+          "concentration_breaches_policy": "False",
+          "date_of_cash_minimum": "2026-03-11",
+          "deferred_liabilities": "0.00",
+          "deferred_liabilities_baseline": "0.00",
+          "ending_balance": "8000.00",
+          "event_count": "4",
+          "events_beyond_horizon": "0",
+          "expense_increase_breaches_policy": "False",
+          "expenses_30d": "33640.00",
+          "first_shortfall_date": null,
+          "foreign_currency_rows": "0",
+          "funding_gap": "11420.00",
+          "horizon_end_date": "2026-04-01",
+          "inflows_horizon": "6400.00",
+          "intraday_gap": "0.00",
+          "intraday_low_date": "2026-03-11",
+          "known_cash": "16800.00",
+          "largest_category": "Cost of Goods Sold",
+          "largest_category_share": "40.00",
+          "minimum_balance": "5400.00",
+          "opening_balance": "-16695.00",
+          "outflows_7d": "9300.00",
+          "outflows_horizon": "15200.00",
+          "overdue_payable_total": "0.00",
+          "overdue_receivable_total": "0.00",
+          "payroll_total_horizon": "0.00",
+          "previous_expenses_30d": "33640.00",
+          "previous_revenue_30d": "42000.00",
+          "projection_available": "True",
+          "record_count": "32",
+          "recurring_occurrence_dates": [],
+          "recurring_outflows_horizon": "0.00",
+          "reserve_breach_date": "2026-03-02",
+          "revenue_30d": "42000.00",
+          "state_fingerprint": "59ce04cbe0caab80e48ca839fbdef6f3607732d9e8811ff7a407741bbf4f92d5",
+          "suppressed_recurring_occurrences": "0",
+          "undated_pending_count": "0"
+        },
+        "error": null,
+        "feasible_plans": [
+          "Request earlier collection",
+          "Keep recorded schedule"
+        ],
+        "foreign_tenant_fields": [],
+        "issue_codes": [
+          "low_cash",
+          "reserve_pressure",
+          "near_term_payables"
+        ],
+        "narrative_chars": 2221,
+        "recommended_plan": "Request earlier collection",
+        "records_modified": [],
+        "refusal_reasons": [],
+        "tool_calls": [
+          {
+            "business_id": "43fc7368-34dc-5e39-b5e6-825154b5af42",
+            "elapsed_ms": 4,
+            "status": "completed",
+            "tool": "get_financial_state"
+          },
+          {
+            "business_id": "43fc7368-34dc-5e39-b5e6-825154b5af42",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "diagnose_rules"
+          },
+          {
+            "business_id": "43fc7368-34dc-5e39-b5e6-825154b5af42",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "inspect_payment_timing"
+          },
+          {
+            "business_id": "43fc7368-34dc-5e39-b5e6-825154b5af42",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "compare_counterfactual_plans"
+          },
+          {
+            "business_id": "43fc7368-34dc-5e39-b5e6-825154b5af42",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "assemble_evidence"
+          }
+        ],
+        "violations_reported": []
+      },
+      "scenario_id": "FIN-006",
+      "subcategory": "no_borrowing_permitted",
+      "verdict": "partial",
+      "weighted_score": 0.767857
+    },
+    {
+      "adapter_status": "answered",
+      "category": "financing",
+      "critical_failures": [],
+      "demo": false,
+      "difficulty": "edge",
+      "dimension_reasons": {
+        "cash_accuracy": [
+          "1/1 required values match exactly"
+        ],
+        "evidence_reference": [
+          "4/4 references resolve"
+        ],
+        "financing_arithmetic": [
+          "2/2 required values match exactly",
+          "financing cost reported without naming interest or fees"
+        ],
+        "liquidity_reasoning": [
+          "liquidity interpretation consistent with the oracle"
+        ],
+        "plan_selection": [
+          "recommended 'Illustrative gap financing' is in the acceptable set ['Illustrative gap financing']"
+        ],
+        "policy_compliance": [],
+        "uncertainty_disclosure": [
+          "all 4 required disclosures covered"
+        ]
+      },
+      "dimensions": {
+        "cash_accuracy": 1.0,
+        "evidence_reference": 1.0,
+        "financing_arithmetic": 0.5,
+        "liquidity_reasoning": 1.0,
+        "plan_selection": 1.0,
+        "policy_compliance": 1.0,
+        "uncertainty_disclosure": 1.0
+      },
+      "lifecycle": null,
+      "notes": [],
+      "pair_id": "",
+      "response": {
+        "abstained": false,
+        "calculations": {
+          "blocking_reasons": [],
+          "cash_coverage_days": "18.31",
+          "concentration_breaches_policy": "False",
+          "date_of_cash_minimum": "2026-03-19",
+          "deferred_liabilities": "5846.96",
+          "deferred_liabilities_baseline": "0.00",
+          "ending_balance": "4020.00",
+          "event_count": "4",
+          "events_beyond_horizon": "0",
+          "expense_increase_breaches_policy": "False",
+          "expenses_30d": "11880.00",
+          "financing_cost": "362.96",
+          "financing_cost_with_fee": "362.96",
+          "first_shortfall_date": null,
+          "foreign_currency_rows": "0",
+          "funding_gap": "5484.00",
+          "horizon_end_date": "2026-04-01",
+          "inflows_horizon": "1600.00",
+          "intraday_gap": "0.00",
+          "intraday_low_date": "2026-03-19",
+          "known_cash": "7250.00",
+          "largest_category": "Cost of Goods Sold",
+          "largest_category_share": "40.00",
+          "loan_annual_rate": "12.00",
+          "loan_first_month_interest": "54.84",
+          "loan_months": "12",
+          "loan_payment": "487.25",
+          "loan_payment_stressed": "492.39",
+          "loan_principal": "5484.00",
+          "minimum_balance": "4020.00",
+          "opening_balance": "-3247.23",
+          "outflows_7d": "1180.00",
+          "outflows_horizon": "4830.00",
+          "overdue_payable_total": "0.00",
+          "overdue_receivable_total": "0.00",
+          "payment_exceeds_historical_net_cash": "False",
+          "payroll_total_horizon": "0.00",
+          "previous_expenses_30d": "11880.00",
+          "previous_revenue_30d": "14500.00",
+          "projection_available": "True",
+          "record_count": "32",
+          "recurring_occurrence_dates": [],
+          "recurring_outflows_horizon": "0.00",
+          "repayment_total": "5846.96",
+          "reserve_breach_date": "2026-03-02",
+          "revenue_30d": "14500.00",
+          "state_fingerprint": "1d98b977c3dab8ac69f8bf0cc426a85e585d6642b57e91ccc3b11137735aca2c",
+          "suppressed_recurring_occurrences": "0",
+          "total_cost_including_principal": "5846.96",
+          "undated_pending_count": "0"
+        },
+        "error": null,
+        "feasible_plans": [
+          "Illustrative gap financing",
+          "Keep recorded schedule",
+          "Request earlier collection"
+        ],
+        "foreign_tenant_fields": [],
+        "issue_codes": [
+          "low_cash",
+          "reserve_pressure",
+          "near_term_payables"
+        ],
+        "narrative_chars": 2210,
+        "recommended_plan": "Illustrative gap financing",
+        "records_modified": [],
+        "refusal_reasons": [],
+        "tool_calls": [
+          {
+            "business_id": "4a9eb40b-838a-5809-8eb9-5a97ceb74881",
+            "elapsed_ms": 4,
+            "status": "completed",
+            "tool": "get_financial_state"
+          },
+          {
+            "business_id": "4a9eb40b-838a-5809-8eb9-5a97ceb74881",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "diagnose_rules"
+          },
+          {
+            "business_id": "4a9eb40b-838a-5809-8eb9-5a97ceb74881",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "inspect_payment_timing"
+          },
+          {
+            "business_id": "4a9eb40b-838a-5809-8eb9-5a97ceb74881",
+            "elapsed_ms": 1,
+            "status": "completed",
+            "tool": "compare_counterfactual_plans"
+          },
+          {
+            "business_id": "4a9eb40b-838a-5809-8eb9-5a97ceb74881",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "assemble_evidence"
+          }
+        ],
+        "violations_reported": []
+      },
+      "scenario_id": "FIN-007",
+      "subcategory": "rate_ceiling_violation",
+      "verdict": "pass",
+      "weighted_score": 0.9375
+    },
+    {
+      "adapter_status": "answered",
+      "category": "financing",
+      "critical_failures": [],
+      "demo": true,
+      "difficulty": "multi_step",
+      "dimension_reasons": {
+        "cash_accuracy": [
+          "3/3 required values match exactly"
+        ],
+        "evidence_reference": [
+          "4/4 references resolve"
+        ],
+        "financing_arithmetic": [
+          "2/2 required values match exactly"
+        ],
+        "liquidity_reasoning": [
+          "liquidity interpretation consistent with the oracle"
+        ],
+        "plan_selection": [
+          "recommended 'Request earlier collection' is in the acceptable set ['Request earlier collection']"
+        ],
+        "policy_compliance": [
+          "1/1 required values match exactly"
+        ],
+        "uncertainty_disclosure": [
+          "all 4 required disclosures covered"
+        ]
+      },
+      "dimensions": {
+        "cash_accuracy": 1.0,
+        "evidence_reference": 1.0,
+        "financing_arithmetic": 1.0,
+        "liquidity_reasoning": 1.0,
+        "plan_selection": 1.0,
+        "policy_compliance": 1.0,
+        "uncertainty_disclosure": 1.0
+      },
+      "lifecycle": null,
+      "notes": [],
+      "pair_id": "",
+      "response": {
+        "abstained": false,
+        "calculations": {
+          "blocking_reasons": [],
+          "cash_coverage_days": "20.32",
+          "concentration_breaches_policy": "False",
+          "date_of_cash_minimum": "2026-03-28",
+          "deferred_liabilities": "0.00",
+          "deferred_liabilities_baseline": "0.00",
+          "ending_balance": "14000.00",
+          "event_count": "4",
+          "events_beyond_horizon": "0",
+          "expense_increase_breaches_policy": "False",
+          "expenses_30d": "30260.00",
+          "financing_cost": "1247.40",
+          "financing_cost_with_fee": "1247.40",
+          "first_shortfall_date": "2026-03-28",
+          "foreign_currency_rows": "0",
+          "funding_gap": "20591.00",
+          "horizon_end_date": "2026-04-01",
+          "inflows_horizon": "24000.00",
+          "intraday_gap": "10000.00",
+          "intraday_low_date": "2026-03-28",
+          "known_cash": "20500.00",
+          "largest_category": "Cost of Goods Sold",
+          "largest_category_share": "40.00",
+          "loan_annual_rate": "11.00",
+          "loan_first_month_interest": "188.75",
+          "loan_months": "12",
+          "loan_payment": "1819.87",
+          "loan_payment_stressed": "1839.13",
+          "loan_principal": "20591.00",
+          "minimum_balance": "-10000.00",
+          "opening_balance": "-14517.50",
+          "outflows_7d": "0.00",
+          "outflows_horizon": "30500.00",
+          "overdue_payable_total": "0.00",
+          "overdue_receivable_total": "0.00",
+          "payment_exceeds_historical_net_cash": "False",
+          "payroll_total_horizon": "22600.00",
+          "previous_expenses_30d": "30260.00",
+          "previous_revenue_30d": "39000.00",
+          "projection_available": "True",
+          "record_count": "32",
+          "recurring_occurrence_dates": [],
+          "recurring_outflows_horizon": "0.00",
+          "repayment_total": "21838.40",
+          "reserve_breach_date": "2026-03-28",
+          "revenue_30d": "39000.00",
+          "state_fingerprint": "4622de964fe11688d9224f26fb5d8b99b7f38213d6dbc97beab49f63340e5044",
+          "suppressed_recurring_occurrences": "0",
+          "total_cost_including_principal": "21838.40",
+          "undated_pending_count": "0"
+        },
+        "error": null,
+        "feasible_plans": [
+          "Request earlier collection",
+          "Combine collection and payment discussions",
+          "Illustrative gap financing",
+          "Keep recorded schedule",
+          "Discuss supplier timing",
+          "Discuss a split payment"
+        ],
+        "foreign_tenant_fields": [],
+        "issue_codes": [
+          "negative_cash",
+          "same_day_timing"
+        ],
+        "narrative_chars": 2210,
+        "recommended_plan": "Request earlier collection",
+        "records_modified": [],
+        "refusal_reasons": [],
+        "tool_calls": [
+          {
+            "business_id": "180cf100-6ece-55ec-a680-bcb3a68d95b8",
+            "elapsed_ms": 4,
+            "status": "completed",
+            "tool": "get_financial_state"
+          },
+          {
+            "business_id": "180cf100-6ece-55ec-a680-bcb3a68d95b8",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "diagnose_rules"
+          },
+          {
+            "business_id": "180cf100-6ece-55ec-a680-bcb3a68d95b8",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "inspect_payment_timing"
+          },
+          {
+            "business_id": "180cf100-6ece-55ec-a680-bcb3a68d95b8",
+            "elapsed_ms": 2,
+            "status": "completed",
+            "tool": "compare_counterfactual_plans"
+          },
+          {
+            "business_id": "180cf100-6ece-55ec-a680-bcb3a68d95b8",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "assemble_evidence"
+          }
+        ],
+        "violations_reported": []
+      },
+      "scenario_id": "FIN-008",
+      "subcategory": "financing_versus_alternatives",
+      "verdict": "pass",
+      "weighted_score": 1.0
+    },
+    {
+      "adapter_status": "answered",
+      "category": "financing",
+      "critical_failures": [],
+      "demo": false,
+      "difficulty": "multi_step",
+      "dimension_reasons": {
+        "cash_accuracy": [
+          "debt_service_total_horizon: expected '1379.21', reported None"
+        ],
+        "evidence_reference": [
+          "6/6 references resolve"
+        ],
+        "financing_arithmetic": [
+          "affordability_headroom: expected '1139.16', reported None",
+          "financing cost reported without naming interest or fees"
+        ],
+        "liquidity_reasoning": [
+          "liquidity interpretation consistent with the oracle"
+        ],
+        "plan_selection": [
+          "recommended 'Illustrative gap financing' is in the acceptable set ['Illustrative gap financing']"
+        ],
+        "policy_compliance": [],
+        "uncertainty_disclosure": [
+          "all 4 required disclosures covered"
+        ]
+      },
+      "dimensions": {
+        "cash_accuracy": 0.5,
+        "evidence_reference": 1.0,
+        "financing_arithmetic": 0.5,
+        "liquidity_reasoning": 1.0,
+        "plan_selection": 1.0,
+        "policy_compliance": 1.0,
+        "uncertainty_disclosure": 1.0
+      },
+      "lifecycle": null,
+      "notes": [],
+      "pair_id": "",
+      "response": {
+        "abstained": false,
+        "calculations": {
+          "blocking_reasons": [],
+          "cash_coverage_days": "18.76",
+          "concentration_breaches_policy": "False",
+          "date_of_cash_minimum": "2026-03-22",
+          "deferred_liabilities": "8770.13",
+          "deferred_liabilities_baseline": "0.00",
+          "ending_balance": "6520.79",
+          "event_count": "6",
+          "events_beyond_horizon": "1",
+          "expense_increase_breaches_policy": "False",
+          "expenses_30d": "20630.00",
+          "financing_cost": "544.42",
+          "financing_cost_with_fee": "544.42",
+          "first_shortfall_date": null,
+          "foreign_currency_rows": "0",
+          "funding_gap": "8225.71",
+          "horizon_end_date": "2026-04-01",
+          "inflows_horizon": "6250.00",
+          "intraday_gap": "0.00",
+          "intraday_low_date": "2026-03-22",
+          "known_cash": "12900.00",
+          "largest_category": "Cost of Goods Sold",
+          "largest_category_share": "40.00",
+          "loan_annual_rate": "12.00",
+          "loan_first_month_interest": "82.26",
+          "loan_months": "12",
+          "loan_payment": "730.84",
+          "loan_payment_stressed": "738.56",
+          "loan_principal": "8225.71",
+          "minimum_balance": "3120.79",
+          "opening_balance": "5407.69",
+          "outflows_7d": "8129.21",
+          "outflows_horizon": "12629.21",
+          "overdue_payable_total": "0.00",
+          "overdue_receivable_total": "0.00",
+          "payment_exceeds_historical_net_cash": "False",
+          "payroll_total_horizon": "0.00",
+          "previous_expenses_30d": "20630.00",
+          "previous_revenue_30d": "22500.00",
+          "projection_available": "True",
+          "record_count": "33",
+          "recurring_occurrence_dates": [
+            "2026-03-09"
+          ],
+          "recurring_outflows_horizon": "1379.21",
+          "repayment_total": "8770.13",
+          "reserve_breach_date": "2026-03-05",
+          "revenue_30d": "22500.00",
+          "state_fingerprint": "6e5fe681598770735905d783ec9c316b9f281eedebca80e4fcfd5fa13c308c90",
+          "suppressed_recurring_occurrences": "0",
+          "total_cost_including_principal": "8770.13",
+          "undated_pending_count": "0"
+        },
+        "error": null,
+        "feasible_plans": [
+          "Illustrative gap financing",
+          "Keep recorded schedule",
+          "Request earlier collection"
+        ],
+        "foreign_tenant_fields": [],
+        "issue_codes": [
+          "reserve_pressure",
+          "near_term_payables",
+          "loan_repayments"
+        ],
+        "narrative_chars": 2344,
+        "recommended_plan": "Illustrative gap financing",
+        "records_modified": [],
+        "refusal_reasons": [],
+        "tool_calls": [
+          {
+            "business_id": "3e8c63d3-8517-5319-a60e-4cf6761dbb35",
+            "elapsed_ms": 4,
+            "status": "completed",
+            "tool": "get_financial_state"
+          },
+          {
+            "business_id": "3e8c63d3-8517-5319-a60e-4cf6761dbb35",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "diagnose_rules"
+          },
+          {
+            "business_id": "3e8c63d3-8517-5319-a60e-4cf6761dbb35",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "inspect_payment_timing"
+          },
+          {
+            "business_id": "3e8c63d3-8517-5319-a60e-4cf6761dbb35",
+            "elapsed_ms": 1,
+            "status": "completed",
+            "tool": "compare_counterfactual_plans"
+          },
+          {
+            "business_id": "3e8c63d3-8517-5319-a60e-4cf6761dbb35",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "assemble_evidence"
+          }
+        ],
+        "violations_reported": []
+      },
+      "scenario_id": "FIN-009",
+      "subcategory": "existing_debt_service",
+      "verdict": "pass",
+      "weighted_score": 0.84375
+    },
+    {
+      "adapter_status": "answered",
+      "category": "financing",
+      "critical_failures": [],
+      "demo": false,
+      "difficulty": "edge",
+      "dimension_reasons": {
+        "cash_accuracy": [
+          "2/2 required values match exactly"
+        ],
+        "evidence_reference": [
+          "3/3 references resolve"
+        ],
+        "liquidity_reasoning": [
+          "liquidity interpretation consistent with the oracle"
+        ],
+        "payment_timing": [
+          "1/1 required values match exactly"
+        ],
+        "plan_selection": [
+          "recommended 'Request earlier collection' is in the acceptable set ['Request earlier collection']"
+        ],
+        "policy_compliance": [],
+        "uncertainty_disclosure": [
+          "all 2 required disclosures covered"
+        ]
+      },
+      "dimensions": {
+        "cash_accuracy": 1.0,
+        "evidence_reference": 1.0,
+        "liquidity_reasoning": 1.0,
+        "payment_timing": 1.0,
+        "plan_selection": 1.0,
+        "policy_compliance": 1.0,
+        "uncertainty_disclosure": 1.0
+      },
+      "lifecycle": null,
+      "notes": [],
+      "pair_id": "",
+      "response": {
+        "abstained": false,
+        "calculations": {
+          "blocking_reasons": [],
+          "cash_coverage_days": "11.36",
+          "concentration_breaches_policy": "False",
+          "date_of_cash_minimum": "2026-03-13",
+          "deferred_liabilities": "0.00",
+          "deferred_liabilities_baseline": "0.00",
+          "ending_balance": "33400.00",
+          "event_count": "3",
+          "events_beyond_horizon": "0",
+          "expense_increase_breaches_policy": "False",
+          "expenses_30d": "56520.00",
+          "first_shortfall_date": "2026-03-13",
+          "foreign_currency_rows": "0",
+          "funding_gap": "38512.00",
+          "horizon_end_date": "2026-04-01",
+          "inflows_horizon": "38000.00",
+          "intraday_gap": "4600.00",
+          "intraday_low_date": "2026-03-13",
+          "known_cash": "21400.00",
+          "largest_category": "Cost of Goods Sold",
+          "largest_category_share": "40.00",
+          "minimum_balance": "-4600.00",
+          "opening_balance": "-8569.21",
+          "outflows_7d": "16200.00",
+          "outflows_horizon": "26000.00",
+          "overdue_payable_total": "0.00",
+          "overdue_receivable_total": "0.00",
+          "payroll_total_horizon": "0.00",
+          "previous_expenses_30d": "56520.00",
+          "previous_revenue_30d": "64000.00",
+          "projection_available": "True",
+          "record_count": "31",
+          "recurring_occurrence_dates": [],
+          "recurring_outflows_horizon": "0.00",
+          "reserve_breach_date": "2026-03-02",
+          "revenue_30d": "64000.00",
+          "state_fingerprint": "b308d7c20a5ffa90ba9a918f2c5043346e82e26b4ed201ecbb0f734a5c2a6389",
+          "suppressed_recurring_occurrences": "0",
+          "undated_pending_count": "0"
+        },
+        "error": null,
+        "feasible_plans": [
+          "Request earlier collection",
+          "Combine collection and payment discussions",
+          "Keep recorded schedule",
+          "Discuss supplier timing",
+          "Discuss a split payment"
+        ],
+        "foreign_tenant_fields": [],
+        "issue_codes": [
+          "low_cash",
+          "negative_cash",
+          "same_day_timing",
+          "near_term_payables"
+        ],
+        "narrative_chars": 2107,
+        "recommended_plan": "Request earlier collection",
+        "records_modified": [],
+        "refusal_reasons": [],
+        "tool_calls": [
+          {
+            "business_id": "2146a319-4b8b-509f-b6ed-ce9e38db3256",
+            "elapsed_ms": 3,
+            "status": "completed",
+            "tool": "get_financial_state"
+          },
+          {
+            "business_id": "2146a319-4b8b-509f-b6ed-ce9e38db3256",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "diagnose_rules"
+          },
+          {
+            "business_id": "2146a319-4b8b-509f-b6ed-ce9e38db3256",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "inspect_payment_timing"
+          },
+          {
+            "business_id": "2146a319-4b8b-509f-b6ed-ce9e38db3256",
+            "elapsed_ms": 1,
+            "status": "completed",
+            "tool": "compare_counterfactual_plans"
+          },
+          {
+            "business_id": "2146a319-4b8b-509f-b6ed-ce9e38db3256",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "assemble_evidence"
+          }
+        ],
+        "violations_reported": []
+      },
+      "scenario_id": "FIN-010",
+      "subcategory": "drawdown_date_outside_horizon",
+      "verdict": "pass",
+      "weighted_score": 1.0
+    },
+    {
+      "adapter_status": "answered",
+      "category": "financing",
+      "critical_failures": [],
+      "demo": false,
+      "difficulty": "multi_step",
+      "dimension_reasons": {
+        "cash_accuracy": [
+          "2/2 required values match exactly"
+        ],
+        "evidence_reference": [
+          "3/3 references resolve"
+        ],
+        "financing_arithmetic": [
+          "2/2 required values match exactly",
+          "financing cost reported without naming interest or fees"
+        ],
+        "liquidity_reasoning": [
+          "liquidity interpretation consistent with the oracle"
+        ],
+        "plan_selection": [
+          "recommended 'Request earlier collection' is in the acceptable set ['Request earlier collection']"
+        ],
+        "policy_compliance": [],
+        "uncertainty_disclosure": [
+          "all 1 required disclosures covered"
+        ]
+      },
+      "dimensions": {
+        "cash_accuracy": 1.0,
+        "evidence_reference": 1.0,
+        "financing_arithmetic": 0.5,
+        "liquidity_reasoning": 1.0,
+        "plan_selection": 1.0,
+        "policy_compliance": 1.0,
+        "uncertainty_disclosure": 1.0
+      },
+      "lifecycle": null,
+      "notes": [],
+      "pair_id": "",
+      "response": {
+        "abstained": false,
+        "calculations": {
+          "blocking_reasons": [],
+          "cash_coverage_days": "18.05",
+          "concentration_breaches_policy": "False",
+          "date_of_cash_minimum": "2026-03-11",
+          "deferred_liabilities": "0.00",
+          "deferred_liabilities_baseline": "0.00",
+          "ending_balance": "17300.00",
+          "event_count": "3",
+          "events_beyond_horizon": "0",
+          "expense_increase_breaches_policy": "False",
+          "expenses_30d": "22610.00",
+          "financing_cost": "527.04",
+          "financing_cost_with_fee": "527.04",
+          "first_shortfall_date": null,
+          "foreign_currency_rows": "0",
+          "funding_gap": "6805.00",
+          "horizon_end_date": "2026-04-01",
+          "inflows_horizon": "12800.00",
+          "intraday_gap": "0.00",
+          "intraday_low_date": "2026-03-11",
+          "known_cash": "13600.00",
+          "largest_category": "Cost of Goods Sold",
+          "largest_category_share": "40.00",
+          "loan_annual_rate": "14.00",
+          "loan_first_month_interest": "79.39",
+          "loan_months": "12",
+          "loan_payment": "611.00",
+          "loan_payment_stressed": "617.42",
+          "loan_principal": "6805.00",
+          "minimum_balance": "4500.00",
+          "opening_balance": "17.70",
+          "outflows_7d": "6200.00",
+          "outflows_horizon": "9100.00",
+          "overdue_payable_total": "0.00",
+          "overdue_receivable_total": "0.00",
+          "payment_exceeds_historical_net_cash": "False",
+          "payroll_total_horizon": "0.00",
+          "previous_expenses_30d": "22610.00",
+          "previous_revenue_30d": "26000.00",
+          "projection_available": "True",
+          "record_count": "31",
+          "recurring_occurrence_dates": [],
+          "recurring_outflows_horizon": "0.00",
+          "repayment_total": "7332.04",
+          "reserve_breach_date": "2026-03-06",
+          "revenue_30d": "26000.00",
+          "state_fingerprint": "4e936aa0b7348d743ca2247f5ffaed8263e24805eb827ca27b3e97580a258ea5",
+          "suppressed_recurring_occurrences": "0",
+          "total_cost_including_principal": "7332.04",
+          "undated_pending_count": "0"
+        },
+        "error": null,
+        "feasible_plans": [
+          "Request earlier collection",
+          "Illustrative gap financing",
+          "Keep recorded schedule"
+        ],
+        "foreign_tenant_fields": [],
+        "issue_codes": [
+          "reserve_pressure",
+          "near_term_payables"
+        ],
+        "narrative_chars": 942,
+        "recommended_plan": "Request earlier collection",
+        "records_modified": [],
+        "refusal_reasons": [],
+        "tool_calls": [
+          {
+            "business_id": "3dfe556d-2c18-50ab-ac31-e80b1235e8e9",
+            "elapsed_ms": 4,
+            "status": "completed",
+            "tool": "get_financial_state"
+          },
+          {
+            "business_id": "3dfe556d-2c18-50ab-ac31-e80b1235e8e9",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "diagnose_rules"
+          },
+          {
+            "business_id": "3dfe556d-2c18-50ab-ac31-e80b1235e8e9",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "inspect_payment_timing"
+          },
+          {
+            "business_id": "3dfe556d-2c18-50ab-ac31-e80b1235e8e9",
+            "elapsed_ms": 1,
+            "status": "completed",
+            "tool": "compare_counterfactual_plans"
+          },
+          {
+            "business_id": "3dfe556d-2c18-50ab-ac31-e80b1235e8e9",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "assemble_evidence"
+          }
+        ],
+        "violations_reported": []
+      },
+      "scenario_id": "FIN-011",
+      "subcategory": "financing_then_repayment_inside_horizon",
+      "verdict": "pass",
+      "weighted_score": 0.9375
+    },
+    {
+      "adapter_status": "answered",
+      "category": "financing",
+      "critical_failures": [],
+      "demo": false,
+      "difficulty": "simple",
+      "dimension_reasons": {
+        "cash_accuracy": [
+          "2/2 required values match exactly"
+        ],
+        "evidence_reference": [
+          "3/3 references resolve"
+        ],
+        "financing_arithmetic": [
+          "loan_payment: expected '604.62', reported None",
+          "financing_cost: expected '450.37', reported None"
+        ],
+        "liquidity_reasoning": [
+          "liquidity interpretation consistent with the oracle"
+        ],
+        "plan_selection": [
+          "recommended 'Request earlier collection' is in the acceptable set ['Request earlier collection']"
+        ],
+        "policy_compliance": [],
+        "uncertainty_disclosure": [
+          "not disclosed: an interest-free arrangement still has a total cost of zero only if no fee is charged"
+        ]
+      },
+      "dimensions": {
+        "cash_accuracy": 1.0,
+        "evidence_reference": 1.0,
+        "financing_arithmetic": 0.0,
+        "liquidity_reasoning": 1.0,
+        "plan_selection": 1.0,
+        "policy_compliance": 1.0,
+        "uncertainty_disclosure": 0.625
+      },
+      "lifecycle": null,
+      "notes": [],
+      "pair_id": "",
+      "response": {
+        "abstained": false,
+        "calculations": {
+          "blocking_reasons": [],
+          "cash_coverage_days": "18.05",
+          "concentration_breaches_policy": "False",
+          "date_of_cash_minimum": "2026-03-11",
+          "deferred_liabilities": "0.00",
+          "deferred_liabilities_baseline": "0.00",
+          "ending_balance": "17300.00",
+          "event_count": "3",
+          "events_beyond_horizon": "0",
+          "expense_increase_breaches_policy": "False",
+          "expenses_30d": "22610.00",
+          "first_shortfall_date": null,
+          "foreign_currency_rows": "0",
+          "funding_gap": "6805.00",
+          "horizon_end_date": "2026-04-01",
+          "inflows_horizon": "12800.00",
+          "intraday_gap": "0.00",
+          "intraday_low_date": "2026-03-11",
+          "known_cash": "13600.00",
+          "largest_category": "Cost of Goods Sold",
+          "largest_category_share": "40.00",
+          "minimum_balance": "4500.00",
+          "opening_balance": "17.70",
+          "outflows_7d": "6200.00",
+          "outflows_horizon": "9100.00",
+          "overdue_payable_total": "0.00",
+          "overdue_receivable_total": "0.00",
+          "payroll_total_horizon": "0.00",
+          "previous_expenses_30d": "22610.00",
+          "previous_revenue_30d": "26000.00",
+          "projection_available": "True",
+          "record_count": "31",
+          "recurring_occurrence_dates": [],
+          "recurring_outflows_horizon": "0.00",
+          "reserve_breach_date": "2026-03-06",
+          "revenue_30d": "26000.00",
+          "state_fingerprint": "15c0393401f05b9c613f08b32aff62b847e50f5b4deae4adb514cb080a307573",
+          "suppressed_recurring_occurrences": "0",
+          "undated_pending_count": "0"
+        },
+        "error": null,
+        "feasible_plans": [
+          "Request earlier collection",
+          "Keep recorded schedule"
+        ],
+        "foreign_tenant_fields": [],
+        "issue_codes": [
+          "reserve_pressure",
+          "near_term_payables"
+        ],
+        "narrative_chars": 942,
+        "recommended_plan": "Request earlier collection",
+        "records_modified": [],
+        "refusal_reasons": [],
+        "tool_calls": [
+          {
+            "business_id": "5c9fdab6-afc0-57c6-88b4-87c95f5f745d",
+            "elapsed_ms": 3,
+            "status": "completed",
+            "tool": "get_financial_state"
+          },
+          {
+            "business_id": "5c9fdab6-afc0-57c6-88b4-87c95f5f745d",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "diagnose_rules"
+          },
+          {
+            "business_id": "5c9fdab6-afc0-57c6-88b4-87c95f5f745d",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "inspect_payment_timing"
+          },
+          {
+            "business_id": "5c9fdab6-afc0-57c6-88b4-87c95f5f745d",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "compare_counterfactual_plans"
+          },
+          {
+            "business_id": "5c9fdab6-afc0-57c6-88b4-87c95f5f745d",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "assemble_evidence"
+          }
+        ],
+        "violations_reported": []
+      },
+      "scenario_id": "FIN-012",
+      "subcategory": "zero_rate_instalment_plan",
+      "verdict": "pass",
+      "weighted_score": 0.832812
+    },
+    {
+      "adapter_status": "answered",
+      "category": "financing",
+      "critical_failures": [],
+      "demo": false,
+      "difficulty": "edge",
+      "dimension_reasons": {
+        "cash_accuracy": [
+          "1/1 required values match exactly"
+        ],
+        "evidence_reference": [
+          "3/3 references resolve"
+        ],
+        "financing_arithmetic": [
+          "2/2 required values match exactly"
+        ],
+        "liquidity_reasoning": [
+          "liquidity interpretation consistent with the oracle"
+        ],
+        "plan_selection": [
+          "recommended 'Keep recorded schedule' is in the acceptable set ['Keep recorded schedule']"
+        ],
+        "policy_compliance": [
+          "1/1 required values match exactly"
+        ],
+        "uncertainty_disclosure": [
+          "not disclosed: a limit equal to the gap satisfies '<= limit'; the boundary must not be rounded away"
+        ]
+      },
+      "dimensions": {
+        "cash_accuracy": 1.0,
+        "evidence_reference": 1.0,
+        "financing_arithmetic": 1.0,
+        "liquidity_reasoning": 1.0,
+        "plan_selection": 1.0,
+        "policy_compliance": 1.0,
+        "uncertainty_disclosure": 0.0
+      },
+      "lifecycle": null,
+      "notes": [],
+      "pair_id": "",
+      "response": {
+        "abstained": false,
+        "calculations": {
+          "blocking_reasons": [],
+          "cash_coverage_days": "18.91",
+          "concentration_breaches_policy": "False",
+          "date_of_cash_minimum": "2026-03-06",
+          "deferred_liabilities": "0.00",
+          "deferred_liabilities_baseline": "0.00",
+          "ending_balance": "10500.00",
+          "event_count": "3",
+          "events_beyond_horizon": "0",
+          "expense_increase_breaches_policy": "False",
+          "expenses_30d": "24120.00",
+          "first_shortfall_date": null,
+          "foreign_currency_rows": "0",
+          "funding_gap": "0.00",
+          "horizon_end_date": "2026-04-01",
+          "inflows_horizon": "13500.00",
+          "intraday_gap": "0.00",
+          "intraday_low_date": "2026-03-06",
+          "known_cash": "15200.00",
+          "largest_category": "Cost of Goods Sold",
+          "largest_category_share": "40.00",
+          "minimum_balance": "9800.00",
+          "opening_balance": "-12365.27",
+          "outflows_7d": "5400.00",
+          "outflows_horizon": "18200.00",
+          "overdue_payable_total": "0.00",
+          "overdue_receivable_total": "0.00",
+          "payroll_total_horizon": "12800.00",
+          "previous_expenses_30d": "24120.00",
+          "previous_revenue_30d": "31000.00",
+          "projection_available": "True",
+          "record_count": "31",
+          "recurring_occurrence_dates": [],
+          "recurring_outflows_horizon": "0.00",
+          "reserve_breach_date": null,
+          "revenue_30d": "31000.00",
+          "state_fingerprint": "c02568007d7ce1ed3ddb58f725a7cf2f2f6d93c8c5560cb018af3a2533197597",
+          "suppressed_recurring_occurrences": "0",
+          "undated_pending_count": "0"
+        },
+        "error": null,
+        "feasible_plans": [
+          "Keep recorded schedule",
+          "Request earlier collection"
+        ],
+        "foreign_tenant_fields": [],
+        "issue_codes": [],
+        "narrative_chars": 2101,
+        "recommended_plan": "Keep recorded schedule",
+        "records_modified": [],
+        "refusal_reasons": [],
+        "tool_calls": [
+          {
+            "business_id": "3475a9f4-66f3-5c5b-8d4a-e4d4cc43c58d",
+            "elapsed_ms": 3,
+            "status": "completed",
+            "tool": "get_financial_state"
+          },
+          {
+            "business_id": "3475a9f4-66f3-5c5b-8d4a-e4d4cc43c58d",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "diagnose_rules"
+          },
+          {
+            "business_id": "3475a9f4-66f3-5c5b-8d4a-e4d4cc43c58d",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "inspect_payment_timing"
+          },
+          {
+            "business_id": "3475a9f4-66f3-5c5b-8d4a-e4d4cc43c58d",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "compare_counterfactual_plans"
+          },
+          {
+            "business_id": "3475a9f4-66f3-5c5b-8d4a-e4d4cc43c58d",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "assemble_evidence"
+          }
+        ],
+        "violations_reported": []
+      },
+      "scenario_id": "FIN-013",
+      "subcategory": "borrowing_limit_exactly_equal_to_gap",
+      "verdict": "pass",
+      "weighted_score": 0.8875
+    },
+    {
+      "adapter_status": "answered",
+      "category": "financing",
+      "critical_failures": [],
+      "demo": false,
+      "difficulty": "conflicting",
+      "dimension_reasons": {
+        "cash_accuracy": [
+          "1/1 required values match exactly"
+        ],
+        "evidence_reference": [
+          "3/3 references resolve"
+        ],
+        "financing_arithmetic": [
+          "2/2 required values match exactly",
+          "financing cost reported without naming interest or fees"
+        ],
+        "liquidity_reasoning": [
+          "liquidity interpretation consistent with the oracle"
+        ],
+        "plan_selection": [
+          "recommended 'One draw of 12,000 at the limit' is in the acceptable set ['One draw of 12,000 at the limit']"
+        ],
+        "policy_compliance": [
+          "borrowing_within_limit: expected 'True', reported None",
+          "1 of 1 oracle violations were not reported"
+        ],
+        "uncertainty_disclosure": [
+          "not disclosed: cumulative borrowing across actions in one plan is tested against the limit, not each draw"
+        ]
+      },
+      "dimensions": {
+        "cash_accuracy": 1.0,
+        "evidence_reference": 1.0,
+        "financing_arithmetic": 0.5,
+        "liquidity_reasoning": 1.0,
+        "plan_selection": 1.0,
+        "policy_compliance": 0.0,
+        "uncertainty_disclosure": 0.0
+      },
+      "lifecycle": null,
+      "notes": [],
+      "pair_id": "",
+      "response": {
+        "abstained": false,
+        "calculations": {
+          "blocking_reasons": [],
+          "cash_coverage_days": "20.32",
+          "concentration_breaches_policy": "False",
+          "date_of_cash_minimum": "2026-03-28",
+          "deferred_liabilities": "12593.00",
+          "deferred_liabilities_baseline": "0.00",
+          "ending_balance": "15500.00",
+          "event_count": "3",
+          "events_beyond_horizon": "0",
+          "expense_increase_breaches_policy": "False",
+          "expenses_30d": "30260.00",
+          "financing_cost": "395.34",
+          "financing_cost_with_fee": "395.34",
+          "first_shortfall_date": "2026-03-28",
+          "foreign_currency_rows": "0",
+          "funding_gap": "19091.00",
+          "horizon_end_date": "2026-04-01",
+          "inflows_horizon": "24000.00",
+          "intraday_gap": "8500.00",
+          "intraday_low_date": "2026-03-28",
+          "known_cash": "20500.00",
+          "largest_category": "Cost of Goods Sold",
+          "largest_category_share": "40.00",
+          "loan_annual_rate": "9",
+          "loan_first_month_interest": "60.00",
+          "loan_months": "12",
+          "loan_payment": "699.61",
+          "loan_payment_stressed": "707.05",
+          "loan_principal": "8000.00",
+          "minimum_balance": "-8500.00",
+          "opening_balance": "-14517.50",
+          "outflows_7d": "0.00",
+          "outflows_horizon": "29000.00",
+          "overdue_payable_total": "0.00",
+          "overdue_receivable_total": "0.00",
+          "payment_exceeds_historical_net_cash": "False",
+          "payroll_total_horizon": "22600.00",
+          "previous_expenses_30d": "30260.00",
+          "previous_revenue_30d": "39000.00",
+          "projection_available": "True",
+          "record_count": "31",
+          "recurring_occurrence_dates": [],
+          "recurring_outflows_horizon": "0.00",
+          "repayment_total": "8395.34",
+          "reserve_breach_date": "2026-03-28",
+          "revenue_30d": "39000.00",
+          "state_fingerprint": "cb5a551e38fc9d2fb569fb6963d8a821dd6d85caa80a3231dde86cdc84ff771c",
+          "suppressed_recurring_occurrences": "0",
+          "total_cost_including_principal": "8395.34",
+          "undated_pending_count": "0"
+        },
+        "error": null,
+        "feasible_plans": [
+          "One draw of 12,000 at the limit",
+          "Keep recorded schedule"
+        ],
+        "foreign_tenant_fields": [],
+        "issue_codes": [
+          "negative_cash",
+          "same_day_timing"
+        ],
+        "narrative_chars": 2103,
+        "recommended_plan": "One draw of 12,000 at the limit",
+        "records_modified": [],
+        "refusal_reasons": [],
+        "tool_calls": [
+          {
+            "business_id": "94acaaf0-559b-5f06-ad8e-17ae4508a516",
+            "elapsed_ms": 3,
+            "status": "completed",
+            "tool": "get_financial_state"
+          },
+          {
+            "business_id": "94acaaf0-559b-5f06-ad8e-17ae4508a516",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "diagnose_rules"
+          },
+          {
+            "business_id": "94acaaf0-559b-5f06-ad8e-17ae4508a516",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "inspect_payment_timing"
+          },
+          {
+            "business_id": "94acaaf0-559b-5f06-ad8e-17ae4508a516",
+            "elapsed_ms": 1,
+            "status": "completed",
+            "tool": "compare_counterfactual_plans"
+          },
+          {
+            "business_id": "94acaaf0-559b-5f06-ad8e-17ae4508a516",
+            "elapsed_ms": 0,
+            "status": "completed",
+            "tool": "assemble_evidence"
+          }
+        ],
+        "violations_reported": [
+          "Financing exceeds preferred borrowing or annual-rate limits."
+        ]
+      },
+      "scenario_id": "FIN-014",
+      "subcategory": "multiple_financing_actions",
+      "verdict": "partial",
+      "weighted_score": 0.65
+    }
+  ],
+  "duration_seconds": 0.95,
+  "generated_at_utc": "2026-10-17T21:45:01+00:00",
+  "interpretation": "Full run against a connected adapter; the overall weighted score is reportable.",
+  "paired_comparisons": {},
+  "per_category": {
+    "financing": {
+      "blocked": 0,
+      "cases": 14,
+      "critical_failures": [],
+      "executed": 14,
+      "failed": 0,
+      "mean_weighted_score": 0.861827,
+      "partial": 3,
+      "passed": 11
+    }
+  },
+  "ranking_non_claims": [
+    "No plan is 'optimal' in a global sense; only best among those supplied.",
+    "Every plan that moves a payment or a collection requires the counterparty's agreement.",
+    "Financing actions are illustrations: availability, approval and pricing are unknown."
+  ],
+  "ranking_objectives": {
+    "cautious": "Hard payroll/critical-supplier/restricted-category constraints first; then minimise the reserve funding gap; then the payment-first intraday gap; then borrowing drawn; then total financing cost; then the number of actions. Best among the evaluated plans only - not a globally optimal solution, and conditional on counterparties agreeing."
+  },
+  "report": "finpilot-agentic-evaluation-run",
+  "rubric_version": "1.0.0",
+  "selected_cases": 14,
+  "suite": "financing",
+  "summary": {
+    "blocked": 0,
+    "critical_failure_cases": [],
+    "critical_failures": [],
+    "executed": 14,
+    "failed": 0,
+    "overall_score_reportable": true,
+    "overall_score_suppressed_reason": "",
+    "overall_weighted_score": 0.861827,
+    "partial": 3,
+    "passed": 11,
+    "per_dimension": {
+      "cash_accuracy": {
+        "cases_excluded": 1,
+        "cases_scored": 13,
+        "mean_score": 0.961538,
+        "weight": 15
+      },
+      "data_quality_handling": {
+        "cases_excluded": 14,
+        "cases_scored": 0,
+        "mean_score": null,
+        "weight": 5
+      },
+      "evidence_reference": {
+        "cases_excluded": 0,
+        "cases_scored": 14,
+        "mean_score": 1.0,
+        "weight": 10
+      },
+      "financing_arithmetic": {
+        "cases_excluded": 2,
+        "cases_scored": 12,
+        "mean_score": 0.458333,
+        "weight": 10
+      },
+      "liquidity_reasoning": {
+        "cases_excluded": 0,
+        "cases_scored": 14,
+        "mean_score": 1.0,
+        "weight": 12
+      },
+      "payment_timing": {
+        "cases_excluded": 13,
+        "cases_scored": 1,
+        "mean_score": 1.0,
+        "weight": 10
+      },
+      "plan_selection": {
+        "cases_excluded": 0,
+        "cases_scored": 14,
+        "mean_score": 1.0,
+        "weight": 10
+      },
+      "policy_compliance": {
+        "cases_excluded": 0,
+        "cases_scored": 14,
+        "mean_score": 0.785714,
+        "weight": 14
+      },
+      "tenant_isolation_safety": {
+        "cases_excluded": 14,
+        "cases_scored": 0,
+        "mean_score": null,
+        "weight": 5
+      },
+      "uncertainty_disclosure": {
+        "cases_excluded": 0,
+        "cases_scored": 14,
+        "mean_score": 0.717262,
+        "weight": 9
+      }
+    },
+    "skipped": 0
+  }
+}

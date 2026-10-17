@@ -31,6 +31,7 @@ FINPILOT_EVAL_DJANGO=1 python -m evaluation.agentic.run \
   --adapter django --suite full --out-dir /private/evaluation-results
 ```
 
+The CLI checks the pinned source-file SHA-256 manifest before importing external benchmark code.
 Default is disposable in-memory SQLite, **not** the configured application database. The SQLite
 upper-cent boundary is unsuitable for EDGE-008; use a separately initialized local PostgreSQL cluster:
 
@@ -81,3 +82,7 @@ score. Supplemental independently labelled actual-pair/lifecycle checks are requ
 that the upstream decision-memory pass count alone proves the lifecycle. Original expectations,
 scoring and scenario files are not modified. `tested_against_live_application` means actual **local**
 Django services executed, never a deployed production instance.
+
+## Final outcome
+
+See AGENTIC_EVALUATION_RESULTS.md for all eight executed suites, 21 measured groups and 83 lifecycle assertions. The initial blocked state above is historical, not the final result. Final code/test branch remains the existing feat/finpilot-platform.

@@ -78,3 +78,12 @@ See [architecture](docs/AGENTIC_ARCHITECTURE.md), [decision workflow](docs/DECIS
 Repeat imports are explicitly non-mutating; corrected files follow documented append-only event-reference rules. Investigations now distinguish overdue collections, expense growth and liquidity pressure and honor no-borrowing instructions. Comparisons prominently separate action feasibility from unresolved reserve goals. Forecasts deduplicate linked commitments and disclose baseline/error limitations; loan comparisons show their own fees. Decision reports use readable tables and numeric safe XLSX cells.
 
 Latest verification: 149 SQLite tests passed (two PostgreSQL-only skipped), 151 tests passed on isolated PostgreSQL 17, and 63 Chromium layout/workflow checks passed. No live-provider, deployed-scheduler or production-runtime claim is made. See [audit](docs/QUALITY_HARDENING_AUDIT.md), [accounting/imports](docs/ACCOUNTING_AND_IMPORTS.md), [forecast reliability](docs/FORECASTING.md), [provider readiness](docs/AI_PROVIDER_READINESS.md), [monitoring operations](docs/MONITORING_OPERATIONS.md), [future evaluation adapter](docs/EVALUATION_ADAPTER.md) and [verification](docs/TESTING.md).
+
+### Development-only authoritative agentic evaluation
+
+The supplied proprietary benchmark is integrated through an opt-in, source-hash-pinned adapter to
+actual Django services in disposable test databases. It is not a production dependency. See
+[setup/isolation](docs/AGENTIC_EVALUATION_INTEGRATION.md), [measured results](docs/AGENTIC_EVALUATION_RESULTS.md),
+[remaining partial outcomes](docs/BENCHMARK_FAILURE_ANALYSIS.md) and the
+[six synthetic demos](docs/COMPETITION_EVALUATION_DEMO.md). The final 172-case run has 147 pass / 25 partial,
+not “172 passed”; its weighted 0.917476 is deterministic service coverage, not forecast accuracy or LLM certification.

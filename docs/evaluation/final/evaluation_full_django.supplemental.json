@@ -1,0 +1,1944 @@
+{
+  "kind": "actual-application-supplemental-v1",
+  "lifecycle": [
+    {
+      "actual_actions": [
+        {
+          "decision_state": "proposed",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 0,
+          "investigation_created": true,
+          "ledger_modified_by_application": false,
+          "new_snapshot_fingerprint_recorded": true,
+          "same_investigation_returned": true,
+          "snapshot_fingerprint_recorded": true,
+          "step": "investigate"
+        },
+        {
+          "decision_state": "proposed",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 0,
+          "has_comparison": true,
+          "has_evidence_graph": true,
+          "ledger_modified_by_application": false,
+          "recommended_present_or_missing_information": true,
+          "step": "inspect_result"
+        }
+      ],
+      "actual_steps": 2,
+      "checks": [
+        {
+          "actual": "proposed",
+          "exact_match": true,
+          "expected": "proposed",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "investigate",
+          "step_index": 0
+        },
+        {
+          "actual": true,
+          "exact_match": true,
+          "expected": true,
+          "field": "investigation_created",
+          "rejection_observed": null,
+          "step": "investigate",
+          "step_index": 0
+        },
+        {
+          "actual": true,
+          "exact_match": true,
+          "expected": true,
+          "field": "snapshot_fingerprint_recorded",
+          "rejection_observed": null,
+          "step": "investigate",
+          "step_index": 0
+        },
+        {
+          "actual": true,
+          "exact_match": true,
+          "expected": true,
+          "field": "has_comparison",
+          "rejection_observed": null,
+          "step": "inspect_result",
+          "step_index": 1
+        },
+        {
+          "actual": true,
+          "exact_match": true,
+          "expected": true,
+          "field": "has_evidence_graph",
+          "rejection_observed": null,
+          "step": "inspect_result",
+          "step_index": 1
+        },
+        {
+          "actual": true,
+          "exact_match": true,
+          "expected": true,
+          "field": "recommended_present_or_missing_information",
+          "rejection_observed": null,
+          "step": "inspect_result",
+          "step_index": 1
+        }
+      ],
+      "expected_steps": 2,
+      "scenario_id": "DM-001"
+    },
+    {
+      "actual_actions": [
+        {
+          "decision_state": "proposed",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 0,
+          "investigation_created": true,
+          "ledger_modified_by_application": false,
+          "new_snapshot_fingerprint_recorded": true,
+          "same_investigation_returned": true,
+          "snapshot_fingerprint_recorded": true,
+          "step": "investigate"
+        },
+        {
+          "decision_state": "accepted",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 1,
+          "expected_balance_at_review_recorded": true,
+          "expected_basis": "simulated",
+          "ledger_modified_by_application": false,
+          "payment_executed": false,
+          "replacement_plan_validated": false,
+          "selected_plan_recorded": true,
+          "step": "accept",
+          "write": true
+        }
+      ],
+      "actual_steps": 2,
+      "checks": [
+        {
+          "actual": "proposed",
+          "exact_match": true,
+          "expected": "proposed",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "investigate",
+          "step_index": 0
+        },
+        {
+          "actual": "accepted",
+          "exact_match": true,
+          "expected": "accepted",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "accept",
+          "step_index": 1
+        },
+        {
+          "actual": true,
+          "exact_match": true,
+          "expected": true,
+          "field": "expected_balance_at_review_recorded",
+          "rejection_observed": null,
+          "step": "accept",
+          "step_index": 1
+        },
+        {
+          "actual": "simulated",
+          "exact_match": true,
+          "expected": "simulated",
+          "field": "expected_basis",
+          "rejection_observed": null,
+          "step": "accept",
+          "step_index": 1
+        },
+        {
+          "actual": false,
+          "exact_match": true,
+          "expected": false,
+          "field": "payment_executed",
+          "rejection_observed": null,
+          "step": "accept",
+          "step_index": 1
+        },
+        {
+          "actual": true,
+          "exact_match": true,
+          "expected": true,
+          "field": "selected_plan_recorded",
+          "rejection_observed": null,
+          "step": "accept",
+          "step_index": 1
+        }
+      ],
+      "expected_steps": 2,
+      "scenario_id": "DM-002"
+    },
+    {
+      "actual_actions": [
+        {
+          "decision_state": "proposed",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 0,
+          "investigation_created": true,
+          "ledger_modified_by_application": false,
+          "new_snapshot_fingerprint_recorded": true,
+          "same_investigation_returned": true,
+          "snapshot_fingerprint_recorded": true,
+          "step": "investigate"
+        },
+        {
+          "decision_state": "rejected",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 1,
+          "expected_balance_at_review_recorded": false,
+          "expected_basis": null,
+          "ledger_modified_by_application": false,
+          "payment_executed": false,
+          "replacement_plan_validated": false,
+          "selected_plan_recorded": false,
+          "step": "reject",
+          "write": true
+        },
+        {
+          "decision_state": "closed",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 1,
+          "expected_balance_at_review_recorded": false,
+          "expected_basis": null,
+          "ledger_modified_by_application": false,
+          "payment_executed": false,
+          "replacement_plan_validated": false,
+          "selected_plan_recorded": false,
+          "step": "close",
+          "write": true
+        },
+        {
+          "decision_state": "closed",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 0,
+          "ledger_modified_by_application": false,
+          "rejected_with": "This decision transition is not allowed. Outcomes are evaluated by monitoring.",
+          "step": "transition"
+        }
+      ],
+      "actual_steps": 4,
+      "checks": [
+        {
+          "actual": "proposed",
+          "exact_match": true,
+          "expected": "proposed",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "investigate",
+          "step_index": 0
+        },
+        {
+          "actual": "rejected",
+          "exact_match": true,
+          "expected": "rejected",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "reject",
+          "step_index": 1
+        },
+        {
+          "actual": "closed",
+          "exact_match": true,
+          "expected": "closed",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "close",
+          "step_index": 2
+        },
+        {
+          "actual": "This decision transition is not allowed. Outcomes are evaluated by monitoring.",
+          "exact_match": false,
+          "expected": "transition closed -> accepted is not allowed",
+          "field": "rejected_with",
+          "rejection_observed": true,
+          "step": "transition",
+          "step_index": 3
+        }
+      ],
+      "expected_steps": 4,
+      "scenario_id": "DM-003"
+    },
+    {
+      "actual_actions": [
+        {
+          "decision_state": "proposed",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 0,
+          "investigation_created": true,
+          "ledger_modified_by_application": false,
+          "new_snapshot_fingerprint_recorded": true,
+          "same_investigation_returned": true,
+          "snapshot_fingerprint_recorded": true,
+          "step": "investigate"
+        },
+        {
+          "decision_state": "modified",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 1,
+          "expected_balance_at_review_recorded": true,
+          "expected_basis": "simulated",
+          "ledger_modified_by_application": false,
+          "payment_executed": false,
+          "replacement_plan_validated": true,
+          "selected_plan_recorded": true,
+          "step": "modify",
+          "write": true
+        },
+        {
+          "decision_state": "modified",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 0,
+          "ledger_modified_by_application": false,
+          "rejected_with": "A modified decision requires an explicit validated plan.",
+          "step": "modify"
+        },
+        {
+          "decision_state": "accepted",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 1,
+          "expected_balance_at_review_recorded": true,
+          "expected_basis": "simulated",
+          "ledger_modified_by_application": false,
+          "payment_executed": false,
+          "replacement_plan_validated": false,
+          "selected_plan_recorded": true,
+          "step": "accept",
+          "write": true
+        }
+      ],
+      "actual_steps": 4,
+      "checks": [
+        {
+          "actual": "proposed",
+          "exact_match": true,
+          "expected": "proposed",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "investigate",
+          "step_index": 0
+        },
+        {
+          "actual": "modified",
+          "exact_match": true,
+          "expected": "modified",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "modify",
+          "step_index": 1
+        },
+        {
+          "actual": true,
+          "exact_match": true,
+          "expected": true,
+          "field": "replacement_plan_validated",
+          "rejection_observed": null,
+          "step": "modify",
+          "step_index": 1
+        },
+        {
+          "actual": "A modified decision requires an explicit validated plan.",
+          "exact_match": false,
+          "expected": "a modified decision requires an explicit validated plan",
+          "field": "rejected_with",
+          "rejection_observed": true,
+          "step": "modify",
+          "step_index": 2
+        },
+        {
+          "actual": "accepted",
+          "exact_match": true,
+          "expected": "accepted",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "accept",
+          "step_index": 3
+        }
+      ],
+      "expected_steps": 4,
+      "scenario_id": "DM-004"
+    },
+    {
+      "actual_actions": [
+        {
+          "decision_state": "proposed",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 0,
+          "investigation_created": true,
+          "ledger_modified_by_application": false,
+          "new_snapshot_fingerprint_recorded": true,
+          "same_investigation_returned": true,
+          "snapshot_fingerprint_recorded": true,
+          "step": "investigate"
+        },
+        {
+          "decision_state": "accepted",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 1,
+          "expected_balance_at_review_recorded": true,
+          "expected_basis": "simulated",
+          "ledger_modified_by_application": false,
+          "payment_executed": false,
+          "replacement_plan_validated": false,
+          "selected_plan_recorded": true,
+          "step": "accept",
+          "write": true
+        },
+        {
+          "absence_treated_as_performance": false,
+          "causal_attribution": "unknown",
+          "decision_state": "monitoring",
+          "difference": null,
+          "difference_nonzero": false,
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 1,
+          "ledger_modified_by_application": false,
+          "may_claim_failure": false,
+          "may_claim_success": false,
+          "monitoring_status": "completed",
+          "notification_sent": false,
+          "outcome_status": "not_due",
+          "step": "monitor"
+        },
+        {
+          "absence_treated_as_performance": false,
+          "causal_attribution": "unknown",
+          "decision_state": "monitoring",
+          "difference": null,
+          "difference_nonzero": false,
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 0,
+          "ledger_modified_by_application": false,
+          "may_claim_failure": false,
+          "may_claim_success": false,
+          "monitoring_status": "completed",
+          "notification_sent": false,
+          "outcome_status": "not_due",
+          "step": "monitor"
+        }
+      ],
+      "actual_steps": 4,
+      "checks": [
+        {
+          "actual": "proposed",
+          "exact_match": true,
+          "expected": "proposed",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "investigate",
+          "step_index": 0
+        },
+        {
+          "actual": "accepted",
+          "exact_match": true,
+          "expected": "accepted",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "accept",
+          "step_index": 1
+        },
+        {
+          "actual": "monitoring",
+          "exact_match": true,
+          "expected": "monitoring",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "monitor",
+          "step_index": 2
+        },
+        {
+          "actual": "not_due",
+          "exact_match": true,
+          "expected": "not_due",
+          "field": "outcome_status",
+          "rejection_observed": null,
+          "step": "monitor",
+          "step_index": 2
+        },
+        {
+          "actual": "monitoring",
+          "exact_match": true,
+          "expected": "monitoring",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "monitor",
+          "step_index": 3
+        },
+        {
+          "actual": 0,
+          "exact_match": true,
+          "expected": 0,
+          "field": "duplicate_events_created",
+          "rejection_observed": null,
+          "step": "monitor",
+          "step_index": 3
+        },
+        {
+          "actual": "not_due",
+          "exact_match": true,
+          "expected": "not_due",
+          "field": "outcome_status",
+          "rejection_observed": null,
+          "step": "monitor",
+          "step_index": 3
+        }
+      ],
+      "expected_steps": 4,
+      "scenario_id": "DM-005"
+    },
+    {
+      "actual_actions": [
+        {
+          "decision_state": "proposed",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 0,
+          "investigation_created": true,
+          "ledger_modified_by_application": false,
+          "new_snapshot_fingerprint_recorded": true,
+          "same_investigation_returned": true,
+          "snapshot_fingerprint_recorded": true,
+          "step": "investigate"
+        },
+        {
+          "decision_state": "accepted",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 1,
+          "expected_balance_at_review_recorded": true,
+          "expected_basis": "simulated",
+          "ledger_modified_by_application": false,
+          "payment_executed": false,
+          "replacement_plan_validated": false,
+          "selected_plan_recorded": true,
+          "step": "accept",
+          "write": true
+        },
+        {
+          "absence_treated_as_performance": false,
+          "causal_attribution": "unknown",
+          "decision_state": "evaluated",
+          "difference": "0.00",
+          "difference_nonzero": false,
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 2,
+          "ledger_modified_by_application": false,
+          "may_claim_failure": false,
+          "may_claim_success": false,
+          "monitoring_status": "completed",
+          "notification_sent": false,
+          "outcome_status": "observed",
+          "step": "monitor"
+        },
+        {
+          "decision_state": "closed",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 1,
+          "expected_balance_at_review_recorded": true,
+          "expected_basis": "simulated",
+          "ledger_modified_by_application": false,
+          "payment_executed": false,
+          "replacement_plan_validated": false,
+          "selected_plan_recorded": true,
+          "step": "close",
+          "write": true
+        }
+      ],
+      "actual_steps": 4,
+      "checks": [
+        {
+          "actual": "proposed",
+          "exact_match": true,
+          "expected": "proposed",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "investigate",
+          "step_index": 0
+        },
+        {
+          "actual": "accepted",
+          "exact_match": true,
+          "expected": "accepted",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "accept",
+          "step_index": 1
+        },
+        {
+          "actual": "unknown",
+          "exact_match": true,
+          "expected": "unknown",
+          "field": "causal_attribution",
+          "rejection_observed": null,
+          "step": "monitor",
+          "step_index": 2
+        },
+        {
+          "actual": "evaluated",
+          "exact_match": true,
+          "expected": "evaluated",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "monitor",
+          "step_index": 2
+        },
+        {
+          "actual": "0.00",
+          "exact_match": true,
+          "expected": "0.00",
+          "field": "difference",
+          "rejection_observed": null,
+          "step": "monitor",
+          "step_index": 2
+        },
+        {
+          "actual": false,
+          "exact_match": true,
+          "expected": false,
+          "field": "may_claim_success",
+          "rejection_observed": null,
+          "step": "monitor",
+          "step_index": 2
+        },
+        {
+          "actual": "observed",
+          "exact_match": true,
+          "expected": "observed",
+          "field": "outcome_status",
+          "rejection_observed": null,
+          "step": "monitor",
+          "step_index": 2
+        },
+        {
+          "actual": "closed",
+          "exact_match": true,
+          "expected": "closed",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "close",
+          "step_index": 3
+        }
+      ],
+      "expected_steps": 4,
+      "scenario_id": "DM-006"
+    },
+    {
+      "actual_actions": [
+        {
+          "decision_state": "proposed",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 0,
+          "investigation_created": true,
+          "ledger_modified_by_application": false,
+          "new_snapshot_fingerprint_recorded": true,
+          "same_investigation_returned": true,
+          "snapshot_fingerprint_recorded": true,
+          "step": "investigate"
+        },
+        {
+          "decision_state": "accepted",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 1,
+          "expected_balance_at_review_recorded": true,
+          "expected_basis": "simulated",
+          "ledger_modified_by_application": false,
+          "payment_executed": false,
+          "replacement_plan_validated": false,
+          "selected_plan_recorded": true,
+          "step": "accept",
+          "write": true
+        },
+        {
+          "absence_treated_as_performance": false,
+          "causal_attribution": "unknown",
+          "decision_state": "evaluated",
+          "difference": "-12800.00",
+          "difference_nonzero": true,
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 2,
+          "ledger_modified_by_application": false,
+          "may_claim_failure": false,
+          "may_claim_success": false,
+          "monitoring_status": "completed",
+          "notification_sent": false,
+          "outcome_status": "observed",
+          "step": "monitor"
+        }
+      ],
+      "actual_steps": 3,
+      "checks": [
+        {
+          "actual": "proposed",
+          "exact_match": true,
+          "expected": "proposed",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "investigate",
+          "step_index": 0
+        },
+        {
+          "actual": "accepted",
+          "exact_match": true,
+          "expected": "accepted",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "accept",
+          "step_index": 1
+        },
+        {
+          "actual": "unknown",
+          "exact_match": true,
+          "expected": "unknown",
+          "field": "causal_attribution",
+          "rejection_observed": null,
+          "step": "monitor",
+          "step_index": 2
+        },
+        {
+          "actual": "evaluated",
+          "exact_match": true,
+          "expected": "evaluated",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "monitor",
+          "step_index": 2
+        },
+        {
+          "actual": true,
+          "exact_match": true,
+          "expected": true,
+          "field": "difference_nonzero",
+          "rejection_observed": null,
+          "step": "monitor",
+          "step_index": 2
+        },
+        {
+          "actual": false,
+          "exact_match": true,
+          "expected": false,
+          "field": "may_claim_failure",
+          "rejection_observed": null,
+          "step": "monitor",
+          "step_index": 2
+        },
+        {
+          "actual": "observed",
+          "exact_match": true,
+          "expected": "observed",
+          "field": "outcome_status",
+          "rejection_observed": null,
+          "step": "monitor",
+          "step_index": 2
+        }
+      ],
+      "expected_steps": 3,
+      "scenario_id": "DM-007"
+    },
+    {
+      "actual_actions": [
+        {
+          "decision_state": "proposed",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 0,
+          "investigation_created": true,
+          "ledger_modified_by_application": false,
+          "new_snapshot_fingerprint_recorded": true,
+          "same_investigation_returned": true,
+          "snapshot_fingerprint_recorded": true,
+          "step": "investigate"
+        },
+        {
+          "decision_state": "accepted",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 1,
+          "expected_balance_at_review_recorded": true,
+          "expected_basis": "simulated",
+          "ledger_modified_by_application": false,
+          "payment_executed": false,
+          "replacement_plan_validated": false,
+          "selected_plan_recorded": true,
+          "step": "accept",
+          "write": true
+        },
+        {
+          "absence_treated_as_performance": false,
+          "causal_attribution": "unknown",
+          "decision_state": "monitoring",
+          "difference": null,
+          "difference_nonzero": false,
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 1,
+          "ledger_modified_by_application": false,
+          "may_claim_failure": false,
+          "may_claim_success": false,
+          "monitoring_status": "completed",
+          "notification_sent": false,
+          "outcome_status": "awaiting_data",
+          "step": "monitor"
+        }
+      ],
+      "actual_steps": 3,
+      "checks": [
+        {
+          "actual": "proposed",
+          "exact_match": true,
+          "expected": "proposed",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "investigate",
+          "step_index": 0
+        },
+        {
+          "actual": "accepted",
+          "exact_match": true,
+          "expected": "accepted",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "accept",
+          "step_index": 1
+        },
+        {
+          "actual": false,
+          "exact_match": true,
+          "expected": false,
+          "field": "absence_treated_as_performance",
+          "rejection_observed": null,
+          "step": "monitor",
+          "step_index": 2
+        },
+        {
+          "actual": "monitoring",
+          "exact_match": true,
+          "expected": "monitoring",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "monitor",
+          "step_index": 2
+        },
+        {
+          "actual": "awaiting_data",
+          "exact_match": true,
+          "expected": "awaiting_data",
+          "field": "outcome_status",
+          "rejection_observed": null,
+          "step": "monitor",
+          "step_index": 2
+        }
+      ],
+      "expected_steps": 3,
+      "scenario_id": "DM-008"
+    },
+    {
+      "actual_actions": [
+        {
+          "decision_state": "proposed",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 0,
+          "investigation_created": true,
+          "ledger_modified_by_application": false,
+          "new_snapshot_fingerprint_recorded": true,
+          "same_investigation_returned": true,
+          "snapshot_fingerprint_recorded": true,
+          "step": "investigate"
+        },
+        {
+          "decision_state": "accepted",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 1,
+          "expected_balance_at_review_recorded": true,
+          "expected_basis": "simulated",
+          "ledger_modified_by_application": false,
+          "payment_executed": false,
+          "replacement_plan_validated": false,
+          "selected_plan_recorded": true,
+          "step": "accept",
+          "write": true
+        },
+        {
+          "decision_state": "accepted",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 0,
+          "fingerprint_changed": true,
+          "ledger_modified_by_application": false,
+          "step": "set_flag"
+        },
+        {
+          "absence_treated_as_performance": false,
+          "causal_attribution": "unknown",
+          "decision_state": "monitoring",
+          "difference": null,
+          "difference_nonzero": false,
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 1,
+          "ledger_modified_by_application": false,
+          "may_claim_failure": false,
+          "may_claim_success": false,
+          "monitoring_status": "completed",
+          "notification_sent": false,
+          "outcome_status": "awaiting_data",
+          "step": "monitor"
+        }
+      ],
+      "actual_steps": 4,
+      "checks": [
+        {
+          "actual": "proposed",
+          "exact_match": true,
+          "expected": "proposed",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "investigate",
+          "step_index": 0
+        },
+        {
+          "actual": "accepted",
+          "exact_match": true,
+          "expected": "accepted",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "accept",
+          "step_index": 1
+        },
+        {
+          "actual": true,
+          "exact_match": true,
+          "expected": true,
+          "field": "fingerprint_changed",
+          "rejection_observed": null,
+          "step": "set_flag",
+          "step_index": 2
+        },
+        {
+          "actual": "monitoring",
+          "exact_match": true,
+          "expected": "monitoring",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "monitor",
+          "step_index": 3
+        },
+        {
+          "actual": "awaiting_data",
+          "exact_match": true,
+          "expected": "awaiting_data",
+          "field": "outcome_status",
+          "rejection_observed": null,
+          "step": "monitor",
+          "step_index": 3
+        }
+      ],
+      "expected_steps": 4,
+      "scenario_id": "DM-009"
+    },
+    {
+      "actual_actions": [
+        {
+          "decision_state": "proposed",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 0,
+          "investigation_created": true,
+          "ledger_modified_by_application": false,
+          "new_snapshot_fingerprint_recorded": true,
+          "same_investigation_returned": true,
+          "snapshot_fingerprint_recorded": true,
+          "step": "investigate"
+        },
+        {
+          "decision_state": "proposed",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 0,
+          "fingerprint_changed": true,
+          "ledger_modified_by_application": false,
+          "step": "mutate_ledger"
+        },
+        {
+          "decision_state": "proposed",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 0,
+          "ledger_modified_by_application": false,
+          "rejected_with": "Financial data or preferences changed. Run a fresh investigation before committing to a plan.",
+          "step": "accept"
+        },
+        {
+          "decision_state": "proposed",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 0,
+          "investigation_created": true,
+          "ledger_modified_by_application": false,
+          "new_snapshot_fingerprint_recorded": true,
+          "same_investigation_returned": false,
+          "snapshot_fingerprint_recorded": true,
+          "step": "investigate"
+        }
+      ],
+      "actual_steps": 4,
+      "checks": [
+        {
+          "actual": "proposed",
+          "exact_match": true,
+          "expected": "proposed",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "investigate",
+          "step_index": 0
+        },
+        {
+          "actual": true,
+          "exact_match": true,
+          "expected": true,
+          "field": "snapshot_fingerprint_recorded",
+          "rejection_observed": null,
+          "step": "investigate",
+          "step_index": 0
+        },
+        {
+          "actual": true,
+          "exact_match": true,
+          "expected": true,
+          "field": "fingerprint_changed",
+          "rejection_observed": null,
+          "step": "mutate_ledger",
+          "step_index": 1
+        },
+        {
+          "actual": "proposed",
+          "exact_match": true,
+          "expected": "proposed",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "accept",
+          "step_index": 2
+        },
+        {
+          "actual": "Financial data or preferences changed. Run a fresh investigation before committing to a plan.",
+          "exact_match": false,
+          "expected": "financial data or preferences changed since the investigation",
+          "field": "rejected_with",
+          "rejection_observed": true,
+          "step": "accept",
+          "step_index": 2
+        },
+        {
+          "actual": "proposed",
+          "exact_match": true,
+          "expected": "proposed",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "investigate",
+          "step_index": 3
+        },
+        {
+          "actual": true,
+          "exact_match": true,
+          "expected": true,
+          "field": "new_snapshot_fingerprint_recorded",
+          "rejection_observed": null,
+          "step": "investigate",
+          "step_index": 3
+        }
+      ],
+      "expected_steps": 4,
+      "scenario_id": "DM-010"
+    },
+    {
+      "actual_actions": [
+        {
+          "decision_state": "proposed",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 0,
+          "investigation_created": true,
+          "ledger_modified_by_application": false,
+          "new_snapshot_fingerprint_recorded": true,
+          "same_investigation_returned": false,
+          "snapshot_fingerprint_recorded": true,
+          "step": "investigate"
+        },
+        {
+          "decision_state": "proposed",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 0,
+          "investigation_created": false,
+          "ledger_modified_by_application": false,
+          "new_snapshot_fingerprint_recorded": true,
+          "same_investigation_returned": true,
+          "snapshot_fingerprint_recorded": true,
+          "step": "investigate"
+        },
+        {
+          "decision_state": "accepted",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 1,
+          "expected_balance_at_review_recorded": true,
+          "expected_basis": "simulated",
+          "ledger_modified_by_application": false,
+          "payment_executed": false,
+          "replacement_plan_validated": false,
+          "selected_plan_recorded": true,
+          "step": "accept",
+          "write": true
+        },
+        {
+          "decision_state": "accepted",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 0,
+          "expected_balance_at_review_recorded": true,
+          "expected_basis": "simulated",
+          "ledger_modified_by_application": false,
+          "payment_executed": false,
+          "replacement_plan_validated": false,
+          "selected_plan_recorded": true,
+          "step": "accept",
+          "write": true
+        }
+      ],
+      "actual_steps": 4,
+      "checks": [
+        {
+          "actual": true,
+          "exact_match": true,
+          "expected": true,
+          "field": "investigation_created",
+          "rejection_observed": null,
+          "step": "investigate",
+          "step_index": 0
+        },
+        {
+          "actual": false,
+          "exact_match": true,
+          "expected": false,
+          "field": "investigation_created",
+          "rejection_observed": null,
+          "step": "investigate",
+          "step_index": 1
+        },
+        {
+          "actual": true,
+          "exact_match": true,
+          "expected": true,
+          "field": "same_investigation_returned",
+          "rejection_observed": null,
+          "step": "investigate",
+          "step_index": 1
+        },
+        {
+          "actual": "accepted",
+          "exact_match": true,
+          "expected": "accepted",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "accept",
+          "step_index": 2
+        },
+        {
+          "actual": 1,
+          "exact_match": true,
+          "expected": 1,
+          "field": "events_created",
+          "rejection_observed": null,
+          "step": "accept",
+          "step_index": 2
+        },
+        {
+          "actual": "accepted",
+          "exact_match": true,
+          "expected": "accepted",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "accept",
+          "step_index": 3
+        },
+        {
+          "actual": 0,
+          "exact_match": true,
+          "expected": 0,
+          "field": "duplicate_lifecycle_events",
+          "rejection_observed": null,
+          "step": "accept",
+          "step_index": 3
+        },
+        {
+          "actual": 0,
+          "exact_match": true,
+          "expected": 0,
+          "field": "events_created",
+          "rejection_observed": null,
+          "step": "accept",
+          "step_index": 3
+        }
+      ],
+      "expected_steps": 4,
+      "scenario_id": "DM-011"
+    },
+    {
+      "actual_actions": [
+        {
+          "decision_state": "proposed",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 0,
+          "investigation_created": true,
+          "ledger_modified_by_application": false,
+          "new_snapshot_fingerprint_recorded": true,
+          "same_investigation_returned": true,
+          "snapshot_fingerprint_recorded": true,
+          "step": "investigate"
+        },
+        {
+          "decision_state": "proposed",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 0,
+          "ledger_modified_by_application": false,
+          "rejected_with": "This decision transition is not allowed. Outcomes are evaluated by monitoring.",
+          "step": "transition"
+        },
+        {
+          "decision_state": "proposed",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 0,
+          "ledger_modified_by_application": false,
+          "rejected_with": "This decision transition is not allowed. Outcomes are evaluated by monitoring.",
+          "step": "transition"
+        },
+        {
+          "decision_state": "proposed",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 0,
+          "ledger_modified_by_application": false,
+          "rejected_with": "This decision transition is not allowed. Outcomes are evaluated by monitoring.",
+          "step": "transition"
+        }
+      ],
+      "actual_steps": 4,
+      "checks": [
+        {
+          "actual": "proposed",
+          "exact_match": true,
+          "expected": "proposed",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "investigate",
+          "step_index": 0
+        },
+        {
+          "actual": "This decision transition is not allowed. Outcomes are evaluated by monitoring.",
+          "exact_match": false,
+          "expected": "outcomes are evaluated by monitoring, not by a user action",
+          "field": "rejected_with",
+          "rejection_observed": true,
+          "step": "transition",
+          "step_index": 1
+        },
+        {
+          "actual": "This decision transition is not allowed. Outcomes are evaluated by monitoring.",
+          "exact_match": false,
+          "expected": "transition proposed -> monitoring is not allowed",
+          "field": "rejected_with",
+          "rejection_observed": true,
+          "step": "transition",
+          "step_index": 2
+        },
+        {
+          "actual": "This decision transition is not allowed. Outcomes are evaluated by monitoring.",
+          "exact_match": false,
+          "expected": "transition proposed -> closed is not allowed",
+          "field": "rejected_with",
+          "rejection_observed": true,
+          "step": "transition",
+          "step_index": 3
+        }
+      ],
+      "expected_steps": 4,
+      "scenario_id": "DM-012"
+    },
+    {
+      "actual_actions": [
+        {
+          "decision_state": "proposed",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 0,
+          "investigation_created": true,
+          "ledger_modified_by_application": false,
+          "new_snapshot_fingerprint_recorded": true,
+          "same_investigation_returned": true,
+          "snapshot_fingerprint_recorded": true,
+          "step": "investigate"
+        },
+        {
+          "decision_state": "proposed",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 0,
+          "ledger_modified_by_application": false,
+          "rejected_with": "Choose a feasible evaluated plan with sufficient financial data.",
+          "step": "accept"
+        }
+      ],
+      "actual_steps": 2,
+      "checks": [
+        {
+          "actual": "proposed",
+          "exact_match": true,
+          "expected": "proposed",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "investigate",
+          "step_index": 0
+        },
+        {
+          "actual": "proposed",
+          "exact_match": true,
+          "expected": "proposed",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "accept",
+          "step_index": 1
+        },
+        {
+          "actual": "Choose a feasible evaluated plan with sufficient financial data.",
+          "exact_match": false,
+          "expected": "the selected plan violates a hard business constraint",
+          "field": "rejected_with",
+          "rejection_observed": true,
+          "step": "accept",
+          "step_index": 1
+        }
+      ],
+      "expected_steps": 2,
+      "scenario_id": "DM-013"
+    },
+    {
+      "actual_actions": [
+        {
+          "decision_state": "proposed",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 0,
+          "investigation_created": true,
+          "ledger_modified_by_application": false,
+          "new_snapshot_fingerprint_recorded": true,
+          "same_investigation_returned": true,
+          "snapshot_fingerprint_recorded": true,
+          "step": "investigate"
+        },
+        {
+          "decision_state": "accepted",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 1,
+          "expected_balance_at_review_recorded": true,
+          "expected_basis": "simulated",
+          "ledger_modified_by_application": false,
+          "payment_executed": false,
+          "replacement_plan_validated": false,
+          "selected_plan_recorded": true,
+          "step": "accept",
+          "write": true
+        },
+        {
+          "absence_treated_as_performance": false,
+          "causal_attribution": "unknown",
+          "decision_state": "evaluated",
+          "difference": "0.00",
+          "difference_nonzero": false,
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 2,
+          "ledger_modified_by_application": false,
+          "may_claim_failure": false,
+          "may_claim_success": false,
+          "monitoring_status": "completed",
+          "notification_sent": false,
+          "outcome_status": "observed",
+          "step": "monitor"
+        },
+        {
+          "adjustment": null,
+          "automatic_change": false,
+          "decision_state": "evaluated",
+          "duplicate_events_created": 0,
+          "duplicate_lifecycle_events": 0,
+          "events_created": 0,
+          "explanation": "At least five evaluated outcomes are required before suggesting a preference adjustment. Defaults remain unchanged.",
+          "ledger_modified_by_application": false,
+          "minimum_required": 5,
+          "sample_size": 1,
+          "step": "policy_feedback"
+        }
+      ],
+      "actual_steps": 4,
+      "checks": [
+        {
+          "actual": "proposed",
+          "exact_match": true,
+          "expected": "proposed",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "investigate",
+          "step_index": 0
+        },
+        {
+          "actual": "accepted",
+          "exact_match": true,
+          "expected": "accepted",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "accept",
+          "step_index": 1
+        },
+        {
+          "actual": "evaluated",
+          "exact_match": true,
+          "expected": "evaluated",
+          "field": "decision_state",
+          "rejection_observed": null,
+          "step": "monitor",
+          "step_index": 2
+        },
+        {
+          "actual": "observed",
+          "exact_match": true,
+          "expected": "observed",
+          "field": "outcome_status",
+          "rejection_observed": null,
+          "step": "monitor",
+          "step_index": 2
+        },
+        {
+          "actual": null,
+          "exact_match": true,
+          "expected": null,
+          "field": "adjustment",
+          "rejection_observed": null,
+          "step": "policy_feedback",
+          "step_index": 3
+        },
+        {
+          "actual": false,
+          "exact_match": true,
+          "expected": false,
+          "field": "automatic_change",
+          "rejection_observed": null,
+          "step": "policy_feedback",
+          "step_index": 3
+        },
+        {
+          "actual": 5,
+          "exact_match": true,
+          "expected": 5,
+          "field": "minimum_required",
+          "rejection_observed": null,
+          "step": "policy_feedback",
+          "step_index": 3
+        },
+        {
+          "actual": 1,
+          "exact_match": true,
+          "expected": 1,
+          "field": "sample_size",
+          "rejection_observed": null,
+          "step": "policy_feedback",
+          "step_index": 3
+        }
+      ],
+      "expected_steps": 4,
+      "scenario_id": "DM-014"
+    }
+  ],
+  "pairs": [
+    {
+      "constraint": "collection slip of 5 days",
+      "dimension": "funding_gap",
+      "expected_relation": "differs",
+      "group": "LIQ-005",
+      "holds": true,
+      "values": [
+        {
+          "actual": "70108.00",
+          "scenario_id": "LIQ-005a"
+        },
+        {
+          "actual": "72708.00",
+          "scenario_id": "LIQ-005b"
+        },
+        {
+          "actual": "72708.00",
+          "scenario_id": "LIQ-005c"
+        }
+      ]
+    },
+    {
+      "constraint": "max_borrowing: 0 (A) vs 50,000 (B)",
+      "dimension": "feasible_plans",
+      "expected_relation": "differs",
+      "group": "PAIR-01",
+      "holds": true,
+      "values": [
+        {
+          "actual": [
+            "Delay the subcontractor bill by 7 days",
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-01-A"
+        },
+        {
+          "actual": [
+            "Delay the subcontractor bill by 7 days",
+            "Illustrative financing at 9% for 12 months",
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-01-B"
+        }
+      ]
+    },
+    {
+      "constraint": "protect_payroll: True (A) vs False (B)",
+      "dimension": "feasible_plans",
+      "expected_relation": "differs",
+      "group": "PAIR-02",
+      "holds": true,
+      "values": [
+        {
+          "actual": [
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-02-A"
+        },
+        {
+          "actual": [
+            "Delay payroll by 5 days",
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-02-B"
+        }
+      ]
+    },
+    {
+      "constraint": "max_delay_days: 0 (A) vs 14 (B)",
+      "dimension": "feasible_plans",
+      "expected_relation": "differs",
+      "group": "PAIR-03",
+      "holds": true,
+      "values": [
+        {
+          "actual": [
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-03-A"
+        },
+        {
+          "actual": [
+            "Delay the energy bill by 14 days",
+            "Delay the energy bill by 7 days",
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-03-B"
+        }
+      ]
+    },
+    {
+      "constraint": "protect_critical_suppliers: True (A) vs False (B)",
+      "dimension": "feasible_plans",
+      "expected_relation": "differs",
+      "group": "PAIR-04",
+      "holds": true,
+      "values": [
+        {
+          "actual": [
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-04-A"
+        },
+        {
+          "actual": [
+            "Delay the critical materials bill by 7 days",
+            "Keep recorded schedule",
+            "Split the parts bill"
+          ],
+          "scenario_id": "PAIR-04-B"
+        }
+      ]
+    },
+    {
+      "constraint": "low_cash_threshold: 2,000 (A) vs 25,000 (B)",
+      "dimension": "funding_gap",
+      "expected_relation": "differs",
+      "group": "PAIR-05",
+      "holds": true,
+      "values": [
+        {
+          "actual": "0.00",
+          "scenario_id": "PAIR-05-A"
+        },
+        {
+          "actual": "16900.00",
+          "scenario_id": "PAIR-05-B"
+        }
+      ]
+    },
+    {
+      "constraint": "max_annual_rate: 6 (A) vs 18 (B)",
+      "dimension": "feasible_plans",
+      "expected_relation": "differs",
+      "group": "PAIR-06",
+      "holds": true,
+      "values": [
+        {
+          "actual": [
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-06-A"
+        },
+        {
+          "actual": [
+            "Illustrative financing at 12% for 12 months",
+            "Illustrative financing at 9% for 12 months",
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-06-B"
+        }
+      ]
+    },
+    {
+      "constraint": "risk_tolerance: cautious (A) vs balanced (B)",
+      "dimension": "recommended_plan",
+      "expected_relation": "differs",
+      "group": "PAIR-07",
+      "holds": true,
+      "values": [
+        {
+          "actual": "Move the supplier bill three days later",
+          "scenario_id": "PAIR-07-A"
+        },
+        {
+          "actual": "Keep recorded schedule",
+          "scenario_id": "PAIR-07-B"
+        }
+      ]
+    },
+    {
+      "constraint": "restricted_categories: [] (A) vs ['Advertising & Marketing'] (B)",
+      "dimension": "feasible_plans",
+      "expected_relation": "differs",
+      "group": "PAIR-08",
+      "holds": true,
+      "values": [
+        {
+          "actual": [
+            "Halve the marketing spend",
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-08-A"
+        },
+        {
+          "actual": [
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-08-B"
+        }
+      ]
+    },
+    {
+      "constraint": "horizon_days: 14 (A) vs 60 (B)",
+      "dimension": "minimum_balance",
+      "expected_relation": "differs",
+      "group": "PAIR-09",
+      "holds": true,
+      "values": [
+        {
+          "actual": "25800.00",
+          "scenario_id": "PAIR-09-A"
+        },
+        {
+          "actual": "17300.00",
+          "scenario_id": "PAIR-09-B"
+        }
+      ]
+    },
+    {
+      "constraint": "expense_increase_percent: 10 (A) vs 60 (B)",
+      "dimension": "issue_codes",
+      "expected_relation": "differs",
+      "group": "PAIR-10",
+      "holds": true,
+      "values": [
+        {
+          "actual": [
+            "expense_concentration",
+            "expense_increase"
+          ],
+          "scenario_id": "PAIR-10-A"
+        },
+        {
+          "actual": [
+            "expense_concentration"
+          ],
+          "scenario_id": "PAIR-10-B"
+        }
+      ]
+    },
+    {
+      "constraint": "concentration_percent: 40 (A) vs 95 (B)",
+      "dimension": "issue_codes",
+      "expected_relation": "differs",
+      "group": "PAIR-11",
+      "holds": true,
+      "values": [
+        {
+          "actual": [
+            "expense_concentration",
+            "negative_cash",
+            "same_day_timing"
+          ],
+          "scenario_id": "PAIR-11-A"
+        },
+        {
+          "actual": [
+            "negative_cash",
+            "same_day_timing"
+          ],
+          "scenario_id": "PAIR-11-B"
+        }
+      ]
+    },
+    {
+      "constraint": "max_borrowing/max_delay_days swapped between A and B",
+      "dimension": "feasible_plans",
+      "expected_relation": "differs",
+      "group": "PAIR-12",
+      "holds": true,
+      "values": [
+        {
+          "actual": [
+            "Illustrative financing at 9% for 12 months",
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-12-A"
+        },
+        {
+          "actual": [
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-12-B"
+        }
+      ]
+    },
+    {
+      "constraint": "protect_critical_suppliers: True (A) vs False (B)",
+      "dimension": "violation_count",
+      "expected_relation": "differs",
+      "group": "PAIR-13",
+      "holds": true,
+      "values": [
+        {
+          "actual": 2,
+          "scenario_id": "PAIR-13-A"
+        },
+        {
+          "actual": 1,
+          "scenario_id": "PAIR-13-B"
+        }
+      ]
+    },
+    {
+      "constraint": "max_annual_rate: 5 (A) vs 12 (B), with different goal text",
+      "dimension": "feasible_plans",
+      "expected_relation": "differs",
+      "group": "PAIR-14",
+      "holds": true,
+      "values": [
+        {
+          "actual": [
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-14-A"
+        },
+        {
+          "actual": [
+            "Illustrative financing at 9% for 12 months",
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-14-B"
+        }
+      ]
+    },
+    {
+      "constraint": "horizon_days: 30 (A) vs 60 (B)",
+      "dimension": "issue_codes",
+      "expected_relation": "differs",
+      "group": "PAIR-15",
+      "holds": true,
+      "values": [
+        {
+          "actual": [
+            "low_cash",
+            "reserve_pressure"
+          ],
+          "scenario_id": "PAIR-15-A"
+        },
+        {
+          "actual": [
+            "low_cash",
+            "negative_cash",
+            "same_day_timing"
+          ],
+          "scenario_id": "PAIR-15-B"
+        }
+      ]
+    },
+    {
+      "constraint": "horizon_days: 30 (A) vs 45 (B), same max_delay_days",
+      "dimension": "feasible_plans",
+      "expected_relation": "differs",
+      "group": "PAIR-16",
+      "holds": true,
+      "values": [
+        {
+          "actual": [
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-16-A"
+        },
+        {
+          "actual": [
+            "Delay the mill invoice by 7 days",
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-16-B"
+        }
+      ]
+    },
+    {
+      "constraint": "payroll category spelling only; identical policy and identical amounts",
+      "dimension": "feasible_plans",
+      "expected_relation": "equal",
+      "group": "PAIR-17",
+      "holds": true,
+      "values": [
+        {
+          "actual": [
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-17-A"
+        },
+        {
+          "actual": [
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-17-B"
+        }
+      ]
+    },
+    {
+      "constraint": "restricted_categories: [] (A) vs ['Cost of Goods Sold'] (B)",
+      "dimension": "feasible_plans",
+      "expected_relation": "differs",
+      "group": "PAIR-18",
+      "holds": true,
+      "values": [
+        {
+          "actual": [
+            "Halve the inventory purchase",
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-18-A"
+        },
+        {
+          "actual": [
+            "Keep recorded schedule"
+          ],
+          "scenario_id": "PAIR-18-B"
+        }
+      ]
+    },
+    {
+      "constraint": "issue_cooldown_hours: 1 (A) vs 168 (B) - a notification setting",
+      "dimension": "minimum_balance",
+      "expected_relation": "equal",
+      "group": "PAIR-19",
+      "holds": true,
+      "values": [
+        {
+          "actual": "5400.00",
+          "scenario_id": "PAIR-19-A"
+        },
+        {
+          "actual": "5400.00",
+          "scenario_id": "PAIR-19-B"
+        }
+      ]
+    },
+    {
+      "constraint": "risk tolerance, borrowing limit, delay limit and restricted categories all differ",
+      "dimension": "recommended_plan",
+      "expected_relation": "differs",
+      "group": "PAIR-20",
+      "holds": true,
+      "values": [
+        {
+          "actual": "Illustrative financing at 12% for 12 months",
+          "scenario_id": "PAIR-20-A"
+        },
+        {
+          "actual": "Keep recorded schedule",
+          "scenario_id": "PAIR-20-B"
+        }
+      ]
+    }
+  ],
+  "suite": "full",
+  "summary": {
+    "cleanup_confirmed_cases": 172,
+    "ledger_mutation_findings": 0,
+    "lifecycle_assertions": 83,
+    "lifecycle_cases": 14,
+    "literal_matches": 76,
+    "literal_mismatches": 7,
+    "nonwording_mismatches": 0,
+    "pair_groups_checked": 21,
+    "pair_groups_hold": 21
+  },
+  "upstream_score_unchanged": true
+}
