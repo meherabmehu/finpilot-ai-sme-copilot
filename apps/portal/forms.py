@@ -1,7 +1,7 @@
 from decimal import Decimal
 from django import forms
 from django.contrib.auth.models import User
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.utils import timezone
 from .models import Business, Transaction, RecurringObligation
 
@@ -30,6 +30,21 @@ CURRENCIES = [
     ("AED", "AED · UAE dirham"),
     ("BRL", "BRL · Brazilian real"),
 ]
+
+
+class EmailAuthenticationForm(AuthenticationForm):
+    username = forms.EmailField(
+        label="Email address",
+        max_length=150,
+        widget=forms.EmailInput(attrs={"autocomplete": "username", "autofocus": True, "placeholder": "you@example.com"}),
+    )
+    error_messages = {
+        **AuthenticationForm.error_messages,
+        "invalid_login": "The email address or password is incorrect. Use an account registered on this site.",
+    }
+
+    def clean_username(self):
+        return self.cleaned_data["username"].strip().lower()
 
 
 class SignupForm(UserCreationForm):

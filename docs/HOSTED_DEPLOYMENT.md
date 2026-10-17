@@ -40,4 +40,12 @@ Prepared configuration is not proof of a completed deployment. The live URL must
 
 Recheck with `python scripts/live_check.py https://finpilot-ai-sme-copilot.vercel.app`. This script neither creates production users nor changes financial records.
 
+## Operator-provisioned first login
+
+When transactional email is not configured, the deployment owner can provision their explicitly chosen ordinary account using `FINPILOT_INITIAL_EMAIL` and `FINPILOT_INITIAL_PASSWORD` as one-time secret build settings. The build runs `provision_owner` after migrations. It creates an active non-staff account without businesses or financial records. Established active users are never reset; unused pending accounts can be activated by this trusted operator flow. There is no public bootstrap endpoint.
+
+Remove both one-time cloud settings after verifying login and redeploy without them. The operator's private local `.env` can hold `LIVE_LOGIN_EMAIL` and `LIVE_LOGIN_PASSWORD`; never commit or print these values. This does not enable public email delivery or password-reset mail. `scripts/verify_owner_login.py` verifies a newly provisioned account reaches onboarding without saving business data.
+
+The first owner login was provisioned and successfully verified on the live site. Sign-in opened the business setup screen; no business or financial data was created. The login form now explicitly labels the identifier as Email address and accepts normalized email casing. Account-provisioning and email-login regression tests bring the complete local suite to 82 passing tests.
+
 Sources: [Render Django](https://render.com/docs/deploy-django), [Render Blueprint specification](https://render.com/docs/blueprint-spec), [Render free-plan limits](https://render.com/docs/free), [Vercel Django](https://vercel.com/docs/frameworks/full-stack/django).

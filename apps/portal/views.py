@@ -5,7 +5,6 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 from django.core import signing
 from django.core.cache import cache
@@ -32,7 +31,7 @@ from .models import (
     DataImport,
     RecurringObligation,
 )
-from .forms import SignupForm, BusinessForm, TransactionForm, ScenarioForm, LoanForm, RecurringForm
+from .forms import SignupForm, BusinessForm, TransactionForm, ScenarioForm, LoanForm, RecurringForm, EmailAuthenticationForm
 from .engine import summary, monthly_chart, forecast, simulate, loan_schedule, backtest
 from .imports import preview_import, confirm_import, FIELDS
 from .reports import export_report
@@ -132,7 +131,7 @@ def verify(request, token):
 
 @limited
 def signin(request):
-    form = AuthenticationForm(request, data=request.POST or None)
+    form = EmailAuthenticationForm(request, data=request.POST or None)
     if request.method == "POST" and form.is_valid():
         login(request, form.get_user())
         return redirect("workspace")
