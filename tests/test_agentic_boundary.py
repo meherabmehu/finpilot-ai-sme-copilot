@@ -59,3 +59,57 @@ def test_postgres_requires_explicit_local_test_marker(tmp_path):
     with pytest.raises(ValueError, match='marked'):
         with isolated_database(tmp_path):
             pytest.fail('unsafe database accepted')
+
+
+def test_supplemental_does_not_hide_lifecycle_state_failures(tmp_path):
+    import json
+    from evaluation.agentic.supplemental import build
+    (tmp_path / 'scenarios').mkdir()
+    (tmp_path / 'actual').mkdir()
+    case = {'scenario_id': 'CHECK-1', 'pair_id': '', 'lifecycle': {'steps': [
+        {'step': 'accept', 'expected': {'decision_state': 'accepted'}}]}}
+    (tmp_path / 'scenarios/check.json').write_text(json.dumps(case))
+    evidence = {'response': {'lifecycle_actions': [{'step': 'accept', 'decision_state': 'proposed'}], 'records_modified': []},
+                'cleanup': 'rolled back; zero businesses remain'}
+    (tmp_path / 'actual/CHECK-1.json').write_text(json.dumps(evidence))
+    report = {'suite': 'full', 'cases': [{'scenario_id': 'CHECK-1'}]}
+    supplement, _ = build(tmp_path, report, tmp_path / 'actual')
+    assert supplement['summary']['nonwording_mismatches'] == 1
+    assert supplement['summary']['literal_mismatches'] == 1
+    assert supplement['upstream_score_unchanged']
+
+
+def test_financing_normalization_keeps_supplied_terms(business, entry):
+    from django.utils import timezone
+    from datetime import timedelta
+    from apps.portal.intelligence.financial_state import build_state
+    from apps.portal.intelligence.scenario_engine import compare_plans
+    from evaluation.agentic.normalization import calculations
+    from apps.portal.engine import loan_schedule
+    entry(kind='payable', status='pending', due_date=timezone.localdate() + timedelta(days=2), amount=1500)
+    state = build_state(business)
+    when = (timezone.localdate() + timedelta(days=1)).isoformat()
+    supplied = [{'name': 'First supplied', 'actions': [{'kind': 'finance', 'amount': '500.00', 'date': when,
+                 'annual_rate': '8', 'months': 12, 'fee': '10.00'}]},
+                {'name': 'Second supplied', 'actions': [{'kind': 'finance', 'amount': '1000.00', 'date': when,
+                 'annual_rate': '12', 'months': 6, 'fee': '0.00'}]}]
+    comparison = compare_plans(state, supplied)
+    result = {'analysis': {'overdue_total': '0.00'}, 'issues': []}
+    actual = calculations(state, comparison, result, supplied)
+    assert actual['loan_payment'] == loan_schedule('500', '8', 12, '10')['payment']
+    assert actual['loan_principal'] == '500.00'
+    assert actual['loan_months'] == '12'
+    assert actual['loan_annual_rate'] == '8'
+
+
+def test_source_manifest_detects_modified_runner_and_escape(tmp_path):
+    import hashlib
+    from evaluation.agentic.run import verify_sources
+    (tmp_path / 'runner.py').write_text('original')
+    wanted = hashlib.sha256(b'original').hexdigest()
+    verify_sources(tmp_path, {'runner.py': wanted})
+    (tmp_path / 'runner.py').write_text('modified')
+    with pytest.raises(ValueError, match='mismatch'):
+        verify_sources(tmp_path, {'runner.py': wanted})
+    with pytest.raises(ValueError, match='mismatch'):
+        verify_sources(tmp_path, {'../runner.py': wanted})

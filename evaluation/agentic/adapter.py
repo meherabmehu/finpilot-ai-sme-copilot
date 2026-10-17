@@ -13,7 +13,7 @@ import uuid
 from adapters.base import AdapterInfo, AdapterStatus, AgentResponse, EvidenceClaim, ResponseStatus
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import connection, transaction
 from django.http import Http404
 
@@ -27,6 +27,10 @@ from apps.portal.intelligence.financial_evidence import evidence_graph
 from .selectors import resolve
 from .normalization import calculations
 from .lifecycle import execute_lifecycle
+
+
+class InputBoundRefusal(Exception):
+    """Real application validators refused all authored oversized requests."""
 
 
 class DjangoAdapter:
@@ -75,6 +79,28 @@ class DjangoAdapter:
                     response.tool_calls = [{'tool': 'authorized_business', 'status': 'denied'}]
                 else:
                     before = ledger(business)
+                    probes = []
+                    security = prompt.get('security', {})
+                    oversized = security.get('oversized_question')
+                    if oversized:
+                        probes.append((oversized, None))
+                    count = security.get('plan_count_requested', 0)
+                    if count > 8:
+                        if count > 1000:
+                            raise ValueError('Harness refuses to allocate more than 1000 probe plans')
+                        probes.append((data['question'], [{'name': f'Bound probe {i}', 'actions': []} for i in range(count)]))
+                    refusals = []
+                    for question, requested_plans in probes:
+                        try:
+                            run_investigation(user, business.pk, question, custom_plans=requested_plans)
+                        except (ValidationError, ValueError) as exc:
+                            refusals.append(str(exc))
+                        else:
+                            raise RuntimeError('Application unexpectedly accepted an oversized request')
+                    if probes:
+                        if ledger(business) != before:
+                            raise RuntimeError('Oversized request mutated synthetic accounting data')
+                        raise InputBoundRefusal('; '.join(refusals))
                     state = build_state(business, as_of=date.fromisoformat(data['business']['as_of']))
                     plans = resolve(state, data['candidate_decisions']) if data['candidate_decisions'] else None
                     try:
@@ -92,12 +118,12 @@ class DjangoAdapter:
                         response.tool_calls = [{'tool': 'run_investigation', 'status': 'write denied'},
                                                {'tool': 'build_state/detect_issues/question_comparison/evidence_graph', 'status': 'completed'}]
                     comparison = result['comparison']
-                    response.calculations = calculations(state, comparison, result)
+                    response.calculations = calculations(state, comparison, result, plans)
                     response.issue_codes = [i['code'] for i in result['issues']]
                     response.recommended_plan = comparison['recommended']
                     response.feasible_plans = [p['name'] for p in comparison['plans'] if p['feasible']]
                     response.violations_reported = [v for p in comparison['plans'] for v in p['violations']]
-                    response.disclosures = state['limitations'] + [v for p in comparison['plans'] for v in p['dependencies']]
+                    response.disclosures = result.get('evaluation_financing_limitations', []) + state['limitations'] + [v for p in comparison['plans'] for v in p['dependencies']]
                     # Preserve actual explanatory output; never append benchmark-requested caveats.
                     response.narrative = '\n'.join(line for section in result['analysis']['sections'] for line in section['lines'])
                     response.narrative += '\n' + comparison['objective']
@@ -117,8 +143,15 @@ class DjangoAdapter:
                     evidence = {'state': state, 'result': result}
                     if prompt['lifecycle_script']:
                         response.lifecycle_actions = execute_lifecycle(business, user, inv, prompt['lifecycle_script'], data)
+                        if any(a['ledger_modified_by_application'] for a in response.lifecycle_actions):
+                            response.records_modified.append('Application changed synthetic ledger during lifecycle')
                 self.executed += 1
                 transaction.set_rollback(True)
+        except InputBoundRefusal as exc:
+            response.status, response.abstained = ResponseStatus.REFUSED, True
+            response.refusal_reasons = [str(exc)]
+            response.tool_calls = [{'tool': 'run_investigation', 'status': 'input bounds denied'}]
+            self.executed += 1
         except Exception as exc:
             import traceback
             evidence['exception_trace'] = traceback.format_exc()

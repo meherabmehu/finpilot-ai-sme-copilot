@@ -16,6 +16,14 @@ import sys
 ROOT = Path(__file__).resolve().parents[2]
 
 
+def verify_sources(source, expected):
+    for relative, wanted in expected.items():
+        path = source / relative
+        if (path.is_symlink() or not path.resolve().is_relative_to(source.resolve()) or not path.is_file()
+                or hashlib.sha256(path.read_bytes()).hexdigest() != wanted):
+            raise ValueError(f'Authoritative source mismatch: {relative}')
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--benchmark-root', type=Path, required=True)
@@ -34,6 +42,11 @@ def main(argv=None):
     required = ['scripts/run_evaluation.py', 'schemas/evaluation_result.schema.json', 'scenarios/index.json', 'LICENSE-NOTICE.md']
     if not all((source / p).is_file() for p in required):
         parser.error('Incomplete external benchmark root')
+    expected = json.loads((Path(__file__).with_name('source_manifest.json')).read_text())['files']
+    try:
+        verify_sources(source, expected)
+    except ValueError as exc:
+        parser.error(str(exc))
     # Do not permit output under static or the source package itself.
     output = args.out_dir.resolve()
     if output.is_relative_to(source) or any(output.is_relative_to(ROOT / p) for p in ('static', 'staticfiles', 'media')):
@@ -85,6 +98,11 @@ def execute(args, source, output, database_label):
                 'cases_completed_actual_services': adapter.executed, 'schema_validation': 'passed',
                 'businesses_after_run': __import__('apps.portal.models', fromlist=['Business']).Business.objects.count()}
     (output / f'{stem}.environment.json').write_text(json.dumps(metadata, indent=2, sort_keys=True) + '\n')
+    from .supplemental import build
+    supplement, responses = build(source, report, output / 'actual')
+    (output / f'{stem}.supplemental.json').write_text(json.dumps(supplement, indent=2, sort_keys=True) + '\n')
+    if args.suite == 'full':
+        (output / f'{stem}.actual-responses.json').write_text(json.dumps(responses, indent=2, sort_keys=True) + '\n')
     print(json.dumps({'suite': args.suite, 'selected': report['selected_cases'], 'summary': report['summary']}, indent=2))
     if report['summary']['blocked']:
         return 3

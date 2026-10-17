@@ -10,7 +10,7 @@ from apps.portal.intelligence.financing import financing_assessment
 from apps.portal.intelligence.issue_detection import health_dimensions
 
 
-def calculations(state, comparison, result):
+def calculations(state, comparison, result, authored_plans=None):
     projection, trends = state['projection'], state['trends']
     values = {k: state.get(k) for k in ('known_cash', 'opening_balance', 'record_count')}
     values.update({
@@ -52,10 +52,15 @@ def calculations(state, comparison, result):
     if plans:
         values['deferred_liabilities'] = plans[0]['deferred_liabilities']
         values['deferred_liabilities_baseline'] = next((p['deferred_liabilities'] for p in plans if not p['actions']), None)
-    finance = next((a for p in plans for a in p['actions'] if a['kind'] == 'finance'), None)
+    # Scalar finance quantities describe the first SUPPLIED illustration, not a
+    # different loan chosen implicitly by sorting. Terms remain explicit.
+    finance = next((a for p in (authored_plans if authored_plans is not None else plans)
+                    for a in p['actions'] if a['kind'] == 'finance'), None)
     if finance:
-        assessment = financing_assessment(state, finance['amount'], finance['annual_rate'], finance['months'], finance['fee'])
+        assessment = financing_assessment(state, finance['amount'], finance.get('annual_rate', '0'), finance.get('months', 12), finance.get('fee', '0'))
         repayment = assessment['repayment']
+        result['evaluation_financing_limitations'] = [assessment['limitation']]
+        values.update({'loan_principal': repayment['principal'], 'loan_annual_rate': repayment['annual_rate'], 'loan_months': str(repayment['months'])})
         values.update({'loan_payment': repayment['payment'], 'loan_payment_stressed': assessment['rate_plus_two_points_payment'],
                        'financing_cost': repayment['financing_cost'], 'financing_cost_with_fee': repayment['financing_cost'],
                        'total_cost_including_principal': repayment['total_cost'], 'loan_first_month_interest': repayment['schedule'][0]['interest'],

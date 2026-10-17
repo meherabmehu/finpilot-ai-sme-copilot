@@ -24,6 +24,7 @@ def execute_lifecycle(business, user, investigation, script, data):
         decision = current.decision
         before_count = decision.events.count()
         record = {'step': name}
+        ledger_before = list(business.transactions.order_by('pk').values())
         try:
             if name == 'investigate':
                 old = current.pk
@@ -88,6 +89,7 @@ def execute_lifecycle(business, user, investigation, script, data):
                     realize(business, decision, base_date, missing_collection=mode == '@collection_missing')
                 elif mode not in (None, '@none'):
                     raise ValueError(f'Unsupported observation fixture {mode}')
+                ledger_before = list(business.transactions.order_by('pk').values())
                 with patch('django.utils.timezone.localdate', return_value=base_date + timedelta(days=command['day_offset'])):
                     run = monitor_business(business)
                 decision.refresh_from_db()
@@ -108,6 +110,8 @@ def execute_lifecycle(business, user, investigation, script, data):
             record['rejected_with'] = '; '.join(exc.messages)
         decision.refresh_from_db()
         record.update(decision_state=decision.state, events_created=decision.events.count() - before_count)
+        record['ledger_modified_by_application'] = (name not in ('mutate_ledger', 'set_flag')
+            and list(business.transactions.order_by('pk').values()) != ledger_before)
         transitions = list(decision.events.values_list('from_state', 'to_state'))
         duplicates = len(transitions) - len(set(transitions))
         record['duplicate_events_created'] = duplicates
