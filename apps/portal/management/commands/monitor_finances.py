@@ -9,9 +9,19 @@ from apps.portal.engine import summary, forecast
 class Command(BaseCommand):
     help = "Idempotently update workspace financial monitoring alerts."
 
+    def add_arguments(self, parser):
+        parser.add_argument('--business', help='Restrict trusted monitoring to one business UUID.')
+
     def handle(self, *args, **options):
         today = timezone.localdate()
-        for business in Business.objects.iterator():
+        businesses = Business.objects.all()
+        if options.get('business'):
+            businesses = businesses.filter(pk=options['business'])
+        for business in businesses.iterator():
+            from apps.portal.intelligence.monitoring import monitor_business
+            run = monitor_business(business)
+            if run.status == 'failed':
+                self.stderr.write('A business monitoring run failed; inspect MonitoringRun and retry. No sensitive details logged.')
             current = summary(business, today - timedelta(days=29))
             previous = summary(business, today - timedelta(days=59), today - timedelta(days=30))
             newest = business.transactions.filter(archived=False).order_by("-date").first()

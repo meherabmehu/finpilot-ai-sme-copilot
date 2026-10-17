@@ -2,6 +2,7 @@
 
 import json
 import httpx
+import time
 from pydantic import BaseModel, ConfigDict, Field
 from decimal import Decimal
 from collections import defaultdict
@@ -10,6 +11,9 @@ from django.utils import timezone
 from django.core.exceptions import PermissionDenied
 from .access import authorized_business
 from .engine import summary, forecast, backtest, simulate, loan_schedule
+from .intelligence.financial_state import build_state
+from .intelligence.issue_detection import detect_issues
+from .intelligence.scenario_engine import compare_plans, suggested_plans
 
 
 class ToolArguments(BaseModel):
@@ -18,6 +22,10 @@ class ToolArguments(BaseModel):
 
 class ForecastArguments(ToolArguments):
     days: int = Field(default=30, ge=7, le=90)
+
+
+class IssueArguments(ToolArguments):
+    pass
 
 
 class ScenarioArguments(ToolArguments):
@@ -60,7 +68,7 @@ TOOLS = {
         "receivables": summary(b)["receivables"],
         "payables": summary(b)["payables"],
     },
-    "forecast_cash_flow": lambda b: forecast(b),
+    "forecast_cash_flow": lambda b, days=30: forecast(b, days),
     "get_data_quality_report": lambda b: {
         "records": summary(b)["count"],
         "opening_balance_known": b.opening_balance is not None,
@@ -79,7 +87,29 @@ TOOLS = {
     },
     "simulate_financial_scenario": simulate,
     "compare_financing_options": lambda b, **kwargs: {"currency": b.currency, "illustrative": True, **loan_schedule(**kwargs)},
+    'get_financial_state': lambda b: provider_state(build_state(b)),
+    'investigate_cash_pressure': lambda b: provider_comparison(build_state(b)),
+    'get_financial_issues': lambda b: detect_issues(build_state(b)),
+    'get_decision_memory': lambda b: [{'id': str(d.pk), 'state': d.state, 'plan': d.selected_plan,
+                                     'review_date': str(d.review_date), 'outcome': d.outcome}
+                                    for d in b.decisions.order_by('-created_at')[:8]],
 }
+
+
+def provider_state(state):
+    # Raw transaction descriptions can contain customer details or prompt injection.
+    safe = {k: state[k] for k in ('business_id', 'as_of', 'currency', 'known_cash', 'complete', 'trends', 'policy', 'limitations')}
+    safe['policy'] = {k: v for k, v in state['policy'].items() if k != 'goal'}
+    safe['timeline'] = {k: v for k, v in state['projection'].items() if k != 'points'}
+    safe['event_count'] = len(state['events'])
+    return safe
+
+
+def provider_comparison(state):
+    comparison = compare_plans(state, suggested_plans(state))
+    return {'recommended': comparison['recommended'], 'objective': comparison['objective'],
+            'plans': [{k: p.get(k) for k in ('name', 'feasible', 'remaining_gap', 'borrowing', 'financing_cost', 'dependencies', 'violations')}
+                      for p in comparison['plans']]}
 SCHEMAS = {
     "forecast_cash_flow": ForecastArguments,
     "simulate_financial_scenario": ScenarioArguments,
@@ -98,7 +128,7 @@ def run_tool(user, business_id, name, arguments):
     return TOOLS[name](business, **values)
 
 
-def answer(user, business, question):
+def answer(user, business, question, trace=None):
     authorized_business(user, business.pk)
     if not settings.LLM_API_KEY or not settings.LLM_MODEL:
         return "AI Advisor not configured. Set LLM_API_KEY, LLM_BASE_URL and LLM_MODEL. The deterministic analysis below remains available."
@@ -121,8 +151,18 @@ def answer(user, business, question):
         },
         {"role": "user", "content": question[:4000]},
     ]
-    with httpx.Client(timeout=30, follow_redirects=False) as client:
+    from .models import Message
+    history = list(Message.objects.filter(conversation__business=business, conversation__user=user).order_by('-created_at', '-pk')[:8])
+    # The request view may already have saved the current turn; avoid repeating it.
+    if history and history[0].role == 'user' and history[0].content == question:
+        history = history[1:]
+    messages[1:1] = [{'role': m.role, 'content': m.content[:1500]} for m in reversed(history) if m.role in ('user', 'assistant')]
+    start = time.monotonic()
+    seen, call_count = set(), 0
+    with httpx.Client(timeout=12, follow_redirects=False) as client:
         for _ in range(4):
+            if time.monotonic()-start >= 40:
+                return 'Provider analysis stopped at its total runtime budget. The saved deterministic investigation remains available.'
             response = client.post(
                 settings.LLM_BASE_URL.rstrip("/") + "/chat/completions",
                 headers={"Authorization": "Bearer " + settings.LLM_API_KEY},
@@ -133,10 +173,22 @@ def answer(user, business, question):
             calls = message.get("tool_calls", [])
             if not calls:
                 return str(message.get("content") or "No answer returned.")[:16000]
-            if len(calls) > 6:
+            if len(calls) > 6 or call_count + len(calls) > 8:
                 raise ValueError("Tool call limit exceeded.")
             messages.append({k: v for k, v in message.items() if k in ("role", "content", "tool_calls")})
             for call in calls:
-                data = run_tool(user, business.pk, call["function"]["name"], json.loads(call["function"]["arguments"]))
+                name = call['function']['name']
+                signature = (name, call['function']['arguments'])
+                call_count += 1
+                if signature in seen:
+                    data = {'error': 'Repeated tool request blocked. Use the previous result.'}
+                else:
+                    seen.add(signature)
+                    try:
+                        data = run_tool(user, business.pk, name, json.loads(call['function']['arguments']))
+                    except (ValueError, PermissionDenied):
+                        data = {'error': 'Tool request rejected. Use the allowed name and schema; tenant IDs and arbitrary operations are not accepted.'}
+                if trace is not None:
+                    trace.append({'tool': name[:80], 'status': 'rejected' if isinstance(data, dict) and 'error' in data else 'completed'})
                 messages.append({"role": "tool", "tool_call_id": call["id"], "content": json.dumps(data, default=str)})
     return "Analysis stopped at the tool limit. Please ask a narrower question."

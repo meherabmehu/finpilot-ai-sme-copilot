@@ -59,6 +59,8 @@ class Transaction(models.Model):
     due_date = models.DateField(null=True, blank=True)
     reference = models.CharField(max_length=100, blank=True)
     notes = models.TextField(blank=True)
+    is_critical = models.BooleanField(default=False)
+    recurring_obligation = models.ForeignKey('RecurringObligation', null=True, blank=True, on_delete=models.SET_NULL)
     archived = models.BooleanField(default=False)
     fingerprint = models.CharField(max_length=64, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -111,6 +113,8 @@ class RecurringObligation(models.Model):
         max_length=10, choices=[("weekly", "Weekly"), ("monthly", "Monthly"), ("yearly", "Yearly")], default="monthly"
     )
     active = models.BooleanField(default=True)
+    category = models.CharField(max_length=80, default='General')
+    is_critical = models.BooleanField(default=False)
 
 
 class LoanComparison(models.Model):
@@ -135,6 +139,13 @@ class LoanProduct(models.Model):
     verified_at = models.DateField(null=True)
     illustrative = models.BooleanField(default=True)
     eligibility = models.TextField(blank=True)
+    valid_until = models.DateField(null=True, blank=True)
+    active = models.BooleanField(default=True)
+
+    def is_current_offer(self, as_of):
+        return bool(self.active and not self.illustrative and self.source_url and self.verified_at
+                    and self.verified_at <= as_of and (as_of - self.verified_at).days <= 90
+                    and self.valid_until and self.valid_until >= as_of)
 
 
 class Conversation(models.Model):
@@ -159,3 +170,93 @@ class Alert(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=["business", "code"], name="unique_alert")]
+
+
+class FinancialPolicy(models.Model):
+    business = models.OneToOneField(Business, on_delete=models.CASCADE, related_name='financial_policy')
+    horizon_days = models.PositiveSmallIntegerField(default=30)
+    protect_payroll = models.BooleanField(default=True)
+    protect_critical_suppliers = models.BooleanField(default=True)
+    max_delay_days = models.PositiveSmallIntegerField(default=7)
+    max_borrowing = models.DecimalField(max_digits=18, decimal_places=2, default=0)
+    max_annual_rate = models.DecimalField(max_digits=7, decimal_places=2, default=20)
+    expense_increase_percent = models.PositiveSmallIntegerField(default=25)
+    concentration_percent = models.PositiveSmallIntegerField(default=60)
+    risk_tolerance = models.CharField(max_length=12, choices=[('cautious', 'Cautious'), ('balanced', 'Balanced')], default='cautious')
+    restricted_categories = models.JSONField(default=list, blank=True)
+    goal = models.CharField(max_length=240, blank=True)
+    issue_cooldown_hours = models.PositiveSmallIntegerField(default=24)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class FinancialIssue(models.Model):
+    business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name='financial_issues')
+    code = models.CharField(max_length=64)
+    title = models.CharField(max_length=180)
+    severity = models.CharField(max_length=12)
+    status = models.CharField(max_length=12, choices=[('open', 'Open'), ('resolved', 'Resolved')], default='open')
+    evidence = models.JSONField(default=dict)
+    detected_at = models.DateTimeField(auto_now_add=True)
+    checked_at = models.DateTimeField(auto_now=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    surfaced_at = models.DateTimeField(null=True, blank=True)
+    occurrence_count = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['business', 'code'], name='unique_financial_issue')]
+        indexes = [models.Index(fields=['business', 'status', 'severity'])]
+
+
+class Investigation(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    business = models.ForeignKey(Business, on_delete=models.PROTECT, related_name='investigations')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    issue = models.ForeignKey(FinancialIssue, null=True, blank=True, on_delete=models.SET_NULL)
+    question = models.CharField(max_length=4000)
+    mode = models.CharField(max_length=20, default='deterministic')
+    status = models.CharField(max_length=16, default='completed')
+    request_key = models.UUIDField(default=uuid.uuid4)
+    snapshot = models.JSONField(default=dict)
+    trace = models.JSONField(default=list)
+    result = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['business', 'user', 'request_key'], name='unique_investigation_request')]
+
+
+class FinancialDecision(models.Model):
+    STATES = [(s, s.title()) for s in ['proposed', 'accepted', 'rejected', 'modified', 'monitoring', 'evaluated', 'closed']]
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    business = models.ForeignKey(Business, on_delete=models.PROTECT, related_name='decisions')
+    investigation = models.OneToOneField(Investigation, on_delete=models.PROTECT, related_name='decision')
+    state = models.CharField(max_length=16, choices=STATES, default='proposed')
+    selected_plan = models.CharField(max_length=80, blank=True)
+    selected_snapshot = models.JSONField(default=dict)
+    expected = models.JSONField(default=dict)
+    review_date = models.DateField()
+    feedback = models.TextField(blank=True)
+    outcome = models.JSONField(default=dict)
+    evaluated_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [models.Index(fields=['business', 'state', 'review_date'])]
+
+
+class DecisionEvent(models.Model):
+    decision = models.ForeignKey(FinancialDecision, on_delete=models.PROTECT, related_name='events')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    from_state = models.CharField(max_length=16, blank=True)
+    to_state = models.CharField(max_length=16)
+    details = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class MonitoringRun(models.Model):
+    business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name='monitoring_runs')
+    status = models.CharField(max_length=16, default='pending')
+    details = models.JSONField(default=dict)
+    started_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
