@@ -63,3 +63,12 @@ The responsive sweep covers all primary pages, business and planning tabs, publi
 `LLM_API_KEY`, `LLM_BASE_URL` and `LLM_MODEL` enable an OpenAI-compatible chat-completions API. No API calls or genuine AI claims are made without these settings. This is protocol interoperability, not a universal adapter for every provider's API. SMTP enables external email delivery. No bank API, payment execution, ML training or downloaded trained model is included.
 
 See [deployment](docs/DEPLOYMENT.md), [security](docs/SECURITY.md), [limitations](docs/LIMITATIONS.md), and [testing](docs/TESTING.md). The UI follows the supplied references with a quieter blue/navy palette and responsive layouts.
+
+
+## Agentic financial decisions
+
+The existing five pages now include a record-backed Watchtower, owner financial preferences, deterministic investigations, constrained counterfactual Decision Lab, saved decision history and expected-versus-actual monitoring. Acceptance records intent only: no payments, collections, lender applications or accounting entries are executed. No model training is required. The optional OpenAI-compatible advisor remains available; no-provider chat provides explicitly deterministic analysis.
+
+See [architecture](docs/AGENTIC_ARCHITECTURE.md), [decision workflow](docs/DECISION_INTELLIGENCE.md), [memory](docs/DECISION_MEMORY.md), [evidence](docs/EVIDENCE_AND_EXPLAINABILITY.md), [synthetic demo](docs/DEMO_GUIDE.md) and [actual progress / blockers](docs/IMPLEMENTATION_PROGRESS.md). Current exports include financial issues, investigation evidence, simulated comparisons, decisions and outcomes.
+
+`python manage.py monitor_finances --business BUSINESS_UUID` refreshes internal issues and reviews decisions. It does not install a scheduler or send notifications. Production scheduler/provider/PostgreSQL verification remains operator-dependent. Collect static assets before running tests against manifest storage.

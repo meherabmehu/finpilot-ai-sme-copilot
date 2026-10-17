@@ -1,6 +1,6 @@
 # Agentic transformation plan
 
-The existing default branch is `feat/finpilot-platform`. Reuse the Django monolith, authorized UUID workspace routes, membership checks, Decimal money helpers, actual transactions, recurring commitments, loan schedules, imports, reports, responsive CSS and local-only synthetic seeding. The production database and credentials are out of scope. Do not push this branch: its Vercel webhook automatically deploys production.
+The existing default branch is `feat/finpilot-platform`. Reuse the Django monolith, authorized UUID workspace routes, membership checks, Decimal money helpers, actual transactions, recurring commitments, loan schedules, imports, reports, responsive CSS and local-only synthetic seeding. The production database and credentials are out of scope. The branch may automatically deploy through Vercel. The user authorizes safe verified pushes, but not destructive production database changes or separate deployment commands. Authentication is currently unavailable in this workspace.
 
 1. **A — Financial truth:** add typed, bounded financial-state snapshots and dated cash timelines. Keep the existing moving-average forecast for continuity, but use a separate explicitly labeled dated-obligation ledger for decisions, avoiding hidden duplication of historical spending and scheduled bills. Add persistent, deduplicated issues with evidence, freshness and cooldowns.
 2. **B — Counterfactual plans:** evaluate validated shifts, split payments, reductions and financing on the same timeline. Enforce reserve, payroll, critical-supplier, delay, borrowing and cost preferences. Rank by an explicit lexicographic objective; disclose dependencies, rejected constraints and residual gaps.
@@ -10,3 +10,6 @@ The existing default branch is `feat/finpilot-platform`. Reuse the Django monoli
 6. **F — Verification:** known-answer reconciliation, date ordering, counterfactual constraints, lifecycle/idempotency, review/evaluation, tenant and viewer denials, no-LLM behavior, imports/exports, browser walkthrough, responsive sweep and DEBUG-only reproducible liquidity-pressure demo.
 
 Verification gates: meaningful tests per service phase, then complete existing/new pytest suite, Django/migration checks, Ruff, real local browser flow and responsive checks. External LLM execution and deployed scheduling remain configuration-dependent unless actually verified. No model training, outbound messages, payments or loan applications.
+
+
+Continuation checkpoints and actual verification are recorded in IMPLEMENTATION_PROGRESS.md. Core workflows are now integrated; deployment/scheduler/provider and PostgreSQL contention remain unverified.

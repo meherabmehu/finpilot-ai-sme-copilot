@@ -43,3 +43,13 @@
 - Chromium: finite local login → investigation → acceptance → monitoring flow passed. 42 page-width checks (five primary pages plus saved detail at 320/375/390/768/1024/1440/1920), with detail sections expanded, reported zero page overflow and zero JavaScript errors. This is not an accessibility audit or physical-device verification.
 - Management command actually invoked on the local synthetic business; MonitoringRun completed, four detected issues, three reviewed decisions, notification_sent false. No deployed scheduler was inspected.
 - Public fetch reconfirmed remote still at 14664dd. Secure push remains blocked. No external provider, production database/deployment or PostgreSQL contention check was performed.
+
+
+## Handoff / release status
+- Latest code checkpoint: 38a5876; documentation checkpoint follows it (use `git log -1` for its exact SHA).
+- Completed locally: record-backed Dashboard Watchtower; owner policy settings; authenticated saved investigations; comparison/evidence/timelines; accept/reject/modify/history; manual/scheduled-command reviews and outcomes; no-provider explanation; financing sensitivity; scoped agentic exports; synthetic demo; regression and Chromium checks; required architecture/workflow/security/limitations documentation.
+- Core UI remains five primary pages. Existing modular services preserved; no ML model training or new infrastructure.
+- Unfinished external delivery: authenticated push. One attempt failed with “could not read Username”; no secure token is configured. Public remote remains 14664dd as last fetched. Commits are safely preserved locally on feat/finpilot-platform, not published. Do not say deployed.
+- Required release verification: configure secure GitHub credentials, inspect `git status` and current remote HEAD, rerun tests if anything changes, reconcile any new remote work safely, then ordinary push to the same branch. Existing branch may trigger auto-deployment; verify migration 0004 availability/application in deployment before release. Do not separately deploy, force-push, change production settings or seed production.
+- Remaining product limits: policy_feedback is service-only; issue exports are latest persisted monitoring state; external lender metadata isn't independently verified; snapshot immutability is application-level; date interpretation is guided rather than general financial-language understanding. Advanced action counts use JSON; synthetic follow-up is limited to simple timing plans.
+- Recommended next validation: PostgreSQL concurrent mutation/acceptance tests; configured-provider end-to-end execution; scheduler invocation/error alerting; assistive technology and physical-device walkthrough. No production readiness claim is made.

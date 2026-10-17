@@ -1,0 +1,9 @@
+# Counterfactual simulation
+
+`scenario_engine.evaluate_plan` copies the saved events; it never updates the ledger. Supported actions: shift an outflow later, request an inflow earlier, split an outflow, reduce an outflow, add illustrative financing, or combine distinct-event actions. Obligations cannot be hidden past the horizon; financing repayments past it remain disclosed liabilities.
+
+Policy constraints protect payroll, marked critical suppliers and restricted categories; constrain delays, total borrowing and illustrative annual rate. The UI supports entering critical flags and linking an invoice to a recurring occurrence. Category names determine payroll detection; owners must classify records accurately.
+
+Closing cash[d] = prior closing cash + assumed dated receipts − assumed dated payments. Payment-first lows separately subtract outflows before receipts on the same day. Future receipts are unconfirmed, not recorded cash. Overdue receivables are not moved to tomorrow; overdue payables are next-day stress assumptions. No hidden historical-average expenses enter this dated engine. The older historical forecast tab remains separate and retains its disclosed overlap limitations.
+
+Ranking: valid constraints first, then lowest reserve gap, cautious payment-first gap, borrowing, full cost and number of actions. A remaining gap can persist in the best plan. Bounded heuristic suggestions are not exhaustive optimization. Split plans preserve the original total; reductions require counterparty confirmation and may have unknown penalties. Loan schedules use deterministic reducing-balance amortization and upfront fees, not credit approval.

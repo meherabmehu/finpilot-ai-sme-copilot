@@ -1,5 +1,27 @@
 # Verification
 
+## Continuation verification — 2026-10-17 (latest)
+
+Executed locally on Python 3.13.16 / Django 5.2.18 / SQLite:
+
+- `python manage.py check`: no issues.
+- `python manage.py makemigrations --check --dry-run`: no changes.
+- Local `migrate`: all migrations through existing 0004 applied successfully; no new migration.
+- `npm ci`, `npm run build`, `python manage.py collectstatic --noinput`: passed.
+- `python -m pytest -q`: **124 passed**, 0 failed, 0 skipped, 34.18 seconds in the final code run.
+- `ruff check .`: passed.
+- `python -m scripts.browser_decisions`: Chromium workflow (login, investigate, accept, monitor), 42 page-width checks, zero page overflow and zero JavaScript errors. Five primary pages plus saved detail; seven widths 320, 375, 390, 768, 1024, 1440, 1920. Detail disclosures expanded for layout checks.
+- `monitor_finances --business` invoked locally on synthetic data: completed MonitoringRun, no notifications sent.
+
+New tests cover owner/viewer/business isolation, POST/CSRF, request replay, stale policy/evidence, modifications and retries, same-day payment-first cash risk, snapshot opening date, all nine agentic export format/type combinations, formula escaping, useful no-LLM explanation and DEBUG-only reproducible demo/reset/outcome reconciliation. Original upload/tool-safety/report tests also pass.
+
+On the clean checkout, the first run had 71 passes / 28 missing-static-manifest failures. Collecting static assets resolved those environmental failures; the unchanged baseline then passed 99 tests. These failures were not concealed by relaxing production manifest storage.
+
+Not verified in this continuation: live LLM/SMTP, production deploy/database migration, PostgreSQL lock contention, installed scheduler, Safari/physical hardware, comprehensive keyboard/screen-reader/contrast audit, or all browser form permutations. Local browser tests use an isolated synthetic workspace and do not target production.
+
+## Prior implementation verification (historical, not rerun unless stated above)
+
+
 Run commands from README. Tests use pytest-django and isolated test databases; browser checks use the explicitly seeded development database. Static assets must be built and collected before page-render tests, because tests exercise production-style manifest resolution.
 
 Final expanded suite: **68 passed in 70.95 seconds** on local SQLite, Python 3.14 and Django 5.2.18. The initial 53-test suite exposed a missing Chart.js source-map asset; packaging was fixed before the successful full run. The final suite includes cash completeness, recurring commitments, saved financing and expanded read-only tools.
