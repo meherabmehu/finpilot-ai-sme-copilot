@@ -1,3 +1,4 @@
+import uuid
 from decimal import Decimal
 from django import forms
 from django.contrib.auth.models import User
@@ -119,6 +120,8 @@ class BusinessForm(forms.ModelForm):
 
 
 class TransactionForm(forms.ModelForm):
+    submission_key = forms.UUIDField(required=False, widget=forms.HiddenInput, initial=uuid.uuid4)
+
     class Meta:
         model = Transaction
         fields = ["date", "description", "amount", "kind", "category", "account", "status", "due_date", "reference", "notes", "is_critical", "recurring_obligation"]

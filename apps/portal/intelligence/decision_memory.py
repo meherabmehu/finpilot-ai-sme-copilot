@@ -65,6 +65,7 @@ def monitor_decision(decision, as_of=None):
     """Trusted scheduled service; locks and reloads the business-scoped decision."""
     today = as_of or timezone.localdate()
     with transaction.atomic():
+        Business.objects.select_for_update().get(pk=decision.business_id)
         item = FinancialDecision.objects.select_for_update().select_related('business', 'investigation').get(pk=decision.pk, business_id=decision.business_id)
         if item.state not in ('accepted', 'monitoring'):
             return item

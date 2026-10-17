@@ -21,6 +21,7 @@ class Command(BaseCommand):
     help = 'Seed/reset one isolated DEBUG-only liquidity demo; optionally record synthetic outcomes.'
 
     def add_arguments(self, parser):
+        parser.add_argument('--extended', action='store_true', help='Include overdue collections, expense growth and discretionary trade-offs.')
         parser.add_argument('--reset', action='store_true', help='Reset only this named synthetic workspace.')
         parser.add_argument('--follow-up', action='store_true', help='Record the accepted plan as synthetic paid activity and evaluate at review date.')
 
@@ -45,7 +46,7 @@ class Command(BaseCommand):
             if not decision.selected_snapshot.get('feasible'):
                 raise CommandError('The selected synthetic plan must be feasible.')
             for event in decision.selected_snapshot['events']:
-                if not event['id'].startswith('tx:') or ':remainder' in event['id']:
+                if not event['id'].startswith('tx:') or not event['id'][3:].isdigit():
                     raise CommandError('For this reproducible follow-up, select a timing/collection plan without financing or split payments.')
                 Transaction.objects.filter(business=business, pk=int(event['id'][3:])).update(
                     status='paid', date=event['date'], amount=event['amount'])
@@ -87,5 +88,24 @@ class Command(BaseCommand):
             Transaction.objects.create(business=business, account=account, date=today, description=description,
                                        kind=kind, amount=amount, currency='USD', category=category, status='pending',
                                        due_date=today+timedelta(days=days))
+        if options['extended']:
+            from apps.portal.models import FinancialPolicy
+            business.opening_date = today-timedelta(days=60)
+            business.opening_balance = 1300
+            business.low_cash_threshold = 200
+            business.save()
+            FinancialPolicy.objects.update_or_create(business=business, defaults={'max_borrowing': 0})
+            for description, kind, amount, category, day, due in [
+                ('Synthetic old marketing expense', 'expense', 100, 'Marketing', today-timedelta(days=40), None),
+                ('Synthetic current marketing expense', 'expense', 200, 'Marketing', today-timedelta(days=2), None),
+                ('Synthetic overdue customer invoice', 'receivable', 400, 'Sales', today-timedelta(days=20), today-timedelta(days=9)),
+                ('Synthetic adjustable campaign proposal', 'payable', 100, 'Discretionary', today, today+timedelta(days=8)),
+            ]:
+                Transaction.objects.create(business=business, account=account, date=day, description=description,
+                                           kind=kind, amount=amount, currency='USD', category=category,
+                                           status='pending' if due else 'paid', due_date=due,
+                                           reference='synthetic-overdue-invoice' if kind == 'receivable' else '')
         refresh_issues(business)
-        self.stdout.write(f'SYNTHETIC demo ready: /b/{business.pk}/ — login {LOGIN}. Known cash USD 1000; baseline minimum -300; ending cash 300.')
+        if options['extended']:
+            self.stdout.write('EXTENDED SYNTHETIC: cash 1000; reserve 200; overdue receipts 400; baseline minimum -300; ending 200; recorded operating expenses 1700 vs prior 100 (includes pending bills); Marketing 200 vs prior 100.')
+        self.stdout.write(f'SYNTHETIC demo ready: /b/{business.pk}/ — login {LOGIN}. Known cash USD 1000; baseline minimum -300; ending cash {200 if options["extended"] else 300}.')

@@ -1,6 +1,6 @@
 from datetime import timedelta
 from decimal import Decimal
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 from apps.portal.models import Business, Alert, AuditEvent
 from apps.portal.engine import summary, forecast
@@ -13,6 +13,7 @@ class Command(BaseCommand):
         parser.add_argument('--business', help='Restrict trusted monitoring to one business UUID.')
 
     def handle(self, *args, **options):
+        failures = 0
         today = timezone.localdate()
         businesses = Business.objects.all()
         if options.get('business'):
@@ -22,6 +23,8 @@ class Command(BaseCommand):
             run = monitor_business(business)
             if run.status == 'failed':
                 self.stderr.write('A business monitoring run failed; inspect MonitoringRun and retry. No sensitive details logged.')
+                failures += 1
+                continue
             current = summary(business, today - timedelta(days=29))
             previous = summary(business, today - timedelta(days=59), today - timedelta(days=30))
             newest = business.transactions.filter(archived=False).order_by("-date").first()
@@ -62,4 +65,6 @@ class Command(BaseCommand):
             for code, (active, text) in checks.items():
                 Alert.objects.update_or_create(business=business, code=code, defaults={"active": bool(active), "message": text})
             AuditEvent.objects.create(business=business, action="monitor.completed")
+        if failures:
+            raise CommandError(f'{failures} monitoring invocation(s) failed; inspect MonitoringRun and retry.')
         self.stdout.write("Financial monitoring complete.")

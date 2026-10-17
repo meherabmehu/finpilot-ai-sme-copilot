@@ -21,8 +21,10 @@ def monitor_business(business):
             reviewed += 1
         run.status = 'completed'
         run.details = {'detected_issues': len(detected), 'reviewed_decisions': reviewed, 'state_fingerprint': state['fingerprint'],
-                       'notification_sent': False}
+                       'notification_sent': False, 'invocation': 'explicit management command/service; scheduler not established'}
     except Exception as exc:
+        import logging
+        logging.getLogger(__name__).warning('Financial monitoring failed: %s', type(exc).__name__)
         run.status = 'failed'
         run.details = {'error_type': type(exc).__name__, 'safe_to_retry': True}
     run.completed_at = timezone.now()

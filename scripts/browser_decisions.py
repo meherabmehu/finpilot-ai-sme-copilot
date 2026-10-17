@@ -20,6 +20,7 @@ if not settings.DEBUG:
     raise RuntimeError('Local synthetic browser workflow requires DEBUG.')
 password = os.environ['DEMO_PASSWORD']
 business = Business.objects.get(name='Decision Lab · Synthetic Liquidity Demo', is_demo=True)
+supplier_pk = business.transactions.get(description='Synthetic supplier invoice').pk
 
 
 class QuietHandler(WSGIRequestHandler):
@@ -46,17 +47,26 @@ try:
         page.wait_for_url('**/b/*/')
         assert page.get_by_role('heading', name='Financial Watchtower').is_visible()
         page.goto(base+prefix+'planning/?tab=decisions')
-        page.locator('#id_question').fill('Can I pay my supplier and protect payroll?')
+        page.locator('#id_question').fill('Can I protect payroll and improve overdue collections without taking a loan?')
         page.get_by_role('button', name='Investigate & compare alternatives').click()
         page.wait_for_url('**/investigations/*/')
         detail = page.url
         assert page.get_by_role('heading', name='Compare simulated alternatives').is_visible()
-        page.get_by_role('button', name='Record this plan').first.click()
+        page.get_by_text('Build your own alternative', exact=True).click()
+        page.locator('#plan_name').fill('Browser timing proposal')
+        page.locator('#kind_0').select_option('shift')
+        page.locator('#event_0').select_option(f'tx:{supplier_pk}')
+        page.locator('#days_0').fill('3')
+        page.get_by_role('button', name='Calculate & save modified proposal', exact=True).click()
+        assert page.get_by_role('heading', name='Decision memory · Modified').is_visible()
+        page.get_by_role('button', name='Accept saved modification', exact=True).click()
         assert page.get_by_role('heading', name='Decision memory · Accepted').is_visible()
         page.get_by_role('button', name='Check monitoring & outcome').click()
         assert page.get_by_role('heading', name='Decision memory · Monitoring').is_visible()
         paths = [base+prefix, base+prefix+'business/', base+prefix+'advisor/',
-                 base+prefix+'planning/?tab=decisions', base+prefix+'reports/?type=investigations', detail]
+                 base+prefix+'planning/?tab=decisions', base+prefix+'planning/?tab=forecast',
+                 base+prefix+'planning/?tab=loans', base+prefix+'planning/?tab=scenarios',
+                 base+prefix+'reports/?type=investigations', detail]
         for width in [320, 375, 390, 768, 1024, 1440, 1920]:
             page.set_viewport_size({'width': width, 'height': 1000})
             for url in paths:
@@ -65,8 +75,12 @@ try:
                 if url == detail:
                     page.locator('details').evaluate_all('(nodes) => nodes.forEach(node => { node.open = true; })')
                 overflow = page.evaluate('document.documentElement.scrollWidth > window.innerWidth + 1')
+                if url == detail and width in (320, 1440):
+                    Path('test-results').mkdir(exist_ok=True)
+                    page.screenshot(path=f'test-results/decision-{width}.png', full_page=True)
                 results.append({'width': width, 'path': url.replace(base, ''), 'horizontal_overflow': overflow})
         assert not errors, errors
+        assert not any(r['horizontal_overflow'] for r in results), 'Page-level horizontal overflow detected.'
         output = Path('test-results')
         output.mkdir(exist_ok=True)
         (output/'decision-responsive.json').write_text(json.dumps({'checks': results, 'page_errors': errors}, indent=2))

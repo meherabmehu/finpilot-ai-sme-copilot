@@ -1,4 +1,5 @@
 import uuid
+import hashlib
 from datetime import date, timedelta
 from decimal import Decimal
 from functools import wraps
@@ -38,7 +39,7 @@ from .imports import preview_import, confirm_import, FIELDS
 from .reports import export_report
 from .advisor import answer
 from .forms import FinancialPolicyForm, InvestigationForm, DecisionForm
-from .models import FinancialPolicy, FinancialIssue, Investigation, FinancialDecision, Business
+from .models import FinancialPolicy, FinancialIssue, Investigation, FinancialDecision, Business, AuditEvent
 from .intelligence.financial_state import build_state
 from .intelligence.issue_detection import detect_issues
 from .intelligence.investigation import run_investigation
@@ -231,6 +232,7 @@ def dashboard(request, business_id):
     data['watchtower'] = [issue | {'saved_id': saved_issues.get(issue['code'])}
                           for issue in detect_issues(data['financial_state'])[:5]]
     data['monitoring'] = business.monitoring_runs.order_by('-started_at').first()
+    data['manual_review'] = AuditEvent.objects.filter(business=business, action='decision.review_checked').order_by('-created_at').first()
     data['active_decisions'] = business.decisions.filter(state__in=['accepted', 'monitoring']).count()
     return render(request, "dashboard.html", data)
 
@@ -325,6 +327,13 @@ def transaction_edit(request, business_id, pk=None):
         with db_transaction.atomic():
             Business.objects.select_for_update().get(pk=business.pk)
             item = form.save(commit=False)
+            key = form.cleaned_data.get('submission_key')
+            if not pk and key:
+                fingerprint = hashlib.sha256(f'manual:{business.pk}:{key}'.encode()).hexdigest()
+                if Transaction.objects.filter(business=business, fingerprint=fingerprint).exists():
+                    messages.success(request, 'Already submitted. No additional transaction was created; use Edit for corrections.')
+                    return redirect(reverse('my_business', args=[business.pk]) + '?tab=transactions')
+                item.fingerprint = fingerprint
             item.business = business
             item.currency = business.currency
             item.save()
@@ -349,6 +358,8 @@ def transaction_archive(request, business_id, pk):
     business = authorized_business(request.user, business_id, write=True)
     business = Business.objects.select_for_update().get(pk=business.pk)
     item = get_object_or_404(Transaction, pk=pk, business=business)
+    if item.archived:
+        return redirect(reverse('my_business', args=[business.pk]) + '?tab=transactions')
     item.archived = True
     item.save(update_fields=["archived"])
     audit(request.user, business, "transaction.archived", item.pk)
@@ -621,5 +632,6 @@ def decision_review(request, business_id, pk):
     business = authorized_business(request.user, business_id, write=True)
     item = get_object_or_404(FinancialDecision, business=business, pk=pk)
     monitor_decision(item)
+    audit(request.user, business, 'decision.review_checked', item.pk, {'invocation': 'manual owner request'})
     messages.success(request, 'Review checked against recorded data. Insufficient evidence is shown explicitly.')
     return redirect('investigation_detail', business_id=business.pk, pk=item.investigation_id)

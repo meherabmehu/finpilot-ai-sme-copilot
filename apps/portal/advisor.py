@@ -213,6 +213,9 @@ def answer(user, business, question, trace=None):
                     seen.add(signature)
                     try:
                         arguments = json.loads(call['function']['arguments'])
+                        if not isinstance(arguments, dict):
+                            raise ValueError('Expected typed object arguments.')
+                        SCHEMAS.get(name, ToolArguments).model_validate(arguments)
                         if focus['analysis']['intent']['no_borrowing'] and (name == 'compare_financing_options' or (name == 'simulate_financial_scenario' and Decimal(str(arguments.get('financing', 0))) > 0)):
                             data = {'error': 'Borrowing excluded by the user question. Use collection and operational alternatives.'}
                         elif name == 'investigate_cash_pressure':
