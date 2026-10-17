@@ -1,0 +1,3 @@
+# In addition to the application's requirements; do not add to production startup.
+PyYAML>=6,<7
+jsonschema>=4.21,<5

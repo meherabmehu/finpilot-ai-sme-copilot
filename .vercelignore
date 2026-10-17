@@ -13,3 +13,6 @@ docs
 tests
 .agents
 skills-lock.json
+
+# Development-only evaluation harness, not a production dependency
+evaluation

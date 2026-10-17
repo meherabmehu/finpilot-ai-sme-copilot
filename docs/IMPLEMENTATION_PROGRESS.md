@@ -113,3 +113,9 @@
 - Final inspection additionally found that old saved investigation results lack new intent fields and legacy alert cards had a fixed expense-growth threshold. Added original-question no-borrowing enforcement for legacy modifications and made legacy alerts use each business's configured expense threshold. Original snapshots stay unchanged.
 - Final full suites after these compatibility fixes: **149 passed / 2 PostgreSQL-only skipped on SQLite**, **151 passed / 0 skipped on isolated PostgreSQL 17**, Ruff clean. Two new regressions verify those exact legacy cases. All earlier workflow and concurrency tests retained.
 - Production Vercel deployment/runtime, actual SMTP/LLM and installed scheduler remain unverified; do not conflate successful Git push with production validation. The external evaluation ZIP remains unavailable; adapter specification is ready for handoff.
+
+## Authoritative evaluation integration checkpoint (2026-10-18 local)
+- Downloaded actual Complete/Review ZIP bytes; exact sizes, SHA-256, CRC and extraction safety passed. Proprietary source remains outside public checkout.
+- Original standalone package: 978 passed / 1 optional skip; all 172 scenarios validate; reference 172 passed, negative control 172 failed. Neither is a FinPilot result.
+- Added dev-only expected-blind adapter and CLI, actual ORM/services, explicit opt-in, per-case rollback, isolated SQLite or newly provisioned local PostgreSQL databases with finally cleanup. No production dependencies/migrations/startup import.
+- Verified pre-fix PostgreSQL application baseline after adapter debugging: 172 selected, 171 executed, 133 pass, 38 partial, 0 failed, 1 blocked (PAIR-17-B payroll alias), no detected critical failures. Overall suppressed, not a full score. Remaining work: justified fixes, reruns, supplemental actual pair/lifecycle checks and final regressions.
