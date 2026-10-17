@@ -8,7 +8,6 @@ import time
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ValidationError
-from django.utils import timezone
 
 from ..access import authorized_business, audit
 from ..models import Business, FinancialIssue, Investigation, FinancialDecision, DecisionEvent

@@ -1,3 +1,4 @@
+import uuid
 from datetime import date, timedelta
 from decimal import Decimal
 from functools import wraps
@@ -36,6 +37,13 @@ from .engine import summary, monthly_chart, forecast, simulate, loan_schedule, b
 from .imports import preview_import, confirm_import, FIELDS
 from .reports import export_report
 from .advisor import answer
+from .forms import FinancialPolicyForm, InvestigationForm, DecisionForm
+from .models import FinancialPolicy, FinancialIssue, Investigation, FinancialDecision, Business
+from .intelligence.financial_state import build_state
+from .intelligence.issue_detection import detect_issues
+from .intelligence.investigation import run_investigation
+from .intelligence.decision_memory import decide, monitor_decision
+from .intelligence.financing import financing_assessment
 
 
 def limited(view):
@@ -210,6 +218,7 @@ def dashboard(request, business_id):
     data = context(request, business, "dashboard")
     data.update(
         {
+            "financial_state": build_state(business),
             "stats": summary(business, start, end),
             "chart": monthly_chart(business),
             "recent": business.transactions.filter(archived=False)[:5],
@@ -218,6 +227,9 @@ def dashboard(request, business_id):
             "end": end,
         }
     )
+    data['watchtower'] = detect_issues(data['financial_state'])[:5]
+    data['monitoring'] = business.monitoring_runs.order_by('-started_at').first()
+    data['active_decisions'] = business.decisions.filter(state__in=['accepted', 'monitoring']).count()
     return render(request, "dashboard.html", data)
 
 
@@ -247,6 +259,8 @@ def my_business(request, business_id):
     if request.GET.get("kind") in dict(Transaction.TYPES):
         rows = rows.filter(kind=request.GET["kind"])
     data = context(request, business, "my_business")
+    policy = FinancialPolicy.objects.filter(business=business).first() or FinancialPolicy(business=business)
+    data['policy_form'] = FinancialPolicyForm(instance=policy, business=business)
     from django.core.paginator import Paginator
 
     data.update(
@@ -366,6 +380,10 @@ def planning(request, business_id):
     business = authorized_business(request.user, business_id)
     tab = request.GET.get("tab", "forecast")
     data = context(request, business, "planning")
+    data['financial_state'] = build_state(business)
+    data['issues'] = detect_issues(data['financial_state'])
+    data['investigation_form'] = InvestigationForm(initial={'request_key': uuid.uuid4()})
+    data['decisions'] = business.decisions.select_related('investigation').order_by('-created_at')[:50]
     scenario_form = ScenarioForm(request.POST if request.method == "POST" and tab == "scenarios" else None)
     loan_form = LoanForm(request.POST if request.method == "POST" and tab == "loans" else None)
     if request.method == "POST" and tab == "scenarios":
@@ -383,6 +401,8 @@ def planning(request, business_id):
         result = loan_schedule(values["amount"], values["annual_rate"], values["months"], values["fees"])
         result["capacity_warning"] = Decimal(result["payment"]) > values["monthly_capacity"]
         data["loan"] = result
+        if values['months'] <= 120 and values['amount'] <= 1000000000 and values['fees'] <= 1000000000:
+            data['financing_assessment'] = financing_assessment(data['financial_state'], values['amount'], values['annual_rate'], values['months'], values['fees'])
         if request.POST.get("save_comparison"):
             authorized_business(request.user, business_id, write=True)
             comparison = LoanComparison.objects.create(business=business, assumptions={k: str(v) for k, v in values.items()}, result=result)
@@ -391,13 +411,14 @@ def planning(request, business_id):
         products = LoanProduct.objects.filter(
             country=business.country,
             currency=business.currency,
+            active=True,
             minimum__lte=values["amount"],
             maximum__gte=values["amount"],
             min_months__lte=values["months"],
             max_months__gte=values["months"],
         )
         data["products"] = [
-            {"product": p, "result": loan_schedule(values["amount"], p.annual_rate, values["months"], p.fee)} for p in products
+            {"product": p, "result": loan_schedule(values["amount"], p.annual_rate, values["months"], p.fee)} for p in products if p.valid_until is None or p.valid_until >= timezone.localdate()
         ]
     try:
         horizon = int(request.GET.get("horizon", 30))
@@ -446,6 +467,8 @@ def advisor(request, business_id):
     data.update(
         {
             "chat_messages": conversation.messages.order_by("created_at") if conversation else [],
+            "investigation_form": InvestigationForm(initial={'request_key': uuid.uuid4()}),
+            "latest_investigation": business.investigations.filter(user=request.user).order_by('-created_at').first(),
             "configured": bool(settings.LLM_API_KEY and settings.LLM_MODEL),
             "stats": summary(business),
         }
@@ -458,11 +481,12 @@ def reports(request, business_id):
     business = authorized_business(request.user, business_id)
     start, end, days = reporting_period(request)
     kind = request.GET.get("type", "summary")
-    if kind not in ("summary", "transactions", "forecast", "scenarios", "financing", "quality"):
+    if kind not in ("summary", "transactions", "forecast", "scenarios", "financing", "quality", "decisions", "investigations", "issues"):
         kind = "summary"
     if request.GET.get("format") in ("csv", "xlsx", "pdf"):
         return export_report(request.user, business, request.GET["format"], start, end, kind)
     data = context(request, business, "reports")
+    data["decisions"] = business.decisions.select_related("investigation").order_by("-created_at")[:20]
     data.update({"stats": summary(business, start, end), "chart": monthly_chart(business), "start": start, "end": end, "report_type": kind})
     return render(request, "reports.html", data)
 
@@ -479,3 +503,87 @@ def health(request):
     with connection.cursor() as cursor:
         cursor.execute("SELECT 1")
     return HttpResponse("ok", content_type="text/plain")
+
+
+@login_required
+@require_POST
+def financial_policy(request, business_id):
+    business = authorized_business(request.user, business_id, write=True)
+    with db_transaction.atomic():
+        business = Business.objects.select_for_update().get(pk=business.pk)
+        policy = FinancialPolicy.objects.filter(business=business).first() or FinancialPolicy(business=business)
+        form = FinancialPolicyForm(request.POST, instance=policy, business=business)
+        if form.is_valid():
+            form.save()
+            business.low_cash_threshold = form.cleaned_data['minimum_reserve']
+            business.save(update_fields=['low_cash_threshold'])
+            audit(request.user, business, 'policy.updated', policy.pk)
+            messages.success(request, 'Preferences saved. New investigations use these settings; historical evidence is unchanged.')
+            return redirect('my_business', business_id=business.pk)
+    data = context(request, business, 'my_business')
+    data.update({'form': form, 'title': 'Review financial preferences'})
+    return render(request, 'form.html', data, status=400)
+
+
+@login_required
+@require_POST
+@limited
+def investigation_start(request, business_id):
+    business = authorized_business(request.user, business_id, write=True)
+    form = InvestigationForm(request.POST)
+    if form.is_valid():
+        try:
+            item = run_investigation(request.user, business.pk, **form.cleaned_data)
+            return redirect('investigation_detail', business_id=business.pk, pk=item.pk)
+        except (ValidationError, ValueError):
+            form.add_error(None, 'Investigation could not be completed. Review your records and retry.')
+    data = context(request, business, 'planning')
+    data.update({'form': form, 'title': 'Review investigation request'})
+    return render(request, 'form.html', data, status=400)
+
+
+@login_required
+def investigation_detail(request, business_id, pk):
+    business = authorized_business(request.user, business_id)
+    item = get_object_or_404(Investigation.objects.select_related('decision'), business=business, pk=pk)
+    data = context(request, business, 'planning')
+    data.update({'investigation': item, 'decision': item.decision,
+                 'stale': build_state(business)['fingerprint'] != item.snapshot['fingerprint']})
+    return render(request, 'investigation.html', data)
+
+
+@login_required
+def issue_detail(request, business_id, pk):
+    business = authorized_business(request.user, business_id)
+    issue = get_object_or_404(FinancialIssue, business=business, pk=pk)
+    data = context(request, business, 'planning')
+    data.update({'issue': issue, 'investigation_form': InvestigationForm(initial={
+        'request_key': uuid.uuid4(), 'issue_id': issue.pk, 'question': issue.title})})
+    return render(request, 'issue.html', data)
+
+
+@login_required
+@require_POST
+def decision_update(request, business_id, pk):
+    business = authorized_business(request.user, business_id, write=True)
+    item = get_object_or_404(FinancialDecision, business=business, pk=pk)
+    form = DecisionForm(request.POST)
+    if form.is_valid():
+        try:
+            decide(request.user, business.pk, item.pk, **form.cleaned_data)
+            messages.success(request, 'Decision recorded. No payments, collections or external actions were executed.')
+        except (ValidationError, ValueError) as exc:
+            messages.error(request, '; '.join(exc.messages) if isinstance(exc, ValidationError) else 'Invalid plan. Review the dates and amounts.')
+    else:
+        messages.error(request, 'Decision not recorded. Check the action, plan and feedback fields.')
+    return redirect('investigation_detail', business_id=business.pk, pk=item.investigation_id)
+
+
+@login_required
+@require_POST
+def decision_review(request, business_id, pk):
+    business = authorized_business(request.user, business_id, write=True)
+    item = get_object_or_404(FinancialDecision, business=business, pk=pk)
+    monitor_decision(item)
+    messages.success(request, 'Review checked against recorded data. Insufficient evidence is shown explicitly.')
+    return redirect('investigation_detail', business_id=business.pk, pk=item.investigation_id)

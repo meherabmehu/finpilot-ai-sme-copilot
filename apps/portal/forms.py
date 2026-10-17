@@ -173,3 +173,63 @@ class RecurringForm(forms.ModelForm):
         model = RecurringObligation
         fields = ["description", "amount", "direction", "next_due", "frequency"]
         widgets = {"next_due": forms.DateInput(attrs={"type": "date"})}
+
+
+class FinancialPolicyForm(forms.ModelForm):
+    minimum_reserve = forms.DecimalField(min_value=0, max_digits=18, decimal_places=2,
+                                         label='Minimum operating reserve')
+    restricted_categories = forms.CharField(required=False, max_length=2400,
+                                            help_text='Comma-separated category names; protected from plan changes.')
+
+    class Meta:
+        from .models import FinancialPolicy
+        model = FinancialPolicy
+        fields = ['horizon_days', 'protect_payroll', 'protect_critical_suppliers', 'max_delay_days',
+                  'max_borrowing', 'max_annual_rate', 'risk_tolerance', 'concentration_percent',
+                  'expense_increase_percent', 'restricted_categories', 'goal', 'issue_cooldown_hours']
+        labels = {'max_borrowing': 'Maximum illustrative borrowing (0 means no borrowing)',
+                  'goal': 'Financial objectives', 'horizon_days': 'Planning horizon (days)'}
+
+    def __init__(self, *args, business, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['minimum_reserve'].initial = business.low_cash_threshold
+        self.initial['restricted_categories'] = ', '.join(self.instance.restricted_categories or [])
+
+    def clean_restricted_categories(self):
+        return [value.strip() for value in self.cleaned_data['restricted_categories'].split(',') if value.strip()]
+
+    def clean(self):
+        from pydantic import ValidationError as SchemaError
+        from .intelligence.schemas import PolicySpec
+        data = super().clean()
+        if not self.errors:
+            try:
+                PolicySpec.model_validate({key: data[key] for key in PolicySpec.model_fields})
+            except SchemaError:
+                raise forms.ValidationError('Check preference bounds: horizon 7–90 days; delay 0–90; concentration 1–100%; growth 1–1000%; cooldown 1–168 hours; up to 30 categories of 80 characters.')
+        return data
+
+
+class InvestigationForm(forms.Form):
+    question = forms.CharField(max_length=4000, widget=forms.Textarea(attrs={'rows': 2}),
+                               initial='Can I cover my scheduled payments and protect payroll?')
+    request_key = forms.UUIDField(widget=forms.HiddenInput)
+    issue_id = forms.IntegerField(required=False, min_value=1, widget=forms.HiddenInput)
+
+
+class DecisionForm(forms.Form):
+    target = forms.ChoiceField(choices=[(s, s.title()) for s in ['accepted', 'rejected', 'modified', 'monitoring', 'closed']])
+    selected_plan = forms.CharField(required=False, max_length=80)
+    feedback = forms.CharField(required=False, max_length=4000, widget=forms.Textarea(attrs={'rows': 2}))
+    modified_plan = forms.JSONField(required=False)
+
+    def clean_modified_plan(self):
+        from .intelligence.schemas import PlanSpec
+        from pydantic import ValidationError as SchemaError
+        value = self.cleaned_data.get('modified_plan')
+        if value:
+            try:
+                return PlanSpec.model_validate(value).model_dump(mode='json')
+            except SchemaError:
+                raise forms.ValidationError('Use a named plan with at most eight valid bounded actions.')
+        return None

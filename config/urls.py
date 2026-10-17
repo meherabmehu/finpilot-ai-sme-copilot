@@ -4,6 +4,12 @@ from django.urls import path
 from apps.portal import views as v
 
 urlpatterns = [
+    path("b/<uuid:business_id>/policy/", v.financial_policy, name="financial_policy"),
+    path("b/<uuid:business_id>/investigations/start/", v.investigation_start, name="investigation_start"),
+    path("b/<uuid:business_id>/investigations/<uuid:pk>/", v.investigation_detail, name="investigation_detail"),
+    path("b/<uuid:business_id>/issues/<int:pk>/", v.issue_detail, name="issue_detail"),
+    path("b/<uuid:business_id>/decisions/<uuid:pk>/", v.decision_update, name="decision_update"),
+    path("b/<uuid:business_id>/decisions/<uuid:pk>/review/", v.decision_review, name="decision_review"),
     path("", v.landing, name="landing"),
     path("health/", v.health, name="health"),
     path("admin/", admin.site.urls),
