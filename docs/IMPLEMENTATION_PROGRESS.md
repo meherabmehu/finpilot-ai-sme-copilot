@@ -76,3 +76,10 @@
 - Action feasibility now distinct from reserve-goal satisfaction; comparison displays unresolved gaps and best-among-evaluated scope. Timing/split explanations and unknown invoice adjustability are explicit; automatic reduction suggestions limited to marketing/discretionary categories.
 - No-borrowing is applied to suggestions, custom comparisons, decision modifications and configured-provider tool requests. Existing saved snapshots remain historical; new fingerprint fields cause appropriate stale warnings.
 - Independent case 70860 cash / 70000 reserve / 5400 bill / 2700 reduction: minimum 68160, remaining gap 1840; feasible but reserve unresolved. No claimed optimization or predictive accuracy improvement.
+
+## Forecast and financing audit checkpoint
+- Confirmed and fixed explicit linked recurring/pending double-counting in the historical forecast, while preserving moving-average arithmetic for unlinked schedules. Gross same-day scheduled inflows/outflows no longer cancel in chart labels.
+- Added sparse-history warnings, explicitly adverse no-future-receipts sensitivity and differentiated dated-only Decision Lab explanation. No predictive improvement claim.
+- Backtest now evaluates the same 90-day operating moving-average component, excludes financing from both training and target, exposes cutoff/fold details and flags net-WAPE denominator instability. Full schedule-overlay as-known history is unavailable; only weekly baseline folds are evaluated.
+- Independent Decimal oracle confirms manual 10000/12%/12 months/200 fee: payment 888.49, interest 661.86, full financing cost 861.86, total 10861.86. Product fee 100 explains total 10761.86: NOT an amortization defect. Added explicit principal/rate/term/product-fee and policy labels without changing the schedule formula.
+- Four new forecast/financing tests passed; 28 original engine/planning/workflow regressions passed. Report presentation, concurrency and final browser checks follow.

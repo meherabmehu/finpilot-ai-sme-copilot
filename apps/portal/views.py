@@ -415,6 +415,11 @@ def planning(request, business_id):
         values = loan_form.cleaned_data
         result = loan_schedule(values["amount"], values["annual_rate"], values["months"], values["fees"])
         result["capacity_warning"] = Decimal(result["payment"]) > values["monthly_capacity"]
+        result['policy_warnings'] = []
+        if values['amount'] > Decimal(data['financial_state']['policy']['max_borrowing']):
+            result['policy_warnings'].append('Principal exceeds your preferred maximum borrowing; this remains an illustration, not an eligible plan.')
+        if values['annual_rate'] > Decimal(data['financial_state']['policy']['max_annual_rate']):
+            result['policy_warnings'].append('Annual rate exceeds your financial policy limit.')
         data["loan"] = result
         if values['months'] <= 120 and values['amount'] <= 1000000000 and values['fees'] <= 1000000000:
             data['financing_assessment'] = financing_assessment(data['financial_state'], values['amount'], values['annual_rate'], values['months'], values['fees'])
@@ -433,7 +438,8 @@ def planning(request, business_id):
             max_months__gte=values["months"],
         )
         data["products"] = [
-            {"product": p, "result": loan_schedule(values["amount"], p.annual_rate, values["months"], p.fee)} for p in products if p.valid_until is None or p.valid_until >= timezone.localdate()
+            {"product": p, "result": loan_schedule(values["amount"], p.annual_rate, values["months"], p.fee),
+             "policy_violation": values['amount'] > Decimal(data['financial_state']['policy']['max_borrowing']) or p.annual_rate > Decimal(data['financial_state']['policy']['max_annual_rate'])} for p in products if p.valid_until is None or p.valid_until >= timezone.localdate()
         ]
     try:
         horizon = int(request.GET.get("horizon", 30))

@@ -73,6 +73,8 @@ def forecast(business, days=30, as_of=None):
         raise ValueError("Choose 7, 15, 30 or 90 days.")
     today = as_of or timezone.localdate()
     current = summary(business, end=today)
+    if business.transactions.filter(archived=False).exclude(currency=business.currency).exists():
+        return {'available': False, 'reason': 'Mixed-currency records block forecasts; no implicit exchange conversion is allowed.'}
     if current["cash"] is None:
         return {"available": False, "reason": "Set a verified opening balance and date to forecast cash."}
     if not business.cash_records_complete:
@@ -87,14 +89,16 @@ def forecast(business, days=30, as_of=None):
     span = min(90, (today - min(r.date for r in history)).days + 1)
     daily_in = sum((max(cash_effect(r), ZERO) for r in history), ZERO) / span
     daily_out = sum((-min(cash_effect(r), ZERO) for r in history), ZERO) / span
-    scheduled = defaultdict(lambda: ZERO)
+    scheduled_in, scheduled_out = defaultdict(lambda: ZERO), defaultdict(lambda: ZERO)
+    covered = set(business.transactions.filter(archived=False, recurring_obligation__isnull=False).values_list('recurring_obligation_id', 'due_date', 'date'))
+    covered = {(pk, due or day) for pk, due, day in covered}
     for row in business.transactions.filter(
         archived=False, status="pending", due_date__gt=today, due_date__lte=today + timedelta(days=days)
     ):
         if row.kind in ("income", "receivable"):
-            scheduled[row.due_date] += row.amount
+            scheduled_in[row.due_date] += row.amount
         elif row.kind in ("expense", "payable"):
-            scheduled[row.due_date] -= row.amount
+            scheduled_out[row.due_date] += row.amount
     from dateutil.relativedelta import relativedelta
 
     for obligation in business.recurring_obligations.filter(active=True):
@@ -107,21 +111,23 @@ def forecast(business, days=30, as_of=None):
                 due = obligation.next_due + relativedelta(months=index)
             if due > today + timedelta(days=days):
                 break
-            if due > today:
-                scheduled[due] += obligation.amount if obligation.direction == "inflow" else -obligation.amount
+            if due > today and (obligation.pk, due) not in covered:
+                target = scheduled_in if obligation.direction == 'inflow' else scheduled_out
+                target[due] += obligation.amount
     # Scheduled obligations are added explicitly: baseline may overlap them; disclose conservatism.
     balance = current["cash"]
+    adverse = balance
     points = [{"date": today.isoformat(), "balance": str(balance), "inflow": "0", "outflow": "0"}]
     for offset in range(1, days + 1):
         day = today + timedelta(days=offset)
-        delta = scheduled[day]
-        balance = money(balance + daily_in - daily_out + delta)
+        balance = money(balance + daily_in - daily_out + scheduled_in[day] - scheduled_out[day])
+        adverse = money(adverse - daily_out - scheduled_out[day])
         points.append(
             {
                 "date": day.isoformat(),
                 "balance": str(balance),
-                "inflow": str(money(daily_in + max(delta, ZERO))),
-                "outflow": str(money(daily_out - min(delta, ZERO))),
+                "inflow": str(money(daily_in + scheduled_in[day])),
+                "outflow": str(money(daily_out + scheduled_out[day])),
             }
         )
     return {
@@ -129,38 +135,61 @@ def forecast(business, days=30, as_of=None):
         "points": points,
         "ending_balance": str(balance),
         "history_days": span,
+        "active_history_days": len({r.date for r in history}),
+        "reliability": 'Limited history: fewer than 30 calendar days or 10 active days. Treat this baseline as low confidence.' if span < 30 or len({r.date for r in history}) < 10 else 'Unvalidated baseline, not a prediction guarantee. Inspect walk-forward error before relying on it.',
+        "adverse_ending_balance": str(adverse),
+        "adverse_assumption": 'Sensitivity only: no future receipts (historical or scheduled), unchanged historical outflows plus dated payments. Not a probability estimate.',
+        "method": '90-day-window paid operating cash moving average plus explicit schedules',
+        "overlap_warning": 'Historical averages may already contain similar recurring costs. Explicit linked invoice/recurrence occurrences are counted once, but unlinked duplicates and historical-pattern overlap cannot be inferred safely.',
+
         "daily_inflow": str(money(daily_in)),
         "daily_outflow": str(money(daily_out)),
         "minimum_balance": str(min(D(p["balance"]) for p in points)),
-        "limitations": "Assumption-based moving average, not a trained model or confidence interval. Scheduled invoices and recurring commitments are additional to historical averages and may overlap recurring patterns or each other. Avoid entering the same obligation twice. Pending collections are uncertain; record completeness is user-confirmed. No seasonality or guaranteed accuracy.",
+        "limitations": "Assumption-based moving average, not a trained model or confidence interval. Scheduled invoices and recurring commitments are additional to historical averages and may overlap historical patterns. Linked invoice/recurrence occurrences are counted once; avoid unlinked duplicate obligations. Pending collections are uncertain; record completeness is user-confirmed. No seasonality or guaranteed accuracy.",
     }
 
 
 def backtest(business):
+    """Ledger-date walk-forward evaluation of the operating moving-average component.
+
+    Current pending schedules are NOT replayed backwards as if known at cutoffs.
+    No historical as-known schedule/status snapshots exist; disclose that limit.
+    """
     today = timezone.localdate()
-    errors, actuals = [], []
+    folds, errors, actuals, gross_actuals = [], [], [], []
     for offset in (28, 21, 14, 7):
         cutoff = today - timedelta(days=offset)
-        history = list(
-            business.transactions.filter(archived=False, status="paid", date__gte=cutoff - timedelta(days=59), date__lte=cutoff).exclude(
-                kind__in=["transfer", "loan_disbursement", "loan_repayment"]
-            )
-        )
+        history = list(business.transactions.filter(
+            archived=False, currency=business.currency, status='paid',
+            date__gte=max(business.opening_date, cutoff-timedelta(days=89)), date__lte=cutoff
+        ).exclude(kind__in=['transfer', 'loan_disbursement', 'loan_repayment']))
         if len(history) < 30:
             continue
         span = (cutoff - min(r.date for r in history)).days + 1
+        if span < 30 or len({r.date for r in history}) < 10:
+            continue
         predicted = sum((cash_effect(r) for r in history), ZERO) / span * 7
-        actual = sum(
-            (cash_effect(r) for r in business.transactions.filter(archived=False, date__gt=cutoff, date__lte=cutoff + timedelta(days=7))),
-            ZERO,
-        )
-        errors.append(abs(predicted - actual))
+        observed = list(business.transactions.filter(
+            archived=False, currency=business.currency, status='paid', date__gt=cutoff, date__lte=cutoff+timedelta(days=7)
+        ).exclude(kind__in=['transfer', 'loan_disbursement', 'loan_repayment']))
+        actual = sum((cash_effect(r) for r in observed), ZERO)
+        gross = sum((abs(cash_effect(r)) for r in observed), ZERO)
+        error = abs(predicted-actual)
+        errors.append(error)
         actuals.append(abs(actual))
+        gross_actuals.append(gross)
+        folds.append({'cutoff': cutoff.isoformat(), 'horizon_days': 7, 'training_days': span,
+                      'predicted_net_cash': str(money(predicted)), 'actual_net_cash': str(money(actual)),
+                      'absolute_error': str(money(error)), 'gross_cash_movement': str(money(gross))})
+    denominator, gross = sum(actuals), sum(gross_actuals)
+    unstable = not denominator or (gross > 0 and denominator < gross * D('0.10'))
     return {
-        "folds": len(errors),
-        "mae": str(money(sum(errors) / len(errors))) if errors else None,
-        "wape": str(money(sum(errors) / sum(actuals) * 100)) if sum(actuals) else None,
-        "note": "Weekly net-cash baseline walk-forward evaluation; not calibrated prediction intervals.",
+        'folds': len(errors), 'fold_details': folds, 'horizon_days': 7,
+        'mae': str(money(sum(errors)/len(errors))) if errors else None,
+        'wape': str(money(sum(errors)/denominator*100)) if denominator else None,
+        'net_cash_denominator': str(money(denominator)),
+        'wape_unstable': unstable,
+        'note': 'Weekly operating net-cash baseline, 90-day training window, ledger-date walk-forward; not the full schedule-overlay forecast. Net WAPE divides absolute errors by sum of absolute weekly net cash, not gross receipts. Near-zero net cash can make it unstable (flagged below 10% of gross movement). No accuracy or calibrated-interval claim; 15/30/90-day horizons and historical as-known schedule/status snapshots are not evaluated.',
     }
 
 
@@ -217,7 +246,10 @@ def loan_schedule(principal, annual_rate, months, fee=0):
             {"month": month, "payment": str(paid), "interest": str(interest), "principal": str(capital), "balance": str(balance)}
         )
     return {
+        "principal": str(money(principal)), "annual_rate": str(annual_rate), "months": months,
         "payment": str(payment),
+        "total_repayment": str(money(principal + total_interest)),
+        "financing_cost": str(money(total_interest + fee)),
         "total_interest": str(total_interest),
         "fees": str(fee),
         "total_cost": str(money(principal + total_interest + fee)),
