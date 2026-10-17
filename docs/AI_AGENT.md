@@ -1,0 +1,9 @@
+# AI advisor
+
+Configure `LLM_API_KEY`, an HTTPS `LLM_BASE_URL` and `LLM_MODEL` for an OpenAI-compatible `/chat/completions` endpoint. The provider-neutral boundary is a configurable HTTP protocol adapter. Other protocol families need an additional adapter. Production credentials must stay in environment secrets.
+
+The model can call allowlisted overview, revenue, category expense breakdown, transaction counts, supported ratios, cash, forecast, scenario calculation, financing illustration and data-quality tools. Pydantic rejects additional arguments, so no alternate business IDs are accepted. Scenario and loan inputs have explicit numeric bounds. Every tool invocation repeats membership authorization. Maximum four API rounds and six tool calls per response; bounded input/output and HTTP timeouts limit execution. Financial calculations happen in Python. Tool operations are read-only. User instructions cannot grant database permissions. No SQL or code execution capability exists.
+
+Only authorized aggregates are shared with the provider. Raw transaction descriptions and other users' conversations are excluded. Returned content is rendered as escaped plain text, never executable HTML. Failed providers return a neutral error without their response body or credentials. Each question records a workspace audit event.
+
+Without configuration the UI clearly says AI Advisor not configured and separately presents deterministic calculations. The API path is implemented but real provider behavior requires credentialed verification. Conversations are stored, but previous chat turns are not replayed to the provider in this initial implementation. Prompt injection resistance is a combination of permission boundaries, tool schemas and read-only capabilities; it does not guarantee that model prose cannot be manipulated.
