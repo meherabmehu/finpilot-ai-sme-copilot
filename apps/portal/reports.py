@@ -1,10 +1,12 @@
 import csv
 import io
+from decimal import Decimal
 from django.http import HttpResponse
 from django.utils import timezone
 from .engine import summary, forecast
 from .imports import safe_cell
 from .access import audit, authorized_business
+from .report_sections import agentic_sections, render_pdf, amount
 
 
 def export_report(user, business, format, start, end, report_type="summary"):
@@ -18,41 +20,15 @@ def export_report(user, business, format, start, end, report_type="summary"):
         ["Source", "Synthetic demonstration records" if business.is_demo else "User-entered records; completeness unverified"],
         ["Basis", "Recorded operating summary; not audited net profit. Cash balance is as of period end."],
     ]
+    sections = None
+    metadata = list(rows)
     if report_type in ('decisions', 'investigations', 'issues'):
-        rows.append(['Basis', 'Historical investigation snapshots and SIMULATED alternatives; observed outcomes are separately labeled. No causal improvement or external execution is inferred.'])
-        if report_type == 'issues':
-            rows.append(['Issue', 'Severity', 'Status', 'Calculated rule', 'Amount', 'As of'])
-            for issue in business.financial_issues.order_by('-checked_at'):
-                rows.append([issue.title, issue.severity, issue.status, issue.evidence.get('rule'), issue.evidence.get('amount'), issue.evidence.get('as_of')])
-        else:
-            for item in business.investigations.filter(created_at__date__gte=start, created_at__date__lte=end).select_related('decision').order_by('-created_at'):
-                decision = item.decision
-                rows.extend([
-                    ['Investigation', str(item.pk), item.question, item.created_at.isoformat()],
-                    ['Snapshot', item.snapshot['as_of'], item.snapshot['fingerprint'], item.snapshot['currency']],
-                    ['Calculated recorded cash', item.snapshot['known_cash']],
-                    ['Decision', decision.state, decision.selected_plan, 'Review', decision.review_date.isoformat()],
-                    ['Expected (SIMULATED)', str(decision.expected)],
-                    ['Observed outcome (if available)', str(decision.outcome)],
-                    ['Selected plan (SIMULATED)', str(decision.selected_snapshot)],
-                    ['Owner feedback', decision.feedback],
-                    ['Ranking', item.result['comparison']['objective']],
-                ])
-                for plan in item.result['comparison']['plans']:
-                    timeline = plan['timeline']
-                    rows.extend([
-                        ['SIMULATED plan', plan['name'], 'Within constraints', plan['feasible']],
-                        ['Minimum cash', timeline.get('minimum_balance', 'Unknown'), 'Lowest date', timeline.get('lowest_date', 'Unknown')],
-                        ['Reserve gap', timeline.get('funding_gap', 'Unknown'), 'Borrowing', plan['borrowing'], 'Full cost', plan['financing_cost']],
-                        ['Beyond-horizon liabilities', plan['deferred_liabilities']],
-                    ])
-                    for note in plan['dependencies'] + plan['tradeoffs'] + plan['violations']:
-                        rows.append(['Plan assumption / constraint', note])
-                if report_type == 'investigations':
-                    for node in item.result['evidence_graph']['nodes']:
-                        rows.append(['Evidence', node['id'], node.get('label'), node.get('amount'), node.get('date'), node.get('basis'), node.get('source'), node.get('formula')])
-                for note in item.snapshot['limitations']:
-                    rows.append(['Limitation', note])
+        rows.append(['Basis', 'SIMULATED alternatives are not observed results. No causal improvement or external execution is inferred.'])
+        sections = agentic_sections(business, start, end, report_type)
+        for section in sections:
+            rows.append([section['title']])
+            rows.append(section['headers'])
+            rows.extend(section['rows'])
     elif report_type == "transactions":
         rows.append(["Date", "Description", "Type", "Amount", "Currency", "Status", "Category", "Reference"])
         rows.extend(
@@ -65,12 +41,12 @@ def export_report(user, business, format, start, end, report_type="summary"):
         result = forecast(business)
         rows.append(["Method", result.get("limitations", result.get("reason"))])
         rows.append(["Date", "Projected balance", "Expected inflow", "Expected outflow"])
-        rows.extend([[p["date"], p["balance"], p["inflow"], p["outflow"]] for p in result.get("points", [])])
+        rows.extend([[p["date"], amount(p["balance"]), amount(p["inflow"]), amount(p["outflow"])] for p in result.get("points", [])])
     elif report_type == "scenarios":
         rows.append(["Scenario", "Revenue", "Expenses", "Cash delta", "Assumptions"])
         rows.extend(
             [
-                [s.name, s.result["revenue"], s.result["expenses"], s.result["cash_delta"], str(s.assumptions)]
+                [s.name, amount(s.result["revenue"]), amount(s.result["expenses"]), amount(s.result["cash_delta"]), "; ".join(f"{k}: {v}" for k, v in s.assumptions.items())]
                 for s in business.scenarios.all()
             ]
         )
@@ -80,12 +56,12 @@ def export_report(user, business, format, start, end, report_type="summary"):
             [
                 [
                     s.created_at.isoformat(),
-                    s.assumptions["amount"],
-                    s.assumptions["annual_rate"],
-                    s.assumptions["months"],
-                    s.result["payment"],
-                    s.result["total_cost"],
-                    s.result["fees"],
+                    amount(s.assumptions["amount"]),
+                    s.assumptions["annual_rate"] + '%',
+                    int(s.assumptions["months"]),
+                    amount(s.result["payment"]),
+                    amount(s.result["total_cost"]),
+                    amount(s.result["fees"]),
                 ]
                 for s in business.loan_comparisons.all()
             ]
@@ -115,26 +91,29 @@ def export_report(user, business, format, start, end, report_type="summary"):
         book = Workbook()
         sheet = book.active
         sheet.title = "Financial report"
+        from openpyxl.styles import Font, PatternFill
         for row in rows:
-            sheet.append([safe_cell(x) for x in row])
+            sheet.append([x if isinstance(x, (Decimal, int, float, bool)) else safe_cell(x) for x in row])
+        for row in sheet:
+            for cell in row:
+                if isinstance(cell.value, (Decimal, float)):
+                    cell.number_format = '#,##0.00;[Red](#,##0.00)'
+        for cell in sheet[1]:
+            cell.font = Font(bold=True, color='FFFFFF')
+            cell.fill = PatternFill('solid', fgColor='173D7A')
+        sheet.freeze_panes = 'A2'
         sheet.column_dimensions["A"].width = 30
         sheet.column_dimensions["B"].width = 60
         output = io.BytesIO()
         book.save(output)
         response = HttpResponse(output.getvalue(), content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     elif format == "pdf":
-        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-        from reportlab.lib.styles import getSampleStyleSheet
-        from xml.sax.saxutils import escape
-
-        output = io.BytesIO()
-        doc = SimpleDocTemplate(output, title="FinPilot financial report")
-        styles = getSampleStyleSheet()
-        story = []
-        for row in rows:
-            story.extend([Paragraph(escape(" | ".join(str(x) for x in row)), styles["BodyText"]), Spacer(1, 9)])
-        doc.build(story)
-        response = HttpResponse(output.getvalue(), content_type="application/pdf")
+        if sections is None:
+            # Preserve all existing exports but wrap their rows in readable paginated tables.
+            width = max(len(row) for row in rows[6:]) if len(rows) > 6 else 2
+            sections = [{'title': report_type.replace('_', ' ').title(),
+                         'headers': ['Measure / record'] + ['Value']*(width-1), 'rows': rows[6:]}]
+        response = HttpResponse(render_pdf(business, start, end, metadata, sections), content_type='application/pdf')
     else:
         raise ValueError("Unsupported export format")
     response["Content-Disposition"] = f'attachment; filename="finpilot-{report_type}.{format}"'

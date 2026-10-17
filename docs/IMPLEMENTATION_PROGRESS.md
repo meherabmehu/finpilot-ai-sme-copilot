@@ -83,3 +83,9 @@
 - Backtest now evaluates the same 90-day operating moving-average component, excludes financing from both training and target, exposes cutoff/fold details and flags net-WAPE denominator instability. Full schedule-overlay as-known history is unavailable; only weekly baseline folds are evaluated.
 - Independent Decimal oracle confirms manual 10000/12%/12 months/200 fee: payment 888.49, interest 661.86, full financing cost 861.86, total 10861.86. Product fee 100 explains total 10761.86: NOT an amortization defect. Added explicit principal/rate/term/product-fee and policy labels without changing the schedule formula.
 - Four new forecast/financing tests passed; 28 original engine/planning/workflow regressions passed. Report presentation, concurrency and final browser checks follow.
+
+## Report presentation checkpoint
+- Replaced nested dictionary dumps in decision PDFs with shared executive/state/comparison/selection/expected/observed/evidence/limitations sections and optional technical evidence appendix.
+- PDF uses wrapped, repeating-header tables and page numbering; CSV/XLSX use the same section values. Generated amounts are numeric XLSX cells with financial formatting; untrusted text still receives formula escaping.
+- Added PDF parsing regression through pypdf (test dependency), including section names, currency display, absence of nested dictionaries and spreadsheet type/escaping consistency. Original 52 relevant export/flow/financing tests passed.
+- Local disposable PostgreSQL 17 is now available. Whole current suite passed 145 tests on that isolated database; SQLite passed 143, skipping only two PostgreSQL-specific concurrency tests. No production database accessed.
