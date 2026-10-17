@@ -42,9 +42,12 @@ $env:DEBUG='true'
 .\.venv\Scripts\ruff check .
 .\.venv\Scripts\python -m playwright install chromium
 .\.venv\Scripts\python scripts/browser_check.py
+.\.venv\Scripts\python scripts/responsive_check.py
 ```
 
 Browser checks require a running local server, seeded demo, and the same `DEMO_PASSWORD`. They create local-only screenshots under ignored `test-results/`.
+
+The responsive sweep covers all primary pages, business and planning tabs, public/authentication/onboarding screens, open header menus and long values at widths from 320 to 2560px, plus phone landscape orientations. Run a smaller selection with `python scripts/responsive_check.py --widths 320,768,1440`. Layout rules are maintained in `static/css/responsive.css`; wide tables scroll within their own regions, and phone navigation includes safe-area spacing.
 
 ## Project layout
 

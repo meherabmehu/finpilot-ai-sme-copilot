@@ -1,0 +1,560 @@
+/* Layout constraints shared by phones, tablets, laptops and wide screens. */
+html {
+  scroll-padding-block: 1rem;
+}
+
+body {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+img,
+svg,
+canvas {
+  max-inline-size: 100%;
+}
+
+.app-shell,
+.main-content,
+.hero > *,
+.auth-layout > *,
+.stats-grid > *,
+.dashboard-middle > *,
+.business-layout > *,
+.planning-layout > *,
+.advisor-layout > *,
+.report-layout > *,
+.scenario-grid > *,
+.form-grid > *,
+.action-card > div,
+.page-heading > div,
+.panel-heading > div,
+.chat-message > div {
+  min-inline-size: 0;
+}
+
+.sidebar {
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.report-layout {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+}
+
+.scenario-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.panel dl {
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+}
+
+.advisor-data dl {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.stat-card h2 {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-size: clamp(1.15rem, 1.75vw, 1.8rem);
+}
+
+.action-card p {
+  white-space: normal;
+}
+
+input:not([type='checkbox']),
+select,
+textarea {
+  min-inline-size: 0;
+}
+
+.table-scroll,
+.tabs {
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-scroll:focus-visible,
+.tabs:focus-visible {
+  outline: 3px solid #8eb6ff;
+  outline-offset: 3px;
+}
+
+.notice code {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.page-heading,
+.panel-heading,
+.forecast-summary,
+.history-row,
+.export-buttons,
+.form-submit {
+  flex-wrap: wrap;
+}
+
+.form-submit {
+  display: flex;
+  gap: 10px;
+}
+
+.business-control,
+.switcher,
+.switcher summary > span:nth-child(2) {
+  min-inline-size: 0;
+}
+
+.business-control {
+  flex: 1;
+}
+
+.topbar-right,
+.add-business {
+  flex-shrink: 0;
+}
+
+.switcher strong {
+  display: block;
+  max-inline-size: clamp(100px, 22vw, 300px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dropdown {
+  max-block-size: min(32rem, calc(100dvh - 110px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.dropdown a,
+.dropdown button {
+  min-block-size: 44px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.dropdown .pill {
+  flex-shrink: 0;
+}
+
+.public-header,
+.public-footer,
+.hero,
+.features-section,
+.how-section {
+  width: 100%;
+}
+
+@media (max-width: 1100px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .report-filters form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: end;
+  }
+
+  .report-filters form > div:first-child,
+  .report-filters form > .button {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 960px) {
+  .report-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .advisor-layout > aside {
+    display: block;
+  }
+
+  .advisor-data dl {
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  }
+
+  .advisor-data dd {
+    text-align: right;
+    font-size: 12px;
+    padding: 10px 0;
+  }
+
+  .advisor-data dt {
+    padding: 10px 0;
+  }
+
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 55px;
+  }
+
+  .hero-copy {
+    max-inline-size: 640px;
+  }
+
+  .hero-visual {
+    inline-size: 100%;
+    max-inline-size: 620px;
+    justify-self: center;
+  }
+
+  .public-header nav {
+    gap: 18px;
+  }
+}
+
+@media (max-width: 700px) {
+  /* Keep the browser's bottom gesture area clear on phones with a home indicator. */
+  .sidebar {
+    block-size: calc(68px + env(safe-area-inset-bottom, 0px));
+    padding: 4px max(6px, env(safe-area-inset-right, 0px))
+      calc(4px + env(safe-area-inset-bottom, 0px))
+      max(6px, env(safe-area-inset-left, 0px));
+  }
+
+  .sidebar nav {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    block-size: 100%;
+    align-items: stretch;
+  }
+
+  .nav-item {
+    padding: 6px 2px;
+    min-inline-size: 0;
+    min-block-size: 52px;
+    justify-content: center;
+    text-align: center;
+    font-size: 9px;
+    line-height: 1.25;
+    gap: 5px;
+  }
+
+  .nav-label {
+    max-inline-size: 100%;
+  }
+
+  .app-shell {
+    padding-block-end: calc(84px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .topbar {
+    padding-inline: max(12px, env(safe-area-inset-left, 0px))
+      max(12px, env(safe-area-inset-right, 0px));
+    gap: 8px;
+  }
+
+  .business-control,
+  .topbar-right,
+  .switcher summary {
+    gap: 6px;
+  }
+
+  .switcher strong {
+    max-inline-size: clamp(80px, 28vw, 180px);
+  }
+
+  .switcher summary,
+  .profile summary,
+  .notifications summary,
+  .add-business {
+    min-block-size: 44px;
+  }
+
+  .profile summary,
+  .notifications summary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: 40px;
+  }
+
+  .add-business {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: 32px;
+    padding-inline-start: 4px;
+  }
+
+  .topbar .dropdown {
+    position: fixed;
+    inset: 68px 12px auto;
+    inline-size: auto;
+    min-inline-size: 0;
+    max-inline-size: none;
+    max-block-size: calc(100dvh - 160px - env(safe-area-inset-bottom, 0px));
+  }
+
+  .main-content {
+    padding-inline: max(14px, env(safe-area-inset-left, 0px))
+      max(14px, env(safe-area-inset-right, 0px));
+  }
+
+  .form-grid,
+  .scenario-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  input:not([type='checkbox']),
+  select,
+  textarea {
+    /* A 16px input font avoids automatic focus zoom in mobile Safari. */
+    font-size: 16px;
+    min-block-size: 44px;
+  }
+
+  .button,
+  .tabs a,
+  .suggestions button,
+  .text-button,
+  .pagination a,
+  .mapping > summary {
+    min-block-size: 44px;
+  }
+
+  .tabs a {
+    display: inline-flex;
+    align-items: center;
+    font-size: 12px;
+    padding-block: 10px;
+  }
+
+  .form-submit .button {
+    white-space: normal;
+  }
+
+  .stat-card h2 {
+    font-size: clamp(1.05rem, 5.4vw, 1.7rem);
+  }
+
+  .stat-card h2 small {
+    display: block;
+  }
+
+  .stat-card p,
+  .action-card p,
+  .data-note {
+    font-size: 10px;
+  }
+
+  .action-card strong {
+    font-size: 12px;
+  }
+
+  .business-profile {
+    align-items: flex-start;
+  }
+
+  .business-profile > div {
+    min-inline-size: 0;
+  }
+
+  .forecast-summary > div {
+    flex: 1 1 140px;
+    min-inline-size: 0;
+  }
+
+  .chat-panel {
+    min-block-size: min(630px, 100dvh);
+  }
+
+  .chat-messages {
+    min-block-size: 220px;
+    max-block-size: 55dvh;
+  }
+
+  .chat-input {
+    align-items: flex-end;
+  }
+
+  .chat-input textarea {
+    font-size: 16px;
+    max-block-size: 30dvh;
+  }
+
+  .chat-input .button {
+    flex-shrink: 0;
+    min-inline-size: 44px;
+  }
+
+  .report-filters form > div,
+  .export-buttons,
+  .export-buttons .button {
+    min-inline-size: 0;
+  }
+
+  .export-buttons {
+    inline-size: 100%;
+  }
+
+  .export-buttons .button {
+    flex: 1 1 120px;
+  }
+
+  .upload-box {
+    padding-inline: 12px;
+  }
+
+  .public-header {
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+
+  .public-header nav {
+    display: flex;
+    order: 3;
+    flex-basis: 100%;
+    justify-content: center;
+    border-top: 1px solid #edf1f7;
+    gap: 28px;
+  }
+
+  .public-header nav a,
+  .public-header .login-link,
+  .public-footer a {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 44px;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.25rem, 11.5vw, 3.25rem);
+    letter-spacing: -.045em;
+  }
+
+  .hero-actions,
+  .hero-trust {
+    flex-wrap: wrap;
+  }
+
+  .hero-actions .button {
+    flex: 1 1 130px;
+  }
+
+  .hero-visual {
+    transform: none;
+  }
+
+  .hero-visual::before {
+    inset-inline: 0;
+  }
+
+  .preview-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .preview-stats strong {
+    font-size: clamp(10px, 3.3vw, 16px);
+  }
+
+  .preview-chart > div {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .floating-card {
+    position: relative;
+    inset: auto;
+    margin-block-start: 14px;
+  }
+
+  .auth-layout,
+  .auth-main {
+    min-block-size: 100dvh;
+  }
+
+  .auth-card {
+    margin-block: clamp(24px, 6dvh, 50px);
+  }
+
+  .onboarding-progress {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 380px) {
+  .panel,
+  .onboarding .panel {
+    padding: 16px;
+  }
+
+  .chat-panel {
+    padding: 0;
+  }
+
+  .action-grid,
+  .suggestions,
+  .feature-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .action-card {
+    flex-wrap: nowrap;
+  }
+
+  .report-filters form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .preview-top {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .public-header {
+    padding-inline: 14px;
+  }
+
+  .public-header > div {
+    gap: 8px;
+  }
+
+  .public-header .brand {
+    font-size: 18px;
+  }
+}
+
+@media (max-height: 500px) and (min-width: 701px) and (max-width: 960px) {
+  .sidebar {
+    overflow-y: auto;
+  }
+
+  .sidebar > .brand {
+    margin-block-end: 12px;
+  }
+
+  .sidebar .nav-item {
+    padding-block: 10px;
+  }
+
+  .sidebar-bottom {
+    margin-block-start: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .button {
+    transition: none;
+  }
+
+  .button:hover {
+    transform: none;
+  }
+}
