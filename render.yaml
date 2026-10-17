@@ -1,0 +1,34 @@
+# Free resources are for evaluation: review current limits before production use.
+databases:
+  - name: finpilot-db
+    databaseName: finpilot
+    user: finpilot
+    plan: free
+    region: singapore
+    ipAllowList: []
+
+services:
+  - type: web
+    name: finpilot-ai
+    runtime: docker
+    plan: free
+    region: singapore
+    repo: https://github.com/meherabmehu/finpilot-ai-sme-copilot
+    branch: feat/finpilot-platform
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    dockerCommand: sh scripts/start-web.sh
+    healthCheckPath: /health/
+    envVars:
+      - key: DEBUG
+        value: "false"
+      - key: SECRET_KEY_SEED
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: finpilot-db
+          property: connectionString
+      - key: WEB_CONCURRENCY
+        value: "1"
+      - key: GUNICORN_THREADS
+        value: "2"

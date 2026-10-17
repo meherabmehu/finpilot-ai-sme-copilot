@@ -3,6 +3,9 @@ node_modules/
 __pycache__/
 *.py[cod]
 .env
+.env.*
+!.env.example
+.vercel/
 *.sqlite3
 media/
 staticfiles/
@@ -10,3 +13,6 @@ staticfiles/
 .ruff_cache/
 test-results/
 *.log
+.agents/skills/neon/
+.agents/skills/neon-postgres/
+skills-lock.json

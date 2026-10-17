@@ -2,14 +2,23 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 from django.core.exceptions import ImproperlyConfigured
+from .environment import database_from_url, hosted_domains, secret_from_seed
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(BASE_DIR / ".env")
-DEBUG = os.getenv("DEBUG", "true").lower() == "true"
-SECRET_KEY = os.getenv("SECRET_KEY", "local-development-only-change-before-deployment")
+HOSTED = os.getenv("RENDER") == "true" or os.getenv("VERCEL") == "1"
+if not HOSTED:
+    load_dotenv(BASE_DIR / ".env")
+DEBUG = os.getenv("DEBUG", "false" if HOSTED else "true").lower() == "true"
+SECRET_KEY = os.getenv("SECRET_KEY") or (
+    secret_from_seed(os.environ["SECRET_KEY_SEED"]) if os.getenv("SECRET_KEY_SEED") else "local-development-only-change-before-deployment"
+)
 if not DEBUG and (SECRET_KEY.startswith("local-") or len(SECRET_KEY) < 50):
     raise ImproperlyConfigured("Set a unique SECRET_KEY of at least 50 characters.")
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,testserver").split(",")
+HOSTED_DOMAINS = hosted_domains(os.environ)
+ALLOWED_HOSTS = [host.strip() for host in os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,testserver").split(",") if host.strip()]
+ALLOWED_HOSTS.extend(host for host in HOSTED_DOMAINS if host not in ALLOWED_HOSTS)
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if origin.strip()]
+CSRF_TRUSTED_ORIGINS.extend("https://" + host for host in HOSTED_DOMAINS if "https://" + host not in CSRF_TRUSTED_ORIGINS)
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -47,7 +56,14 @@ TEMPLATES = [
     }
 ]
 WSGI_APPLICATION = "config.wsgi.application"
-if os.getenv("POSTGRES_HOST"):
+if os.getenv("DATABASE_URL"):
+    DATABASES = {
+        "default": database_from_url(
+            os.environ["DATABASE_URL"],
+            require_ssl=os.getenv("DATABASE_REQUIRE_SSL", "true" if os.getenv("VERCEL") == "1" else "false") == "true",
+        )
+    }
+elif os.getenv("POSTGRES_HOST"):
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -90,13 +106,17 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "true") == "true"
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "FinPilot <noreply@example.com>")
-SITE_URL = os.getenv("SITE_URL", "http://127.0.0.1:8000")
+SITE_URL = os.getenv("SITE_URL") or ("https://" + HOSTED_DOMAINS[0] if HOSTED_DOMAINS else "http://127.0.0.1:8000")
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_AGE = 28800
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 SECURE_SSL_REDIRECT = not DEBUG
+if HOSTED or os.getenv("TRUST_PROXY_SSL_HEADER") == "true":
+    # Render and Vercel terminate TLS and normalize this header at their ingress.
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SECURE_REDIRECT_EXEMPT = [r"^health/$"]
 SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
 SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
 SECURE_HSTS_PRELOAD = not DEBUG

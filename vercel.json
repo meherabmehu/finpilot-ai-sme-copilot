@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "django",
+  "regions": ["sin1"],
+  "buildCommand": "python scripts/migrate_hosted.py",
+  "functions": {
+    "config/wsgi.py": {
+      "maxDuration": 120
+    }
+  }
+}
