@@ -7,21 +7,31 @@ from decimal import Decimal, InvalidOperation
 import pandas as pd
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from .models import DataImport, Transaction
-from .access import audit
+from .models import DataImport, Transaction, Business
+from .access import audit, authorized_business
 
 MAX_SIZE = 5 * 1024 * 1024
 FIELDS = ["date", "description", "amount", "kind", "currency", "status", "category", "reference", "due_date"]
 
 
+@transaction.atomic
 def preview_import(business, upload, mapping=None):
+    # Serialize same-business preview/confirmation; parsing is bounded to 5 MB/5000 rows.
+    business = Business.objects.select_for_update().get(pk=business.pk)
     if upload.size > MAX_SIZE:
         raise ValidationError("File limit is 5 MB.")
     raw = upload.read(MAX_SIZE + 1)
     if len(raw) > MAX_SIZE:
         raise ValidationError("File limit is 5 MB.")
-    digest = hashlib.sha256(raw + json.dumps(mapping or {}, sort_keys=True).encode()).hexdigest()
-    existing = DataImport.objects.filter(business=business, digest=digest).first()
+    original_mapping = mapping or {}
+    mapping = {key: value for key, value in original_mapping.items() if value}
+    def digest_for(value):
+        return hashlib.sha256(raw + json.dumps(value, sort_keys=True).encode()).hexdigest()
+    digest = digest_for(mapping)
+    legacy = [digest, digest_for(original_mapping)]
+    if not mapping:
+        legacy.append(digest_for({field: '' for field in FIELDS}))
+    existing = DataImport.objects.filter(business=business, digest__in=legacy).order_by('-confirmed', 'pk').first()
     if existing:
         return existing
     try:
@@ -58,7 +68,7 @@ def preview_import(business, upload, mapping=None):
             raise ValueError("Upload a UTF-8 CSV or XLSX workbook.")
     except (ValueError, UnicodeError, zipfile.BadZipFile, StopIteration, KeyError) as exc:
         raise ValidationError(str(exc)) from exc
-    rows, errors, seen = [], [], set()
+    rows, errors, seen, references = [], [], set(), set()
     for index, original in enumerate(source, 2):
         row = {field: original.get((mapping or {}).get(field) or field, "") for field in FIELDS}
         try:
@@ -98,8 +108,13 @@ def preview_import(business, upload, mapping=None):
                 "due_date": due,
             }
             fingerprint = hashlib.sha256(json.dumps(normalized, sort_keys=True).encode()).hexdigest()
+            identity = (reference, kind, currency)
+            if reference and (identity in references or Transaction.objects.filter(business=business, reference=reference, kind=kind, currency=currency).exists()):
+                raise ValueError("Duplicate event reference for this type/currency. For corrections, edit or void the existing entry; changed files never update it. Use a unique reference for a genuinely separate event.")
             if fingerprint in seen or Transaction.objects.filter(business=business, fingerprint=fingerprint).exists():
-                raise ValueError("Duplicate row detected; no rows will be imported.")
+                raise ValueError("Duplicate or ambiguous matching row; no rows will be imported. Give genuinely distinct events unique reference values.")
+            if reference:
+                references.add(identity)
             seen.add(fingerprint)
             normalized["fingerprint"] = fingerprint
             rows.append(normalized)
@@ -112,12 +127,24 @@ def preview_import(business, upload, mapping=None):
 
 @transaction.atomic
 def confirm_import(business, user, import_id):
+    business = authorized_business(user, business.pk, write=True)
+    business = Business.objects.select_for_update().get(pk=business.pk)
     item = DataImport.objects.select_for_update().get(pk=import_id, business=business)
     if item.errors:
         raise ValidationError("Resolve all row errors and upload a corrected file.")
     if item.confirmed:
         return 0
+    # Recheck identities and business setup after preview; never silently partially import.
+    for row in item.rows:
+        if row['currency'] != business.currency or row['date'] < business.opening_date.isoformat():
+            raise ValidationError('Business currency/opening date changed. Upload a newly reviewed file.')
+        if Transaction.objects.filter(business=business, fingerprint=row['fingerprint']).exists() or (
+            row['reference'] and Transaction.objects.filter(business=business, reference=row['reference'], kind=row['kind'], currency=row['currency']).exists()
+        ):
+            raise ValidationError('Records changed after preview: a matching event already exists. Nothing imported. Review a new file; corrections require editing or voiding the original.')
     account = business.accounts.first()
+    if account is None:
+        raise ValidationError('Create an operating account before importing.')
     count = 0
     for row in item.rows:
         _, created = Transaction.objects.get_or_create(

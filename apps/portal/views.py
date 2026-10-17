@@ -382,9 +382,11 @@ def import_confirm(request, business_id, pk):
     get_object_or_404(DataImport, pk=pk, business=business)
     try:
         count = confirm_import(business, request.user, pk)
-        messages.success(request, f"{count} transactions imported.")
-    except (ValidationError, IntegrityError) as exc:
-        messages.error(request, str(exc))
+        messages.success(request, f"{count} transactions imported." if count else "Already imported. No transactions were added again.")
+    except ValidationError as exc:
+        messages.error(request, '; '.join(exc.messages))
+    except IntegrityError:
+        messages.error(request, 'Import conflicted with a concurrent update. Nothing added; review the import and retry.')
     return redirect(reverse("my_business", args=[business.pk]) + "?tab=upload")
 
 

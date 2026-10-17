@@ -61,3 +61,10 @@
 - Re-ran Django check, migration drift check, pytest (124 passed), Ruff and diff whitespace checks successfully.
 - Normal push succeeded: remote advanced from 14664dd to cd275c2. All four implementation/documentation commits are now published. No force-push, branch creation or separate deployment command occurred.
 - This delivery note supersedes earlier authentication-blocked status. Production deployment, migration application and scheduler/provider verification remain unverified; a push may trigger the existing deployment webhook.
+
+## Final quality hardening — import checkpoint
+- Starting code/remote 3fd006e; unchanged baseline 124 passed after reinstall/build/collectstatic. See QUALITY_HARDENING_AUDIT.md for confirmed defects vs non-bugs.
+- Identical-file duplicate confirmation was already a no-op, not an established ledger duplication bug. Added explicit read-only Already imported preview and retry outcome.
+- Fixed equivalent empty-mapping digest mismatch with compatibility lookup for legacy digests. Added import service authorization/business locks, confirmation-time identity/setup revalidation, and explicit correction/reference identity semantics; no migration.
+- Accounting formulas preserved: sample import yields revenue 650, expenses 100, surplus 550, cash increase 150 and receivables 400. Pending earned receivables are not paid cash.
+- New import integrity tests plus original flow/workflow regressions pass (40 tests). Further reasoning/forecast/report work follows; PostgreSQL verification and authenticated push pending this checkpoint.
