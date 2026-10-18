@@ -8,11 +8,14 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 from .financial_state import cash_timeline
+from ..engine import money
 
 
-def collection_sensitivity(state, plan, early_days=3, delay_days=7):
+def collection_sensitivity(state, plan, early_days=3, delay_days=7, partial_percent=None):
     if not isinstance(early_days, int) or not isinstance(delay_days, int) or not 0 <= early_days <= 30 or not 0 <= delay_days <= 30:
         raise ValueError('Collection adjustments must be whole days from 0 to 30.')
+    if partial_percent is not None and (not isinstance(partial_percent, int) or not 0 <= partial_percent <= 100):
+        raise ValueError('Partial collection must be a whole percentage from 0 to 100.')
     if not state['complete'] or not plan.get('timeline', {}).get('available'):
         return []
     as_of = date.fromisoformat(state['as_of'])
@@ -25,26 +28,33 @@ def collection_sensitivity(state, plan, early_days=3, delay_days=7):
         return []
     receipt_ids = set(state['collection_event_ids'])
     receipt_ids.update(e['id'] for e in plan['events'] if e['id'].endswith(':assumed-recovery'))
-    variants = [('Earlier collections', -early_days), ('Plan dates', 0), ('Delayed collections', delay_days), ('No customer collections', None)]
+    variants = [('Earlier collections', -early_days, 100), ('Plan dates', 0, 100), ('Delayed collections', delay_days, 100), ('No customer collections', None, 0)]
+    if partial_percent is not None:
+        variants.append(('Partial collections', 0, partial_percent))
     results = []
-    for label, shift in variants:
+    for label, shift, percent in variants:
         events = deepcopy(plan['events'])
         excluded = Decimal('0')
+        unrealized = Decimal('0')
         for event in events:
             if event['id'] not in receipt_ids:
                 continue
+            original = Decimal(event['amount'])
+            event['amount'] = str(money(original*percent/100))
+            unrealized += original-Decimal(event['amount'])
             if shift is None:
-                excluded += Decimal(event['amount'])
+                excluded += original
                 event['date'] = (end + timedelta(days=1)).isoformat()
             else:
                 day = max(as_of + timedelta(days=1), date.fromisoformat(event['date']) + timedelta(days=shift))
                 event['date'] = day.isoformat()
                 if day > end:
                     excluded += Decimal(event['amount'])
+                    unrealized += Decimal(event['amount'])
         timeline = cash_timeline(Decimal(state['known_cash']), events, as_of, state['policy']['horizon_days'], Decimal(state['policy']['reserve']))
-        results.append({'label': label, 'shift_days': shift, 'timeline': timeline,
+        results.append({'label': label, 'shift_days': shift, 'collection_percent': percent, 'timeline': timeline,
                         'reserve_met': plan['feasible'] and Decimal(timeline['funding_gap']) == 0,
-                        'receipts_outside_horizon': str(excluded), 'affected_receipts': len(receipt_ids),
+                        'receipts_outside_horizon': str(excluded), 'unrealized_receipts': str(money(unrealized)), 'affected_receipts': len(receipt_ids),
                         'basis': 'Hypothetical collection assumption; no probability or customer agreement is inferred.'})
     return results
 
@@ -85,15 +95,16 @@ def dashboard_survival(state, stats, issues):
             'upcoming': str(upcoming), 'receivables': stats['receivables'], 'risk_date': risk_date}
 
 
-def navigator(state, comparison, selected_index=0, early_days=3, delay_days=7):
+def navigator(state, comparison, selected_index=0, early_days=3, delay_days=7, partial_percent=50):
     plans = comparison.get('plans', [])
     if not 0 <= selected_index < len(plans):
         selected_index = 0
     rows = []
     for index, plan in enumerate(plans):
-        cases = collection_sensitivity(state, plan, early_days, delay_days)
+        cases = collection_sensitivity(state, plan, early_days, delay_days, partial_percent)
         rows.append({'index': index, 'plan': plan, 'cases': cases,
-                     'delay_reserve_met': cases[2]['reserve_met'] if cases else False})
+                     'delay_reserve_met': cases[2]['reserve_met'] if cases else False,
+                     'partial_reserve_met': cases[-1]['reserve_met'] if cases else False})
     selected = rows[selected_index] if rows else None
     checklist = []
     if selected:
@@ -105,4 +116,4 @@ def navigator(state, comparison, selected_index=0, early_days=3, delay_days=7):
                               'amount': action.get('amount'), 'days': action.get('days'), 'status': 'Planned; requires confirmation'})
     return {'rows': rows, 'initial': rows[:3], 'more': rows[3:], 'selected': selected,
             'selected_index': selected_index, 'checklist': checklist,
-            'any_goal_met': any(p.get('goal_satisfied') for p in plans), 'early_days': early_days, 'delay_days': delay_days}
+            'any_goal_met': any(p.get('goal_satisfied') for p in plans), 'early_days': early_days, 'delay_days': delay_days, 'partial_percent': partial_percent}

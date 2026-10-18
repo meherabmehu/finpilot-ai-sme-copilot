@@ -46,6 +46,10 @@ from .intelligence.survival import dashboard_survival, navigator
 from .intelligence.investigation import run_investigation
 from .intelligence.decision_memory import decide, monitor_decision
 from .intelligence.financing import financing_assessment
+from .intelligence.survival_insights import survival_overview
+from .intelligence.stress_testing import stress_test
+from .intelligence.roadmap import recovery_roadmap, update_roadmap, READABLE_STATES
+from .forms import StressScenarioForm, RoadmapProgressForm
 
 
 def limited(view):
@@ -63,7 +67,7 @@ def limited(view):
 
 
 def landing(request):
-    return render(request, "landing.html")
+    return render(request, "landing.html", {'signin_form': EmailAuthenticationForm(request)})
 
 
 def legal(request, page):
@@ -236,6 +240,7 @@ def dashboard(request, business_id):
     data['manual_review'] = AuditEvent.objects.filter(business=business, action='decision.review_checked').order_by('-created_at').first()
     data['active_decisions'] = business.decisions.filter(state__in=['accepted', 'monitoring']).count()
     data['survival'] = dashboard_survival(data['financial_state'], summary(business), data['watchtower'])
+    data['intelligence'] = survival_overview(business, data['financial_state'])
     return render(request, "dashboard.html", data)
 
 
@@ -243,7 +248,7 @@ def dashboard(request, business_id):
 def my_business(request, business_id):
     business = authorized_business(request.user, business_id)
     tab = request.GET.get("tab", "overview")
-    if tab not in ("overview", "rules", "transactions", "sales", "expenses", "upload"):
+    if tab not in ("overview", "rules", "recurring", "transactions", "sales", "expenses", "upload"):
         tab = "overview"
     form = BusinessForm(instance=business)
     if request.method == "POST":
@@ -407,15 +412,56 @@ def import_confirm(request, business_id, pk):
 @login_required
 def planning(request, business_id):
     business = authorized_business(request.user, business_id)
-    tab = request.GET.get("tab", "decisions")
+    tab = request.GET.get("tab", "overview")
+    if tab not in ('overview', 'decisions', 'forecast', 'scenarios', 'loans', 'roadmap'):
+        tab = 'overview'
     data = context(request, business, "planning")
     data['financial_state'] = build_state(business)
     data['issues'] = detect_issues(data['financial_state'])
+    data['intelligence'] = survival_overview(business, data['financial_state'])
     data['investigation_form'] = InvestigationForm(initial={'request_key': uuid.uuid4()})
     data['decisions'] = business.decisions.select_related('investigation').order_by('-created_at')[:50]
-    scenario_form = ScenarioForm(request.POST if request.method == "POST" and tab == "scenarios" else None)
+    stress_request = request.method == 'POST' and tab == 'scenarios' and request.POST.get('intent') == 'stress'
+    stress_form = StressScenarioForm(request.POST if stress_request else None, business=business, prefix='stress')
+    if stress_request and stress_form.is_valid():
+        values = stress_form.cleaned_data
+        source = values['source_decision']
+        state = source.investigation.snapshot if source else data['financial_state']
+        spec = {'name': source.selected_snapshot['name'], 'actions': source.selected_snapshot['actions']} if source else {'name': 'Recorded schedule', 'actions': []}
+        try:
+            result = stress_test(state, spec, values['validated_assumptions'])
+            data['stress_result'] = result
+            if request.POST.get('save_stress'):
+                authorized_business(request.user, business_id, write=True)
+                if result['available']:
+                    scenario = Scenario.objects.create(business=business, name=values['name'],
+                        assumptions={'kind': 'dated_stress_v1', **values['validated_assumptions'].model_dump(mode='json'),
+                                     'source_decision': str(source.pk) if source else None}, result=result)
+                    audit(request.user, business, 'scenario.stress_saved', scenario.pk)
+                    messages.success(request, 'Hypothetical scenario saved. Financial records and the original decision are unchanged.')
+                else:
+                    stress_form.add_error(None, 'Resolve the scenario restrictions before saving.')
+        except ValueError:
+            stress_form.add_error(None, 'The combined plan exceeds its action bounds. Review the saved plan and additional assumptions.')
+    data['stress_form'] = stress_form
+    data['roadmap_decisions'] = business.decisions.filter(state__in=READABLE_STATES).exclude(selected_plan='').select_related('investigation').order_by('-created_at')[:30]
+    if tab == 'roadmap':
+        selected = None
+        if request.GET.get('decision'):
+            try:
+                selected = get_object_or_404(business.decisions.select_related('investigation'), pk=uuid.UUID(request.GET['decision']), state__in=READABLE_STATES)
+            except (ValueError, AttributeError):
+                return HttpResponseBadRequest('Choose a valid saved decision.')
+        else:
+            selected = data['roadmap_decisions'].first()
+        if selected and selected.selected_plan:
+            data['roadmap'] = recovery_roadmap(business, selected)
+            for row in data['roadmap']['actions']:
+                row['form'] = RoadmapProgressForm(initial={'action_key': row['key'], 'status': row['status'], 'responsible': row['responsible'],
+                                                          'target_date': row['target_date'], 'note': row['note']}, prefix=row['key'])
+    scenario_form = ScenarioForm(request.POST if request.method == "POST" and tab == "scenarios" and not stress_request else None)
     loan_form = LoanForm(request.POST if request.method == "POST" and tab == "loans" else None)
-    if request.method == "POST" and tab == "scenarios":
+    if request.method == "POST" and tab == "scenarios" and not stress_request:
         authorized_business(request.user, business_id, write=True)
         if scenario_form.is_valid():
             assumptions = {k: str(v) for k, v in scenario_form.cleaned_data.items() if k != "name"}
@@ -471,7 +517,29 @@ def planning(request, business_id):
             "scenarios": business.scenarios.order_by("-created_at")[:3],
         }
     )
+    if projection.get('available'):
+        data['forecast_reserve_breach'] = next((p['date'] for p in projection['points'] if Decimal(p['balance']) < business.low_cash_threshold), None)
+        data['forecast_reserve'] = str(business.low_cash_threshold)
     return render(request, "planning.html", data)
+
+
+@login_required
+@require_POST
+@limited
+def roadmap_update(request, business_id, pk):
+    business = authorized_business(request.user, business_id, write=True)
+    decision = get_object_or_404(FinancialDecision, business=business, pk=pk)
+    action_key = request.POST.get('action_key', '')
+    form = RoadmapProgressForm(request.POST, prefix=action_key)
+    if form.is_valid():
+        try:
+            update_roadmap(request.user, business.pk, decision.pk, **form.cleaned_data)
+            messages.success(request, 'Task progress saved as an owner report. Actual payments and decision outcomes are unchanged.')
+        except ValidationError as exc:
+            messages.error(request, '; '.join(exc.messages))
+    else:
+        messages.error(request, 'Progress was not saved. Review the task status, person, date and note.')
+    return redirect(reverse('planning', args=[business.pk])+f'?tab=roadmap&decision={decision.pk}')
 
 
 @login_required
@@ -512,6 +580,8 @@ def advisor(request, business_id):
     data['advisor_issues'] = detect_issues(data['financial_state'])[:3]
     data['advisor_question'] = (conversation.messages.filter(role='user').order_by('-created_at', '-pk').values_list('content', flat=True).first()
                                 if conversation else None) or 'Can I cover my scheduled payments and protect payroll?'
+    from .intelligence.question_analysis import analyze_question
+    data['advisor_analysis'] = analyze_question(data['financial_state'], data['advisor_question'])
     return render(request, "advisor.html", data)
 
 
@@ -520,18 +590,21 @@ def reports(request, business_id):
     business = authorized_business(request.user, business_id)
     start, end, days = reporting_period(request)
     kind = request.GET.get("type", "summary")
-    if kind not in ("summary", "transactions", "forecast", "scenarios", "financing", "quality", "decisions", "investigations", "issues", "receivables", "payables"):
+    if kind not in ("survival", "summary", "transactions", "forecast", "scenarios", "financing", "quality", "decisions", "investigations", "issues", "receivables", "payables"):
         kind = "summary"
     if request.GET.get("format") in ("csv", "xlsx", "pdf"):
         return export_report(request.user, business, request.GET["format"], start, end, kind)
     data = context(request, business, "reports")
     data['report_catalog'] = [
+        ('survival', 'Financial survival summary', 'Current rule-based status, runway, reserve risk and payment priorities.'),
         ('summary', 'Financial summary', 'Recorded income, expenses and cash; selected period.'),
         ('forecast', 'Cash flow forecast', 'Current 30-day historical baseline with its assumptions.'),
         ('decisions', 'Decision history & outcomes', 'Saved plans, simulated expectations and observed results.'),
+        ('scenarios', 'Scenario analysis', 'Saved dated collection cases and earlier operating illustrations.'),
         ('receivables', 'Customer receivables', 'Pending customer invoices recorded in the selected period.'),
         ('payables', 'Supplier & other payments', 'Pending payables, including payroll, recorded in the selected period.'),
     ]
+    data['report_format'] = request.GET.get('file_format', 'pdf') if request.GET.get('file_format') in ('pdf', 'csv', 'xlsx') else 'pdf'
     data["decisions"] = business.decisions.select_related("investigation").order_by("-created_at")[:20]
     data.update({"stats": summary(business, start, end), "chart": monthly_chart(business), "start": start, "end": end, "report_type": kind})
     return render(request, "reports.html", data)
@@ -612,7 +685,7 @@ def investigation_detail(request, business_id, pk):
         requested_index = selected_index
     data['navigator'] = navigator(item.snapshot, comparison,
                                  requested_index,
-                                 bounded_integer('early', 3, 0, 30), bounded_integer('delay', 7, 0, 30))
+                                 bounded_integer('early', 3, 0, 30), bounded_integer('delay', 7, 0, 30), bounded_integer('partial', 50, 0, 100))
     return render(request, 'investigation.html', data)
 
 

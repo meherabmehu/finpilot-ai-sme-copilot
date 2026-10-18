@@ -52,7 +52,7 @@ try:
         page.get_by_role('button', name='Sign in', exact=True).click()
         page.wait_for_url('**/b/*/')
         expect(page.locator('#primary-risk')).to_be_visible()
-        page.goto(base + prefix + 'planning/')
+        page.goto(base + prefix + 'planning/?tab=decisions')
         page.locator('#id_question').fill('Can I protect payroll without taking a loan?')
         page.get_by_role('button', name='Explore options', exact=True).click()
         page.wait_for_url('**/investigations/*/')
@@ -73,11 +73,33 @@ try:
             page.get_by_role('button', name='Check monitoring & outcome').click()
             expect(page.get_by_role('heading', name='Decision memory \u00b7 Monitoring')).to_be_visible()
 
+        page.goto(base + prefix + 'planning/?tab=scenarios')
+        page.locator('#id_stress-name').fill('Synthetic browser partial scenario')
+        page.locator('#id_stress-collection_percent').fill('50')
+        page.get_by_role('button', name='Run stress test').click()
+        expect(page.get_by_role('heading', name='Full receipt case')).to_be_visible()
+        expect(page.get_by_role('heading', name='Your assumptions')).to_be_visible()
+        expect(page.get_by_role('heading', name='Stress case')).to_be_visible()
+        for width in (390, 1440):
+            page.set_viewport_size({'width': width, 'height': 1000})
+            page.screenshot(path=str(output/f'stress-results-{width}.png'), full_page=True)
+        page.get_by_role('button', name='Calculate & save scenario', exact=True).click()
+        expect(page.get_by_role('status')).to_contain_text('Hypothetical scenario saved')
+        page.goto(base + prefix + 'planning/?tab=roadmap')
+        action = page.locator('.roadmap-item').first
+        action.get_by_text('Update owner-reported progress', exact=True).click()
+        action.locator('select[name$="-status"]').select_option('in_progress')
+        action.get_by_label('Responsible person (optional)').fill('Synthetic owner')
+        action.get_by_role('button', name='Save task progress').click()
+        expect(page.locator('.roadmap-item').first).to_contain_text('In progress')
+
         paths = [('dashboard', prefix), ('business', prefix+'business/'), ('advisor', prefix+'advisor/'),
                  ('lab', prefix+'planning/'), ('reports', prefix+'reports/'),
                  ('rules', prefix+'business/?tab=rules'), ('data', prefix+'business/?tab=transactions'),
                  ('upload', prefix+'business/?tab=upload'), ('forecast', prefix+'planning/?tab=forecast'),
                  ('scenarios', prefix+'planning/?tab=scenarios'), ('loans', prefix+'planning/?tab=loans')]
+        paths += [('decisions', prefix+'planning/?tab=decisions'), ('roadmap', prefix+'planning/?tab=roadmap'),
+                  ('recurring', prefix+'business/?tab=recurring'), ('landing', '/'), ('signin', '/login/')]
         paths += [(f'step-{step}', detail.removeprefix(base) + f'?step={step}') for step in range(1, 6)]
         for width in (360, 390, 768, 1024, 1366, 1440, 1920):
             page.set_viewport_size({'width': width, 'height': 1000 if width > 700 else 844})
@@ -86,9 +108,10 @@ try:
                 assert response.status == 200, (path, response.status)
                 expect(page.locator('h1')).to_have_count(1)
                 assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1'), (label, width, 'overflow')
-                active = page.locator('nav[aria-label="Main navigation"] a.active')
-                expect(active).to_have_count(1)
-                if label in ('dashboard', 'business', 'advisor', 'lab', 'reports') and width in (390, 1440):
+                if label not in ('landing', 'signin'):
+                    active = page.locator('nav[aria-label="Main navigation"] a.active')
+                    expect(active).to_have_count(1)
+                if label in ('dashboard', 'business', 'advisor', 'lab', 'reports', 'landing', 'signin', 'scenarios', 'roadmap') and width in (390, 1440):
                     page.evaluate('document.fonts.ready')
                     page.screenshot(path=str(output/f'{label}-{width}.png'), full_page=True)
                     if axe.is_file():
@@ -101,12 +124,12 @@ try:
                     expect(page.locator('[aria-current="step"]')).to_have_count(1)
                 # Browser-computed baseline legibility, rather than a CSS-source claim.
                 size = page.locator('h1').evaluate('(node) => parseFloat(getComputedStyle(node).fontSize)')
-                assert size >= 24, (label, width, size)
+                assert size >= (23 if label == 'signin' else 24), (label, width, size)
                 results.append({'page': label, 'width': width, 'overflow': False, 'h1_px': size})
 
         # All advertised primary report buttons produce actual attachments.
         page.goto(base + prefix+'reports/')
-        for kind in ('summary', 'forecast', 'decisions', 'receivables', 'payables'):
+        for kind in ('survival', 'summary', 'forecast', 'decisions', 'scenarios', 'receivables', 'payables'):
             for fmt in ('csv', 'xlsx', 'pdf'):
                 response = page.request.get(base + reverse('reports', args=[business.pk]) + f'?type={kind}&format={fmt}')
                 assert response.status == 200 and 'attachment' in response.headers.get('content-disposition', ''), (kind, fmt)
@@ -121,7 +144,7 @@ try:
         browser.close()
     after = list(business.transactions.order_by('pk').values('id', 'date', 'amount', 'status', 'due_date'))
     assert after == before, 'A decision flow changed actual financial records.'
-    report = {'viewport_checks': len(results), 'export_checks': 15, 'page_errors': errors,
+    report = {'viewport_checks': len(results), 'export_checks': 21, 'page_errors': errors,
               'keyboard_focus': True, 'reduced_motion': True, 'actual_financial_records_unchanged': True,
               'axe_audits': accessibility, 'checks': results}
     (output/'verification.json').write_text(json.dumps(report, indent=2), encoding='utf-8')

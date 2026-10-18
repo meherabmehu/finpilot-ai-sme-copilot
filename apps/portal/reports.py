@@ -22,7 +22,14 @@ def export_report(user, business, format, start, end, report_type="summary"):
     ]
     sections = None
     metadata = list(rows)
-    if report_type in ('decisions', 'investigations', 'issues'):
+    if report_type in ('survival', 'scenarios'):
+        from .survival_report_sections import survival_sections, scenario_sections
+        sections = survival_sections(business) if report_type == 'survival' else scenario_sections(business)
+        for section in sections:
+            rows.append([section['title']])
+            rows.append(section['headers'])
+            rows.extend(section['rows'])
+    elif report_type in ('decisions', 'investigations', 'issues'):
         rows.append(['Basis', 'SIMULATED alternatives are not observed results. No causal improvement or external execution is inferred.'])
         sections = agentic_sections(business, start, end, report_type)
         for section in sections:
@@ -51,14 +58,6 @@ def export_report(user, business, format, start, end, report_type="summary"):
         rows.append(["Method", result.get("limitations", result.get("reason"))])
         rows.append(["Date", "Projected balance", "Expected inflow", "Expected outflow"])
         rows.extend([[p["date"], amount(p["balance"]), amount(p["inflow"]), amount(p["outflow"])] for p in result.get("points", [])])
-    elif report_type == "scenarios":
-        rows.append(["Scenario", "Revenue", "Expenses", "Cash delta", "Assumptions"])
-        rows.extend(
-            [
-                [s.name, amount(s.result["revenue"]), amount(s.result["expenses"]), amount(s.result["cash_delta"]), "; ".join(f"{k}: {v}" for k, v in s.assumptions.items())]
-                for s in business.scenarios.all()
-            ]
-        )
     elif report_type == "financing":
         rows.append(["Saved UTC", "Principal", "Annual rate", "Months", "Monthly payment", "Total cost", "Fees"])
         rows.extend(

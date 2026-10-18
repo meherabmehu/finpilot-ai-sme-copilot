@@ -1,6 +1,11 @@
 # FinPilot AI
 
-A Django financial copilot for SMEs, built for the 2026 FinTechathon, Topic E. One account can manage independent business workspaces through exactly five primary pages: Dashboard, My Business, AI Advisor, Survival Decision Lab, and Reports.
+A Django financial copilot for SMEs, built for the 2026 FinTechathon, Topic E. One account can manage independent business workspaces through exactly five primary pages: Dashboard, My Business, AI Advisor, Financial Planning, and Reports.
+
+The [final survival integration](docs/FINAL_POLISH_DELIVERY.md) adds a light teal workspace,
+six focused Planning tabs, explainable runway and payment priorities, partial-collection
+stress tests, saved scenario exports and owner-reported recovery progress. The earlier
+engine, investigations, financial records and decision lifecycle remain intact.
 
 The [Financial Survival Navigator](docs/SURVIVAL_NAVIGATOR.md) connects recorded cash,
 financial rules, recovery options, collection uncertainty, saved decisions and outcome

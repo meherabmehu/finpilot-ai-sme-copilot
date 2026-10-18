@@ -236,6 +236,57 @@ class InvestigationForm(forms.Form):
     issue_id = forms.IntegerField(required=False, min_value=1, widget=forms.HiddenInput)
 
 
+class StressScenarioForm(forms.Form):
+    name = forms.CharField(max_length=80, initial='Collection stress test', label='Scenario name')
+    source_decision = forms.ModelChoiceField(queryset=None, required=False, empty_label='Current recorded schedule', label='Schedule to test')
+    collection_percent = forms.DecimalField(min_value=0, max_value=100, decimal_places=2, initial=100, label='Customer receipts collected (%)')
+    collection_delay_days = forms.IntegerField(min_value=0, max_value=30, initial=0, label='Receipt delay (days)')
+    revenue_decrease_percent = forms.DecimalField(min_value=0, max_value=100, decimal_places=2, initial=0, label='Dated future income decrease (%)',
+                                                help_text='Future income estimates only. Issued receivables are not reduced by this sales assumption.')
+    expense_increase_percent = forms.DecimalField(min_value=0, max_value=100, decimal_places=2, initial=0, label='Expense estimate increase (%)',
+                                                help_text='Unprotected expense estimates only; fixed payables, payroll and critical suppliers stay unchanged.')
+    stress_collection_percent = forms.DecimalField(min_value=0, max_value=100, decimal_places=2, initial=0, label='Stress case: collected (%)')
+    stress_delay_days = forms.IntegerField(min_value=0, max_value=30, initial=7, label='Stress case: receipt delay (days)')
+    stress_expense_percent = forms.DecimalField(min_value=0, max_value=100, decimal_places=2, initial=10, label='Stress case: expense estimate increase (%)')
+    supplier_event_id = forms.CharField(required=False, max_length=100, label='Payment event to discuss', help_text='Copy an event reference from payment priorities. Requires agreement; protected events are rejected.')
+    supplier_delay_days = forms.IntegerField(min_value=0, max_value=90, initial=0, label='Proposed payment delay (days)')
+    allow_borrowing = forms.BooleanField(required=False, label='Allow explicit financing assumptions')
+    financing_amount = forms.DecimalField(min_value=0, max_value=1000000000, decimal_places=2, initial=0, label='Illustrative financing amount')
+    annual_rate = forms.DecimalField(min_value=0, max_value=1000, decimal_places=2, initial=0, label='Entered annual rate (%)')
+    months = forms.IntegerField(min_value=1, max_value=120, initial=12, label='Repayment term (months)')
+    fee = forms.DecimalField(min_value=0, max_value=1000000000, decimal_places=2, initial=0, label='Upfront financing fee')
+
+    def __init__(self, *args, business, **kwargs):
+        from .models import FinancialDecision
+        super().__init__(*args, **kwargs)
+        self.fields['source_decision'].queryset = FinancialDecision.objects.filter(business=business, state__in=['accepted', 'monitoring', 'evaluated', 'closed']).exclude(selected_plan='').select_related('investigation')
+        self.fields['source_decision'].label_from_instance = lambda decision: f'{decision.selected_plan} ({decision.investigation.created_at:%d %b %Y})'
+
+    def clean(self):
+        from pydantic import ValidationError as SchemaError
+        from .intelligence.stress_testing import StressAssumptions
+        from .intelligence.question_analysis import question_intent
+        data = super().clean()
+        if self.errors:
+            return data
+        source = data.get('source_decision')
+        if source and question_intent(source.investigation.question)['no_borrowing'] and data.get('financing_amount'):
+            raise forms.ValidationError('The saved question excludes borrowing. Start a separate investigation to change that instruction.')
+        try:
+            data['validated_assumptions'] = StressAssumptions.model_validate({key: data[key] for key in StressAssumptions.model_fields})
+        except SchemaError as exc:
+            raise forms.ValidationError('Check assumption bounds and consistency: stress collection cannot be higher, stress delays/expenses cannot be lower, and financing requires explicit borrowing permission.') from exc
+        return data
+
+
+class RoadmapProgressForm(forms.Form):
+    action_key = forms.CharField(max_length=24, widget=forms.HiddenInput)
+    status = forms.ChoiceField(choices=[('planned', 'Planned'), ('in_progress', 'In progress'), ('owner_confirmed', 'Owner confirmed task')])
+    responsible = forms.CharField(required=False, max_length=120, label='Responsible person (optional)')
+    target_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date'}), label='Owner target date (optional)')
+    note = forms.CharField(required=False, max_length=1000, widget=forms.Textarea(attrs={'rows': 2}), label='Progress note (not a payment record)')
+
+
 class DecisionForm(forms.Form):
     target = forms.ChoiceField(choices=[(s, s.title()) for s in ['accepted', 'rejected', 'modified', 'monitoring', 'closed']])
     selected_plan = forms.CharField(required=False, max_length=80)

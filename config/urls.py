@@ -51,6 +51,7 @@ urlpatterns = [
     path("b/<uuid:business_id>/upload/", v.upload, name="upload"),
     path("b/<uuid:business_id>/import/<int:pk>/confirm/", v.import_confirm, name="import_confirm"),
     path("b/<uuid:business_id>/planning/", v.planning, name="planning"),
+    path("b/<uuid:business_id>/roadmap/<uuid:pk>/", v.roadmap_update, name="roadmap_update"),
     path("b/<uuid:business_id>/advisor/", v.advisor, name="advisor"),
     path("b/<uuid:business_id>/reports/", v.reports, name="reports"),
     path("api/b/<uuid:business_id>/summary/", v.api_summary, name="api_summary"),

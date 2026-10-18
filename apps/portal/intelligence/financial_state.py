@@ -170,6 +170,8 @@ def build_state(business, as_of=None):
     complete = bool(business.cash_records_complete and cash is not None and not capped and not foreign_currency and not undated)
     projection = cash_timeline(cash, events, as_of, days, Decimal(policy['reserve'])) if complete else {'available': False, 'reason': ' '.join(blocking_reasons)}
     collection_source_ids = {row.pk for row in valid if row.kind in ('income', 'receivable')}
+    revenue_source_ids = {row.pk for row in valid if row.kind == 'income'}
+    expense_source_ids = {row.pk for row in valid if row.kind == 'expense'}
     state = {'business_id': str(business.pk), 'currency': business.currency, 'as_of': as_of.isoformat(), 'end_date': end.isoformat(),
              'known_cash': str(cash) if cash is not None else None, 'cash_basis': 'calculated from recorded paid movements and opening balance' if cash is not None else 'unknown',
              'opening_date': business.opening_date.isoformat(),
@@ -182,6 +184,9 @@ def build_state(business, as_of=None):
              'collection_event_ids': [event.id for event in events if
                                       (event.source == 'transaction' and event.source_id in collection_source_ids)
                                       or (event.source == 'recurring' and event.direction == 'inflow')],
+             'revenue_event_ids': [event.id for event in events if event.source == 'transaction' and event.source_id in revenue_source_ids],
+             'expense_estimate_event_ids': [event.id for event in events if event.direction == 'outflow' and
+                         (event.source == 'recurring' or event.source_id in expense_source_ids)],
              'beyond_horizon': sorted(beyond_horizon, key=lambda e: (e['date'], e['id'])),
              'diagnostics': {'events_beyond_horizon': str(len(beyond_horizon)), 'suppressed_recurring_occurrences': str(suppressed_recurring),
                              'foreign_currency_rows': str(sum(row.currency != business.currency for row in rows))}, 'limitations': list(dict.fromkeys(limitations)),

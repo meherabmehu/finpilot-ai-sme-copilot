@@ -26,11 +26,11 @@ with sync_playwright() as p:
     page.locator("#id_password").fill(PASSWORD)
     page.get_by_role("button", name="Sign in").click()
     page.wait_for_url("**/b/*/")
-    expect(page.locator("h1")).to_contain_text("Hello,")
+    expect(page.locator("h1")).to_contain_text("Financial Survival Overview")
     expect(page.locator("#survivalChart")).to_be_visible()
     page.screenshot(path=str(OUT / "dashboard-desktop.png"), full_page=True)
     origin = page.url
-    for label in ["My Business", "AI Advisor", "Survival Decision Lab", "Reports", "Dashboard"]:
+    for label in ["My Business", "AI Advisor", "Financial Planning", "Reports", "Dashboard"]:
         page.get_by_role("navigation", name="Main navigation").get_by_role("link", name=label, exact=True).click()
         assert page.locator("h1").count() == 1
     page.locator(".switcher summary").click()
@@ -44,7 +44,7 @@ with sync_playwright() as p:
         expect(page.locator("h1")).to_be_visible()
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), "Dashboard has horizontal overflow"
         page.screenshot(path=str(OUT / f"dashboard-{size['width']}.png"), full_page=True)
-        for label in ["My Business", "AI Advisor", "Survival Decision Lab", "Reports"]:
+        for label in ["My Business", "AI Advisor", "Financial Planning", "Reports"]:
             page.get_by_role("navigation", name="Main navigation").get_by_role("link", name=label, exact=True).click()
             expect(page.locator("h1")).to_be_visible()
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), f"{label} has horizontal overflow"

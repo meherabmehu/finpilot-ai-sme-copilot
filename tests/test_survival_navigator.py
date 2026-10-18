@@ -154,12 +154,12 @@ def test_new_exports_contain_real_scoped_records(client, owner, business, entry,
     assert 'Unknown' in content
 
 
-def test_three_business_sections_preserve_old_links(client, owner, business):
+def test_business_sections_preserve_old_links(client, owner, business):
     client.force_login(owner)
     for tab in ('overview', 'rules', 'transactions', 'sales', 'expenses', 'upload'):
         page = client.get(reverse('my_business', args=[business.pk]), {'tab': tab})
         assert page.status_code == 200
-        assert b'Business profile' in page.content and b'Financial rules' in page.content and b'Data & accounts' in page.content
+        assert b'Overview' in page.content and b'Recurring commitments' in page.content and b'Financial preferences' in page.content
 
 
 def test_saved_recovery_step_does_not_show_an_unselected_plan(client, owner, business, entry):
