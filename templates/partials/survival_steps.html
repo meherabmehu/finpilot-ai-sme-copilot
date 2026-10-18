@@ -1,0 +1,3 @@
+<nav class="survival-steps" aria-label="Recovery plan steps">
+{% for number,label in recovery_steps %}<a href="?step={{ number }}&amp;plan={{ navigator.selected_index }}&amp;early={{ navigator.early_days }}&amp;delay={{ navigator.delay_days }}" {% if step == number %}aria-current="step"{% endif %}><span>{{ number }}</span>{{ label }}</a>{% endfor %}
+</nav>

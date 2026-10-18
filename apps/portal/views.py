@@ -42,6 +42,7 @@ from .forms import FinancialPolicyForm, InvestigationForm, DecisionForm
 from .models import FinancialPolicy, FinancialIssue, Investigation, FinancialDecision, Business, AuditEvent
 from .intelligence.financial_state import build_state
 from .intelligence.issue_detection import detect_issues
+from .intelligence.survival import dashboard_survival, navigator
 from .intelligence.investigation import run_investigation
 from .intelligence.decision_memory import decide, monitor_decision
 from .intelligence.financing import financing_assessment
@@ -234,6 +235,7 @@ def dashboard(request, business_id):
     data['monitoring'] = business.monitoring_runs.order_by('-started_at').first()
     data['manual_review'] = AuditEvent.objects.filter(business=business, action='decision.review_checked').order_by('-created_at').first()
     data['active_decisions'] = business.decisions.filter(state__in=['accepted', 'monitoring']).count()
+    data['survival'] = dashboard_survival(data['financial_state'], summary(business), data['watchtower'])
     return render(request, "dashboard.html", data)
 
 
@@ -241,7 +243,7 @@ def dashboard(request, business_id):
 def my_business(request, business_id):
     business = authorized_business(request.user, business_id)
     tab = request.GET.get("tab", "overview")
-    if tab not in ("overview", "transactions", "sales", "expenses", "upload"):
+    if tab not in ("overview", "rules", "transactions", "sales", "expenses", "upload"):
         tab = "overview"
     form = BusinessForm(instance=business)
     if request.method == "POST":
@@ -281,6 +283,7 @@ def my_business(request, business_id):
             "stats": summary(business),
             "recurring_form": RecurringForm(),
             "obligations": business.recurring_obligations.filter(active=True),
+            "accounts": business.accounts.all(),
         }
     )
     return render(request, "business.html", data)
@@ -404,7 +407,7 @@ def import_confirm(request, business_id, pk):
 @login_required
 def planning(request, business_id):
     business = authorized_business(request.user, business_id)
-    tab = request.GET.get("tab", "forecast")
+    tab = request.GET.get("tab", "decisions")
     data = context(request, business, "planning")
     data['financial_state'] = build_state(business)
     data['issues'] = detect_issues(data['financial_state'])
@@ -505,6 +508,10 @@ def advisor(request, business_id):
             "stats": summary(business),
         }
     )
+    data['financial_state'] = build_state(business)
+    data['advisor_issues'] = detect_issues(data['financial_state'])[:3]
+    data['advisor_question'] = (conversation.messages.filter(role='user').order_by('-created_at', '-pk').values_list('content', flat=True).first()
+                                if conversation else None) or 'Can I cover my scheduled payments and protect payroll?'
     return render(request, "advisor.html", data)
 
 
@@ -513,11 +520,18 @@ def reports(request, business_id):
     business = authorized_business(request.user, business_id)
     start, end, days = reporting_period(request)
     kind = request.GET.get("type", "summary")
-    if kind not in ("summary", "transactions", "forecast", "scenarios", "financing", "quality", "decisions", "investigations", "issues"):
+    if kind not in ("summary", "transactions", "forecast", "scenarios", "financing", "quality", "decisions", "investigations", "issues", "receivables", "payables"):
         kind = "summary"
     if request.GET.get("format") in ("csv", "xlsx", "pdf"):
         return export_report(request.user, business, request.GET["format"], start, end, kind)
     data = context(request, business, "reports")
+    data['report_catalog'] = [
+        ('summary', 'Financial summary', 'Recorded income, expenses and cash; selected period.'),
+        ('forecast', 'Cash flow forecast', 'Current 30-day historical baseline with its assumptions.'),
+        ('decisions', 'Decision history & outcomes', 'Saved plans, simulated expectations and observed results.'),
+        ('receivables', 'Customer receivables', 'Pending customer invoices recorded in the selected period.'),
+        ('payables', 'Supplier & other payments', 'Pending payables, including payroll, recorded in the selected period.'),
+    ]
     data["decisions"] = business.decisions.select_related("investigation").order_by("-created_at")[:20]
     data.update({"stats": summary(business, start, end), "chart": monthly_chart(business), "start": start, "end": end, "report_type": kind})
     return render(request, "reports.html", data)
@@ -581,6 +595,24 @@ def investigation_detail(request, business_id, pk):
     data = context(request, business, 'planning')
     data.update({'investigation': item, 'decision': item.decision,
                  'stale': build_state(business)['fingerprint'] != item.snapshot['fingerprint']})
+    def bounded_integer(key, default, minimum, maximum):
+        try:
+            return max(minimum, min(maximum, int(request.GET.get(key, default))))
+        except (ValueError, TypeError):
+            return default
+    data['step'] = bounded_integer('step', 1, 1, 5)
+    data['recovery_steps'] = [(1, 'Problem'), (2, 'Options'), (3, 'Simulation'), (4, 'Comparison'), (5, 'Plan')]
+    comparison = dict(item.result['comparison'])
+    comparison['plans'] = list(comparison['plans'])
+    if item.decision.selected_snapshot and not any(p['name'] == item.decision.selected_plan for p in comparison['plans']):
+        comparison['plans'].append(item.decision.selected_snapshot)
+    selected_index = next((index for index, plan in enumerate(comparison['plans']) if plan['name'] == item.decision.selected_plan), 0)
+    requested_index = bounded_integer('plan', selected_index, 0, 8)
+    if data['step'] == 5 and item.decision.state in ('accepted', 'monitoring', 'evaluated', 'closed'):
+        requested_index = selected_index
+    data['navigator'] = navigator(item.snapshot, comparison,
+                                 requested_index,
+                                 bounded_integer('early', 3, 0, 30), bounded_integer('delay', 7, 0, 30))
     return render(request, 'investigation.html', data)
 
 
@@ -623,7 +655,7 @@ def decision_update(request, business_id, pk):
             messages.error(request, '; '.join(exc.messages) if isinstance(exc, ValidationError) else 'Invalid plan. Review the dates and amounts.')
     else:
         messages.error(request, 'Decision not recorded. Check the action, plan and feedback fields.')
-    return redirect('investigation_detail', business_id=business.pk, pk=item.investigation_id)
+    return redirect(reverse('investigation_detail', args=[business.pk, item.investigation_id]) + '?step=5')
 
 
 @login_required
@@ -634,4 +666,4 @@ def decision_review(request, business_id, pk):
     monitor_decision(item)
     audit(request.user, business, 'decision.review_checked', item.pk, {'invocation': 'manual owner request'})
     messages.success(request, 'Review checked against recorded data. Insufficient evidence is shown explicitly.')
-    return redirect('investigation_detail', business_id=business.pk, pk=item.investigation_id)
+    return redirect(reverse('investigation_detail', args=[business.pk, item.investigation_id]) + '?step=5')

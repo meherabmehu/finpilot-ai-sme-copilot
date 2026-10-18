@@ -29,6 +29,15 @@ def export_report(user, business, format, start, end, report_type="summary"):
             rows.append([section['title']])
             rows.append(section['headers'])
             rows.extend(section['rows'])
+    elif report_type in ('receivables', 'payables'):
+        kind = 'receivable' if report_type == 'receivables' else 'payable'
+        rows.append(['Basis', 'Pending recorded invoices, filtered by record date. Unknown due dates remain unknown; no collection or payment is guaranteed.'])
+        rows.append(['Record date', 'Description', 'Amount', 'Currency', 'Due date', 'Reference', 'Timing status'])
+        rows.extend([
+            [r.date, r.description, r.amount, r.currency, r.due_date or 'Unknown', r.reference,
+             'Unknown due date' if not r.due_date else 'Overdue' if r.due_date < timezone.localdate() else 'Upcoming / due today']
+            for r in business.transactions.filter(archived=False, kind=kind, status='pending', date__gte=start, date__lte=end)
+        ])
     elif report_type == "transactions":
         rows.append(["Date", "Description", "Type", "Amount", "Currency", "Status", "Category", "Reference"])
         rows.extend(

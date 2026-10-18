@@ -1,0 +1,1 @@
+<div class="policy-field {% if field.field.widget.input_type == 'checkbox' %}checkbox-field{% endif %}">{{ field.errors }}{% if field.field.widget.input_type == 'checkbox' %}<div>{{ field }} {{ field.label_tag }}</div>{% else %}{{ field.label_tag }}{{ field }}{% endif %}{% if field.help_text %}<p class="helptext">{{ field.help_text }}</p>{% endif %}</div>

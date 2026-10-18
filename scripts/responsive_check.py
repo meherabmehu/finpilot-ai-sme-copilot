@@ -78,6 +78,8 @@ with sync_playwright() as p:
             measure(route)
             if route == workspace.removeprefix(base) + "/":
                 for selector in [".switcher", ".notifications", ".profile"]:
+                    if not page.locator(selector + " summary").is_visible():
+                        continue  # Responsive shell hides notification chrome on phones.
                     page.locator(selector + " summary").click()
                     menu = page.locator(selector + " .dropdown")
                     box = menu.bounding_box()
@@ -90,7 +92,7 @@ with sync_playwright() as p:
         # Stress text and values without changing any saved business data.
         page.goto(workspace + "/")
         page.locator(".switcher strong").evaluate("el => el.textContent = 'International Business With A Very Long Workspace Name'")
-        page.locator(".stat-card h2").first.evaluate("el => el.textContent = 'USD 999,999,999,999.99'")
+        page.locator(".metric strong").first.evaluate("el => el.textContent = 'USD 999,999,999,999.99'")
         measure("long names and monetary values")
     browser.close()
 

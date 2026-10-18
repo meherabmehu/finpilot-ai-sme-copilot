@@ -28,6 +28,8 @@ def test_saved_workflow_and_retry(client, owner, business, investigation):
     assert client.post(url, payload).url == first.url
     page = client.get(first.url)
     assert page.status_code == 200
+    assert b'Understand the problem' in page.content
+    page = client.get(first.url, {'step': 4})
     assert b'Compare simulated alternatives' in page.content
     decision = investigation.decision
     url = reverse('decision_update', args=[business.pk, decision.pk])

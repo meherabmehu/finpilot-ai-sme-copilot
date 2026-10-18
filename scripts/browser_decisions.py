@@ -36,7 +36,7 @@ prefix = f'/b/{business.pk}/'
 results = []
 try:
     with sync_playwright() as p:
-        browser = p.chromium.launch()
+        browser = p.chromium.launch(channel='chromium')
         page = browser.new_page(viewport={'width': 1440, 'height': 1000})
         errors = []
         page.on('pageerror', lambda error: errors.append(str(error)))
@@ -45,13 +45,16 @@ try:
         page.locator('#id_password').fill(password)
         page.get_by_role('button', name='Sign in', exact=True).click()
         page.wait_for_url('**/b/*/')
+        page.get_by_text('Financial Watchtower & data freshness', exact=True).click()
         assert page.get_by_role('heading', name='Financial Watchtower').is_visible()
         page.goto(base+prefix+'planning/?tab=decisions')
         page.locator('#id_question').fill('Can I protect payroll and improve overdue collections without taking a loan?')
-        page.get_by_role('button', name='Investigate & compare alternatives').click()
+        page.get_by_role('button', name='Explore options', exact=True).click()
         page.wait_for_url('**/investigations/*/')
         detail = page.url
+        page.goto(detail+'?step=4')
         assert page.get_by_role('heading', name='Compare simulated alternatives').is_visible()
+        page.goto(detail+'?step=5')
         page.get_by_text('Build your own alternative', exact=True).click()
         page.locator('#plan_name').fill('Browser timing proposal')
         page.locator('#kind_0').select_option('shift')

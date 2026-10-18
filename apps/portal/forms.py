@@ -198,11 +198,20 @@ class FinancialPolicyForm(forms.ModelForm):
                   'max_borrowing', 'max_annual_rate', 'risk_tolerance', 'concentration_percent',
                   'expense_increase_percent', 'restricted_categories', 'goal', 'issue_cooldown_hours']
         labels = {'max_borrowing': 'Maximum illustrative borrowing (0 means no borrowing)',
-                  'goal': 'Financial objectives', 'horizon_days': 'Planning horizon (days)'}
+                  'goal': 'Financial objectives', 'horizon_days': 'Planning horizon (days)',
+                  'protect_payroll': 'Protect payroll dates and amounts',
+                  'protect_critical_suppliers': 'Protect critical supplier commitments',
+                  'max_delay_days': 'Maximum supplier delay to discuss (days)',
+                  'max_annual_rate': 'Maximum illustrative annual interest rate (%)'}
+        help_texts = {'protect_payroll': 'Plans cannot delay, split or reduce protected payroll.',
+                      'protect_critical_suppliers': 'Mark critical payments in transactions or recurring commitments.',
+                      'max_delay_days': 'A planning limit only. A supplier must agree before you change a payment.',
+                      'max_borrowing': 'Illustrations only; no loan approval or lender availability is inferred.'}
 
     def __init__(self, *args, business, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['minimum_reserve'].initial = business.low_cash_threshold
+        self.fields['minimum_reserve'].help_text = 'The amount of money you want to keep available. A forecast cannot guarantee this buffer.'
         self.initial['restricted_categories'] = ', '.join(self.instance.restricted_categories or [])
 
     def clean_restricted_categories(self):
