@@ -23,6 +23,14 @@ Run `python manage.py check_ai_provider` for an offline configuration check.
 listed for your key, without sending ledger data. A successful model-list check
 does not verify inference or available quota. Never commit or paste the key.
 
+`python manage.py check_ai_provider --live --inference` additionally performs one
+bounded strict-schema inference using only built-in synthetic financial evidence.
+It reports safe status, latency and token usage. It never sends the real ledger.
+Real model-list, strict-schema inference and conditional synthesis were verified in
+the [final audit](FINAL_COMPETITION_VERIFICATION.md); account quota and latency remain
+variable. New conditional synthesis is labeled unconfirmed, while every displayed
+amount and date remains server-owned evidence.
+
 `openai/gpt-oss-20b` is a Groq-hosted model supporting strict structured output;
 this integration requires a model supporting `json_schema` with `strict: true`.
 See [Groq structured outputs](https://console.groq.com/docs/structured-outputs)

@@ -1,5 +1,8 @@
 # Competition upgrade working matrix
 
+Historical delivery snapshot. See [final competition verification](FINAL_COMPETITION_VERIFICATION.md)
+for current Groq activation, audit fixes, measured forecast limitations and release evidence.
+
 Baseline: clean `feat/finpilot-platform`, local and fetched remote `f212d0923a30bc32426a4cd5560e5b9128845d95`. Django 5.2, PostgreSQL/SQLite development, server templates, locally hosted CSS/JS, Decimal engine, Render Docker and Vercel deployments. Existing snapshots, users and ledger records are preserved.
 
 ## Executive delivery

@@ -2,7 +2,7 @@
 
 A Django financial copilot for SMEs, built for the 2026 FinTechathon, Topic E. One account can manage independent business workspaces through exactly five primary pages: Dashboard, My Business, AI Advisor, Financial Planning, and Reports.
 
-The [competition upgrade](docs/COMPETITION_UPGRADE.md) adds grounded xAI configuration, business-aware payment assessment, explicit invoice recovery, combined alternatives, horizon backtesting, sourced loan discovery and deadline-aware monitoring. Live Grok verification awaits the owner API key.
+The [final competition verification](docs/FINAL_COMPETITION_VERIFICATION.md) records the current release: verified real Groq inference, bounded conditional synthesis, business-aware payment assessment, explicit recovery, conservative forecast selection and reviewed public lending sources. It includes actual test, benchmark, browser and production evidence, remaining limitations and the updated demo guide. [Groq setup](docs/GROQ_SETUP.md) and [forecast measurements](docs/FORECAST_ROBUSTNESS.md) are separate from the earlier [competition upgrade](docs/COMPETITION_UPGRADE.md).
 
 The [final survival integration](docs/FINAL_POLISH_DELIVERY.md) adds a light teal workspace,
 six focused Planning tabs, explainable runway and payment priorities, partial-collection
@@ -89,7 +89,7 @@ See [architecture](docs/AGENTIC_ARCHITECTURE.md), [decision workflow](docs/DECIS
 ### Final quality hardening
 Repeat imports are explicitly non-mutating; corrected files follow documented append-only event-reference rules. Investigations now distinguish overdue collections, expense growth and liquidity pressure and honor no-borrowing instructions. Comparisons prominently separate action feasibility from unresolved reserve goals. Forecasts deduplicate linked commitments and disclose baseline/error limitations; loan comparisons show their own fees. Decision reports use readable tables and numeric safe XLSX cells.
 
-Latest verification: 149 SQLite tests passed (two PostgreSQL-only skipped), 151 tests passed on isolated PostgreSQL 17, and 63 Chromium layout/workflow checks passed. No live-provider, deployed-scheduler or production-runtime claim is made. See [audit](docs/QUALITY_HARDENING_AUDIT.md), [accounting/imports](docs/ACCOUNTING_AND_IMPORTS.md), [forecast reliability](docs/FORECASTING.md), [provider readiness](docs/AI_PROVIDER_READINESS.md), [monitoring operations](docs/MONITORING_OPERATIONS.md), [future evaluation adapter](docs/EVALUATION_ADAPTER.md) and [verification](docs/TESTING.md).
+Earlier hardening verification: 149 SQLite tests passed (two PostgreSQL-only skipped), 151 tests passed on isolated PostgreSQL 17, and 63 Chromium layout/workflow checks passed. These are historical counts; current release results are in the final competition verification above. See [audit](docs/QUALITY_HARDENING_AUDIT.md), [accounting/imports](docs/ACCOUNTING_AND_IMPORTS.md), [forecast reliability](docs/FORECASTING.md), [provider readiness](docs/AI_PROVIDER_READINESS.md), [monitoring operations](docs/MONITORING_OPERATIONS.md), [future evaluation adapter](docs/EVALUATION_ADAPTER.md) and [verification](docs/TESTING.md).
 
 ### Development-only authoritative agentic evaluation
 
@@ -97,5 +97,5 @@ The supplied proprietary benchmark is integrated through an opt-in, source-hash-
 actual Django services in disposable test databases. It is not a production dependency. See
 [setup/isolation](docs/AGENTIC_EVALUATION_INTEGRATION.md), [measured results](docs/AGENTIC_EVALUATION_RESULTS.md),
 [remaining partial outcomes](docs/BENCHMARK_FAILURE_ANALYSIS.md) and the
-[six synthetic demos](docs/COMPETITION_EVALUATION_DEMO.md). The final 172-case run has 147 pass / 25 partial,
+[six synthetic demos](docs/COMPETITION_EVALUATION_DEMO.md). The earlier 172-case run had 147 pass / 25 partial,
 not “172 passed”; its weighted 0.917476 is deterministic service coverage, not forecast accuracy or LLM certification.
