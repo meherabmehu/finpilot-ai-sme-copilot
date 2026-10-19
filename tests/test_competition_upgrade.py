@@ -48,6 +48,7 @@ def test_followup_requires_financial_owner_context():
 
 def setup_grok(settings):
     cache.clear()
+    settings.FINPILOT_AI_PROVIDER = 'xai'
     settings.XAI_API_KEY = 'synthetic-not-real-key'
     settings.XAI_MODEL = 'configured-owner-test-model'
     settings.XAI_BASE_URL = 'https://api.x.ai/v1'

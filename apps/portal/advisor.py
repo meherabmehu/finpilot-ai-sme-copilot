@@ -132,7 +132,7 @@ def run_tool(user, business_id, name, arguments):
 def answer(user, business, question, trace=None):
     authorized_business(user, business.pk)
     from .intelligence.ai_grounding import grounded_answer, scope
-    if not settings.FINPILOT_AI_ENABLED or settings.FINPILOT_AI_PROVIDER == 'xai' or settings.XAI_API_KEY or not (settings.LLM_API_KEY and settings.LLM_MODEL) or scope(question) == 'outside':
+    if not settings.FINPILOT_AI_ENABLED or settings.FINPILOT_AI_PROVIDER in ('xai', 'groq') or settings.XAI_API_KEY or settings.GROQ_API_KEY or not (settings.LLM_API_KEY and settings.LLM_MODEL) or scope(question) == 'outside':
         return grounded_answer(user, business, question, trace)
     state = build_state(business)
     from .intelligence.investigation import question_context

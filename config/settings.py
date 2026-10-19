@@ -139,6 +139,12 @@ XAI_MODEL = os.getenv('XAI_MODEL', '')
 XAI_TIMEOUT_SECONDS = min(max(float(os.getenv('XAI_TIMEOUT_SECONDS', '30')), 1), 40)
 XAI_MAX_OUTPUT_TOKENS = min(max(int(os.getenv('XAI_MAX_OUTPUT_TOKENS', '1800')), 128), 4000)
 XAI_TEMPERATURE = min(max(float(os.getenv('XAI_TEMPERATURE', '0.2')), 0), 1)
+GROQ_API_KEY = os.getenv('GROQ_API_KEY', '')
+GROQ_BASE_URL = os.getenv('GROQ_BASE_URL', 'https://api.groq.com/openai/v1')
+GROQ_MODEL = os.getenv('GROQ_MODEL', 'openai/gpt-oss-20b')
+GROQ_TIMEOUT_SECONDS = min(max(float(os.getenv('GROQ_TIMEOUT_SECONDS', '30')), 1), 40)
+GROQ_MAX_OUTPUT_TOKENS = min(max(int(os.getenv('GROQ_MAX_OUTPUT_TOKENS', '1800')), 128), 4000)
+GROQ_TEMPERATURE = min(max(float(os.getenv('GROQ_TEMPERATURE', '0.2')), 0), 1)
 FINPILOT_AI_ENABLED = os.getenv('FINPILOT_AI_ENABLED', 'true').lower() == 'true'
 # Preserve explicitly configured legacy adapters on older deployments. New setup
 # uses FINPILOT_AI_PROVIDER=xai as documented in .env.example.
