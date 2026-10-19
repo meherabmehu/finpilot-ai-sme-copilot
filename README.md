@@ -2,6 +2,8 @@
 
 A Django financial copilot for SMEs, built for the 2026 FinTechathon, Topic E. One account can manage independent business workspaces through exactly five primary pages: Dashboard, My Business, AI Advisor, Financial Planning, and Reports.
 
+The [competition upgrade](docs/COMPETITION_UPGRADE.md) adds grounded xAI configuration, business-aware payment assessment, explicit invoice recovery, combined alternatives, horizon backtesting, sourced loan discovery and deadline-aware monitoring. Live Grok verification awaits the owner API key.
+
 The [final survival integration](docs/FINAL_POLISH_DELIVERY.md) adds a light teal workspace,
 six focused Planning tabs, explainable runway and payment priorities, partial-collection
 stress tests, saved scenario exports and owner-reported recovery progress. The earlier
