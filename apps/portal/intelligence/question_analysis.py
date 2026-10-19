@@ -5,12 +5,13 @@ from decimal import Decimal
 
 from ..engine import money
 from .scenario_engine import suggested_plans, compare_plans
+from .question_language import normalize_question
 
 
 def question_intent(question):
-    text = question.casefold()
+    text = normalize_question(question)
     categories = []
-    if re.search(r'\b(sales?|revenue|restaurant)\b', text):
+    if re.search(r'\b(sales?|revenue)\b', text):
         categories.append('sales')
     if any(word in text for word in ('overdue', 'collection', 'receivable', 'customer', 'nonpayment')):
         categories.append('collections')
@@ -18,6 +19,8 @@ def question_intent(question):
         categories.append('expenses')
     if any(word in text for word in ('cash', 'liquidity', 'reserve', 'payroll', 'supplier', 'afford', 'payment')):
         categories.append('liquidity')
+    if re.search(r'\b(loan|borrow\w*|debt|financing)\b', text) and not categories:
+        categories.append('financing')
     if 'risk' in text or not categories:
         categories = list(dict.fromkeys(categories + ['collections', 'expenses', 'liquidity']))
     if re.search(r'\b(overdue|collections?|receivables?|customer payments?)\b', text) and re.search(r'\b(how much|which|list|total)\b', text) and not re.search(r'\b(cash|reserve|risk|supplier|payroll|borrow\w*|loan\w*|expense\w*|spend\w*)\b', text):
@@ -32,6 +35,7 @@ def question_intent(question):
 
 
 def analyze_question(state, question):
+    question = normalize_question(question)
     intent = question_intent(question)
     today = date.fromisoformat(state['as_of'])
     sections = []
@@ -41,7 +45,9 @@ def analyze_question(state, question):
         decline = re.search(r'\b(\d{1,3}(?:\.\d{1,2})?)\s*%', question)
         if decline and 0 <= Decimal(decline.group(1)) <= 100:
             percent = Decimal(decline.group(1))
-            lines.append(f"Illustrative {percent}% revenue decline against that recorded period: {money(revenue*percent/100)} less revenue, leaving {money(revenue*(1-percent/100))}. This is not a weekly cash prediction or a guaranteed sales response.")
+            increase = bool(re.search(r'\b(increase|grow\w*|rise|higher)\b', question)) and not re.search(r'\b(decline|reduc\w*|fall|drop|lower)\b', question)
+            direction, factor = ('increase', 1+percent/100) if increase else ('decline', 1-percent/100)
+            lines.append(f"Illustrative {percent}% revenue {direction} against that recorded period: {money(revenue*percent/100)} {'more' if increase else 'less'} revenue, leaving {money(revenue*factor)}. This is not a weekly cash prediction or a guaranteed sales response.")
         lines.append('Use Scenario Simulation for dated future income shocks. Confirm future sales, receipt dates and essential operating costs before converting revenue assumptions into cash.')
         sections.append({'title': 'Sales and operating sensitivity', 'lines': lines})
     overdue = [row for row in state['overdue'] if row['direction'] == 'inflow' and row['date'] < state['as_of']]
@@ -65,7 +71,8 @@ def analyze_question(state, question):
                  f"Change: {change}% versus the previous period." if change is not None else 'Percentage change is undefined because previous-period expenses are zero.',
                  'A recorded increase is not confirmed overspending: volume, timing, classification and incomplete records may explain it.']
         for category in state['expense_categories'][:10]:
-            lines.append(f"Category {category['category']}: current {category['amount']}; previous {category.get('previous_amount', 'unknown')} {state['currency']}.")
+            delta = money(Decimal(category['amount'])-Decimal(category.get('previous_amount', '0')))
+            lines.append(f"Category {category['category']}: current {category['amount']}; previous {category.get('previous_amount', 'unknown')} {state['currency']}; recorded change {delta}. Changes identify ledger contributors, not verified operational causes.")
         sections.append({'title': 'Expense growth', 'lines': lines})
     if 'liquidity' in intent['categories']:
         projection = state['projection']
@@ -78,6 +85,38 @@ def analyze_question(state, question):
         for event in [e for e in state['events'] if e['direction'] == 'outflow'][:12]:
             lines.append(f"Obligation {event['id']}: {event['amount']} {state['currency']} on {event['date']}, category {event['category']}; protected payroll: {event['payroll']}; critical: {event['critical']}.")
         sections.append({'title': 'Liquidity and dated obligations', 'lines': lines})
+    if 'financing' in intent['categories']:
+        trends = state['trends']
+        surplus = money(Decimal(trends.get('operating_cash_inflows', '0'))-Decimal(trends.get('operating_cash_outflows', '0')))
+        sections.append({'title': 'Loan safety requires an actual quotation', 'lines': [
+            f"Recorded paid operating net cash over the last 30 days: {surplus} {state['currency']}; loan proceeds and repayments are excluded from this capacity indicator.",
+            'No specific loan is identified by this question. Principal, nominal annual rate, term, fees, disbursement date and existing repayment obligations are required before calculating repayment and reserve stress.',
+            'Use the Custom Loan Calculator to enter an actual quotation, inspect repayments and the higher-rate sensitivity, and compare no-loan recovery alternatives. A public program description is not approval or proof that borrowing is safe.']})
+    if re.search(r'\bhalf\b|\b(?:customer|invoice|receivable)\b.*?\b\d+(?:\.\d+)?\s*%', question):
+        percentage = re.search(r'(\d+(?:\.\d+)?)\s*%', question)
+        percent = Decimal(percentage.group(1)) if percentage else Decimal('50')
+        explicit = re.search(r'\btx:(\d+)\b', question)
+        candidates = [r for r in overdue if not explicit or str(r['id']) == explicit.group(1)]
+        if not 0 < percent <= 100:
+            lines = ['Use a receipt percentage greater than zero and no greater than one hundred.']
+        elif len(candidates) != 1:
+            lines = ['Identify the overdue invoice with its tx reference and expected receipt date. Several or no eligible invoices match; no customer or collection amount has been guessed.']
+        else:
+            from .recovery_solver import recovery_case
+            row = candidates[0]
+            amount = money(Decimal(row['amount'])*percent/100)
+            if amount <= 0:
+                sections.insert(0, {'title':'Partial customer receipt sensitivity', 'lines':[
+                    'The assumed partial receipt rounds below the supported currency precision. Enter an explicit positive amount in Scenario Simulation. No receipt was recorded.']})
+                return {'intent':intent,'sections':sections,'overdue_total':str(money(sum((Decimal(r['amount']) for r in overdue),Decimal('0'))))}
+            # Tomorrow is visibly illustrative, not a promise or inferred agreement.
+            assumed = today+timedelta(days=1)
+            recovery = recovery_case(state, {'recoveries': [{'event_id': f"tx:{row['id']}", 'amount': amount, 'date': assumed}]})
+            plan = recovery['plan']
+            lines = [f"Illustrative {percent}% receipt on tx:{row['id']}: {amount} {state['currency']} on {assumed}. This date is assumed only; confirm the customer and actual timing.",
+                f"Baseline reserve gap {recovery['baseline'].get('remaining_gap', 'unknown')}; partial-receipt residual gap {plan.get('remaining_gap', 'unknown')} {state['currency']}; ending cash {plan.get('expected_ending_cash', 'unknown')}. Upcoming receipts already in baseline are not counted again.",
+                'This is a scenario, not a recorded settlement. Actual cash and the unpaid invoice remain unchanged.']
+        sections.insert(0, {'title': 'Partial customer receipt sensitivity', 'lines': lines})
     if intent['no_borrowing']:
         sections.append({'title': 'No-borrowing constraint', 'lines': ['Borrowing candidates are excluded from recommendations. Business policies still apply; supplier changes and customer receipts require external confirmation.']})
     if re.search(r'\b(prioriti\w*|criticality|critical payment)\b', question, re.I):

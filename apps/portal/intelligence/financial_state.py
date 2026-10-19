@@ -92,6 +92,7 @@ def build_state(business, as_of=None):
     previous_categories = defaultdict(lambda: ZERO)
     current_revenue = current_expenses = previous_revenue = previous_expenses = ZERO
     observed_in = observed_out = ZERO
+    operating_in = operating_out = ZERO
     covered = {(r.recurring_obligation_id, r.due_date or r.date) for r in valid if r.recurring_obligation_id}
     for row in valid:
         if as_of - timedelta(days=29) <= row.date <= as_of:
@@ -101,6 +102,9 @@ def build_state(business, as_of=None):
                 categories[row.category] += row.amount
             observed_in += max(cash_effect(row), ZERO)
             observed_out -= min(cash_effect(row), ZERO)
+            if row.kind not in ('transfer', 'loan_disbursement', 'loan_repayment'):
+                operating_in += max(cash_effect(row), ZERO)
+                operating_out -= min(cash_effect(row), ZERO)
         elif as_of - timedelta(days=59) <= row.date < as_of - timedelta(days=29):
             previous_revenue += row.amount if row.kind in ('income', 'receivable') else -row.amount if row.kind == 'refund' else ZERO
             previous_expenses += row.amount if row.kind in ('expense', 'payable') else ZERO
@@ -199,8 +203,11 @@ def build_state(business, as_of=None):
              'diagnostics': {'events_beyond_horizon': str(len(beyond_horizon)), 'suppressed_recurring_occurrences': str(suppressed_recurring),
                              'foreign_currency_rows': str(sum(row.currency != business.currency for row in rows))}, 'limitations': list(dict.fromkeys(limitations)),
              'trends': {k: str(money(v)) for k, v in {'revenue': current_revenue, 'expenses': current_expenses, 'previous_revenue': previous_revenue,
-                        'previous_expenses': previous_expenses, 'cash_inflows': observed_in, 'cash_outflows': observed_out, 'recurring_outflows': recurring_total}.items()},
-             'expense_categories': [{'category': key, 'amount': str(money(value)), 'previous_amount': str(money(previous_categories[key])), 'share_percent': str(money(value / current_expenses * 100)) if current_expenses else None} for key, value in sorted(categories.items(), key=lambda item: -item[1])]}
+                        'previous_expenses': previous_expenses, 'cash_inflows': observed_in, 'cash_outflows': observed_out,
+                        'operating_cash_inflows': operating_in, 'operating_cash_outflows': operating_out,
+                        'recurring_outflows': recurring_total}.items()},
+             'expense_categories': [{'category': key, 'amount': str(money(categories[key])), 'previous_amount': str(money(previous_categories[key])), 'share_percent': str(money(categories[key] / current_expenses * 100)) if current_expenses else None}
+                for key in sorted(set(categories)|set(previous_categories),key=lambda key: -categories[key])]}
     state['business_context'] = {'category': business.category, 'size': business.size, 'country': business.country,
                                  'description': business.description}
     from ..models import CollectionContext

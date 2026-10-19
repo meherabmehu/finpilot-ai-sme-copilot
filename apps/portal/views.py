@@ -600,6 +600,7 @@ def roadmap_update(request, business_id, pk):
 @login_required
 @limited
 def advisor(request, business_id):
+    from .intelligence.ai_grounding import provider_status
     business = authorized_business(request.user, business_id)
     conversation = Conversation.objects.filter(business=business, user=request.user).first()
     if request.method == "POST":
@@ -627,7 +628,9 @@ def advisor(request, business_id):
             "chat_messages": conversation.messages.order_by("created_at") if conversation else [],
             "investigation_form": InvestigationForm(initial={'request_key': uuid.uuid4()}),
             "latest_investigation": business.investigations.filter(user=request.user).order_by('-created_at').first(),
-            "configured": bool((settings.XAI_API_KEY and settings.XAI_MODEL) or (settings.LLM_API_KEY and settings.LLM_MODEL)),
+            "configured": provider_status()['configured'] or bool(
+                settings.FINPILOT_AI_ENABLED and settings.FINPILOT_AI_PROVIDER == 'auto'
+                and not (settings.XAI_API_KEY or settings.GROQ_API_KEY) and settings.LLM_API_KEY and settings.LLM_MODEL),
         }
     )
     data['advisor_question'] = (conversation.messages.filter(role='user').order_by('-created_at', '-pk').values_list('content', flat=True).first()

@@ -24,16 +24,20 @@ class PublicProduct(StrictModel):
     terms: str
     annual_rate: Decimal | None = None
     fees: Decimal | None = None
+    pricing_basis: str = 'Lender quotation required; no numeric rate or fee verified.'
+    excluded_uses: list[str] = []
 
     @model_validator(mode='after')
     def verified(self):
         url = urlsplit(self.source_url)
-        if url.scheme != 'https' or url.hostname not in ('www.bracbank.com', 'www.sba.gov', 'www.british-business-bank.co.uk') or url.username or url.password or url.port not in (None, 443):
+        if url.scheme != 'https' or url.hostname not in ('www.bracbank.com', 'www.sba.gov', 'www.british-business-bank.co.uk') or url.username or url.password or url.port not in (None, 443) or url.query or url.fragment:
             raise ValueError('Only reviewed official source hosts are allowed.')
         if self.minimum is not None and self.maximum is not None and self.minimum > self.maximum:
             raise ValueError('Invalid product bounds.')
         if self.annual_rate is not None and not 0 <= self.annual_rate <= 1000:
             raise ValueError('Invalid published rate.')
+        if any(v is not None and (not v.is_finite() or v < 0) for v in (self.minimum, self.maximum, self.fees)) or (self.max_months is not None and self.max_months <= 0):
+            raise ValueError('Product amounts, fees and terms must be finite and nonnegative.')
         return self
 
 
@@ -53,6 +57,20 @@ CATALOG = [
          verified_at='2026-10-19', maximum='2000000', purpose='Permitted business investment or cash flow',
          eligibility='UK trading business and lender viability assessment. Regional and subsidy restrictions may reduce the limit.',
          terms='Rates and fees are lender-specific. Announced scheme enhancements may differ from operational lender terms; confirm directly. Borrower remains liable for the debt.'),
+    dict(id='us-sba-microloan', country='US', currency='USD', lender='SBA-approved intermediary lenders', name='Microloan program',
+         source_url='https://www.sba.gov/loans/microloans/', verified_at='2026-10-19', maximum='50000', max_months=84,
+         purpose='Working capital, inventory, supplies, furniture, fixtures, machinery or equipment',
+         excluded_uses=['existing debt', 'refinancing', 'real estate'],
+         eligibility='US small operating business; intermediary makes credit decisions and sets terms. Confirm current eligibility with the intermediary.',
+         pricing_basis='Official page publishes a general 8%–13% range, varying by intermediary. This is not an individual annual-rate quotation; fees are unverified.',
+         terms='Maximum seven-year repayment term. No existing-debt repayment or real-estate purchase. Obtain an actual rate, fees, collateral and guarantee quotation.'),
+    dict(id='us-sba-504', country='US', currency='USD', lender='SBA Certified Development Companies and senior lenders', name='504 fixed-asset program',
+         source_url='https://www.sba.gov/loans/504-loans/', verified_at='2026-10-19', maximum='5500000', max_months=300,
+         purpose='Eligible major fixed assets, buildings, land or long-life machinery and equipment',
+         excluded_uses=['working capital', 'inventory', 'payroll'],
+         eligibility='US for-profit small operating business; CDC and lender assessment, permitted fixed-asset project and repayment ability required.',
+         pricing_basis='Market-linked fixed-rate structure; no current numeric quotation verified. Header says up to $5m while detailed maximum says $5.5m; CDC must confirm project-specific limits and costs.',
+         terms='Published maturities are 10, 20 or 25 years. Working capital and inventory are excluded. Published cost language is not a personal rate or fee quotation.'),
 ]
 
 
@@ -64,6 +82,9 @@ def discover(business, amount=None, months=None, as_of=None, purpose=''):
         if (product.country, product.currency) != (business.country, business.currency):
             continue
         constraints = []
+        for excluded in product.excluded_uses:
+            if excluded in purpose.casefold():
+                constraints.append('Published purpose restriction: '+excluded+' is excluded; do not treat this program as a matching offer.')
         if amount is not None and ((product.minimum is not None and amount < product.minimum) or (product.maximum is not None and amount > product.maximum)):
             constraints.append('Requested amount falls outside the published bounds.')
         if months is not None and product.max_months is not None and months > product.max_months:

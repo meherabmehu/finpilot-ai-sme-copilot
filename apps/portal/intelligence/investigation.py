@@ -19,7 +19,8 @@ from .financial_evidence import evidence_graph
 
 
 def question_context(question, state):
-    text = question.casefold()
+    from .question_language import normalize_question
+    text = normalize_question(question)
     missing = []
     if any(word in text for word in ('payroll', 'salary', 'wages')) and not any(e['payroll'] for e in state['events']):
         missing.append('No dated payroll obligation is recorded in this horizon. Add its amount and due date before deciding affordability.')
@@ -40,10 +41,12 @@ def question_context(question, state):
             missing.append('The requested date is invalid.')
     else:
         for month in list(calendar.month_name)[1:]+list(calendar.month_abbr)[1:]:
-            match = re.search(r'\b'+month.casefold()+r'\s+(\d{1,2})(?:,?\s+(20\d{2}))?\b', text)
+            match = re.search(r'\b'+month.casefold()+r'\s+(?P<day>\d{1,2})(?:,?\s+(?P<year>20\d{2}))?\b', text)
+            if not match:
+                match = re.search(r'\b(?P<day>\d{1,2})\s+'+month.casefold()+r'(?:,?\s+(?P<year>20\d{2}))?\b', text)
             if match:
                 try:
-                    requested = datetime.strptime(f"{month} {match.group(1)} {match.group(2) or today.year}", '%B %d %Y' if len(month) > 3 else '%b %d %Y').date()
+                    requested = datetime.strptime(f"{month} {match.group('day')} {match.group('year') or today.year}", '%B %d %Y' if len(month) > 3 else '%b %d %Y').date()
                 except ValueError:
                     missing.append('The requested calendar date is invalid.')
                 break

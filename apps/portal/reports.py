@@ -28,6 +28,9 @@ def export_report(user, business, format, start, end, report_type="summary"):
     from .intelligence.financial_state import build_state
     source = build_state(business)
     rows += [['Report type', report_type], ['Current source fingerprint (not archived decision evidence)', source['fingerprint']],
+             ['Current analysis as of', source['as_of']],
+             ['Period semantics', 'Current projection and saved snapshots; the requested period is not a reconstruction of historical as-known schedules.'
+              if report_type in ('forecast','survival','scenarios','roadmap') else 'Recorded entries in the requested period; current pending status and aging are as of generation, not reconstructed historical status.'],
              ['Completeness', str(source['complete'])], ['Currency warning', values['mixed_currency_warning'] or 'No currency conversion applied.']]
     metadata = list(rows)
     if report_type in ('survival', 'scenarios', 'roadmap'):
@@ -68,6 +71,10 @@ def export_report(user, business, format, start, end, report_type="summary"):
         from .intelligence.forecasting import forecast_with_evaluation
         result = forecast_with_evaluation(business)
         rows.append(["Method", result.get("limitations", result.get("reason"))])
+        rows += [['Selected operating method', result.get('selected_method', 'Unavailable')],
+                 ['Selection evidence', result.get('selection_reason', 'Insufficient history')],
+                 ['Estimated operating-plus-schedules minimum', result.get('minimum_balance', 'Unknown'), result.get('lowest_date', 'Unknown')],
+                 ['Dated-only minimum (different assumptions)', source['projection'].get('minimum_balance', 'Unknown'), source['projection'].get('lowest_date', 'Unknown')]]
         rows.append(["Date", "Projected balance", "Expected inflow", "Expected outflow"])
         rows.extend([[p["date"], amount(p["balance"]), amount(p["inflow"]), amount(p["outflow"])] for p in result.get("points", [])])
     elif report_type == "financing":
@@ -83,12 +90,17 @@ def export_report(user, business, format, start, end, report_type="summary"):
                     amount(s.result["total_cost"]),
                     amount(s.result["fees"]),
                 ]
-                for s in business.loan_comparisons.all()
+                for s in business.loan_comparisons.filter(created_at__date__gte=start,created_at__date__lte=end)
             ]
         )
         rows.append(
             ["Limitations", "User-entered illustrations; not loan offers or approvals. Reducing-balance monthly repayments; upfront fees."]
         )
+        from .intelligence.loan_catalog import discover
+        rows.append(['Public program descriptions; not individualized offers', 'Official source', 'Reviewed', 'Pricing basis'])
+        for item in discover(business):
+            product = item['product']
+            rows.append([product['name'], product['source_url'], product['verified_at'], product['pricing_basis']])
     elif report_type == "quality":
         rows.extend(
             [

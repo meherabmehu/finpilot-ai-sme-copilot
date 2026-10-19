@@ -56,9 +56,18 @@ def combined_solutions(state, no_borrowing=True, target_reserve=None):
         return {'comparison': compare_plans(working, [{'name': 'Recorded schedule', 'actions': []}]), 'evaluated': 1, 'search_limit': 64}
     tomorrow = (date.fromisoformat(state['as_of'])+timedelta(days=1)).isoformat()
     candidates = []
+    excluded = []
+    contexts = {f"tx:{r['transaction_id']}": r for r in state.get('collection_context', [])}
     for row in sorted(state['overdue'], key=lambda r: -Decimal(r['amount'])):
         if row['direction'] == 'inflow' and row['date'] < state['as_of']:
-            candidates.append({'kind': 'collect', 'event_id': f"tx:{row['id']}", 'amount': row['amount'], 'date': tomorrow})
+            reference = f"tx:{row['id']}"
+            context = contexts.get(reference, {})
+            promised = context.get('promised_date')
+            if context.get('dispute_status') == 'active' or (promised and promised > state['end_date']):
+                excluded.append(reference)
+                continue
+            assumed = max(tomorrow, promised) if promised else tomorrow
+            candidates.append({'kind': 'collect', 'event_id': reference, 'amount': row['amount'], 'date': assumed})
         if len(candidates) >= 4:
             break
     for plan in suggested_plans(state):
@@ -86,5 +95,6 @@ def combined_solutions(state, no_borrowing=True, target_reserve=None):
     comparison = compare_plans(working, final, allow_borrowing=not no_borrowing)
     return {'comparison': comparison, 'evaluated': len(specs), 'search_limit': 64, 'max_actions': 3,
             'target_reserve': working['policy']['reserve'],
+            'excluded_recovery_references': excluded,
             'pruning': 'At most four largest overdue receipts and eight candidate actions; subsets of at most three actions, at most 64 evaluations. Duplicate event actions excluded. This is not global optimization.',
-            'basis': 'All recoveries and counterparty changes are conditional assumptions. A feasible action set may still leave a reserve gap.'}
+            'basis': 'All recoveries and counterparty changes are conditional assumptions. Active disputes and promises beyond the horizon are excluded from automatic candidates; recorded future promises are not accelerated without an explicit owner scenario. A feasible action set may still leave a reserve gap.'}

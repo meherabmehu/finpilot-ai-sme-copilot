@@ -31,9 +31,16 @@ def operating_series(business, as_of):
 
 
 def predict(training, horizon, method):
+    if method not in METHODS or not 1 <= horizon <= 90:
+        raise ValueError('Use a supported operating model and a horizon of one to ninety days.')
     window = training[-90:]
     if not window:
         return []
+    if method == 'moving_average':
+        # Match engine.forecast: its denominator begins at the first paid activity
+        # inside the current window, rather than silently padding leading zeros.
+        first = next((i for i, r in enumerate(window) if r[1] or r[2]), 0)
+        window = window[first:]
     means = [sum((r[c] for r in window), ZERO)/len(window) for c in (1, 2)]
     if method == 'last_week':
         means = [sum((r[c] for r in window[-7:]), ZERO)/len(window[-7:]) for c in (1, 2)]
@@ -108,13 +115,26 @@ def evaluate_series(series):
             'basis': 'Non-overlapping outer folds; selection uses only earlier inner folds. MAE is per-horizon net movement error. WAPE denominator is sum of absolute actual horizon net cash, not revenue. Current ledger-date history, not reconstructed as-known evidence. Sparse/missing data and status edits limit reliability.'}
 
 
+def reviewed_method(series, days, evaluation):
+    selected, reason = choose_method(series, days)
+    if selected == 'moving_average':
+        return selected, reason
+    horizon = next((h for h in evaluation['horizons'] if h['horizon'] == days), None)
+    metrics = {m['method']: m for m in horizon['metrics']} if horizon else {}
+    if (not horizon or horizon['folds'] < 3 or horizon['wape_unstable']
+            or Decimal(metrics[selected]['mae']) >= Decimal(metrics['moving_average']['mae'])*Decimal('.95')):
+        return 'moving_average', 'Retain baseline: the selected candidate did not demonstrate a stable 5% MAE improvement on at least three chronological historical validation folds.'
+    return selected, reason+' Historical validation also cleared the 5% MAE gate. These reused historical folds are selection evidence, not an independent accuracy estimate of this final gate.'
+
+
 def forecast_with_evaluation(business, days=30):
     base = forecast(business, days)
     if not base.get('available'):
         return base
     today = timezone.localdate()
     series = operating_series(business, today)
-    method, reason = choose_method(series, days)
+    evaluation = evaluate_series(series)
+    method, reason = reviewed_method(series, days, evaluation)
     result = dict(base)
     # Retain the exact previous forecast when selection lacks evidence.
     if method != 'moving_average':
@@ -122,16 +142,23 @@ def forecast_with_evaluation(business, days=30):
         old = predict(series, days, 'moving_average')
         new = predict(series, days, method)
         balance = Decimal(base['points'][0]['balance'])
+        delta = Decimal('0')
+        adverse = balance
         points = [base['points'][0]]
         for original, old_day, new_day in zip(base['points'][1:], old, new):
             inflow = money(Decimal(original['inflow'])-money(old_day[1])+money(new_day[1]))
             outflow = money(Decimal(original['outflow'])-money(old_day[2])+money(new_day[2]))
-            balance = money(balance+inflow-outflow)
+            delta += new_day[1]-new_day[2]-(old_day[1]-old_day[2])
+            balance = money(Decimal(original['balance'])+delta)
+            adverse = money(adverse-outflow)
             points.append({**original, 'balance': str(balance), 'inflow': str(inflow), 'outflow': str(outflow)})
-        result.update(points=points, ending_balance=str(balance), minimum_balance=str(min(Decimal(p['balance']) for p in points)))
+        result.update(points=points, ending_balance=str(balance), minimum_balance=str(min(Decimal(p['balance']) for p in points)),
+                      adverse_ending_balance=str(adverse),
+                      daily_inflow=str(money(sum((r[1] for r in new), ZERO)/days)),
+                      daily_outflow=str(money(sum((r[2] for r in new), ZERO)/days)))
     lowest = min(result['points'], key=lambda p: Decimal(p['balance']))
     result.update(lowest_date=lowest['date'], selected_method=method, selection_reason=reason,
-                  evaluation=evaluate_series(series), baseline_ending_balance=base['ending_balance'],
+                  evaluation=evaluation, baseline_ending_balance=base['ending_balance'],
                   baseline_minimum_balance=base['minimum_balance'], method=f'{method} operating estimate plus explicit schedules')
     result['limitations'] = base['limitations'] + ' Candidate selection is conditional, not a guarantee of future improvement. No trained ML or calibrated probability is claimed.'
     result['minimum_explanation'] = 'The same early cash dip may be the minimum across several horizons; compare each ending balance. Recorded schedules and estimated operating movements have different assumptions from the dated-only Decision Lab.'
