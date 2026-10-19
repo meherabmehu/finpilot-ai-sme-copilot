@@ -103,6 +103,7 @@ class BusinessForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["opening_date"].initial = timezone.localdate()
+        self.fields['description'].help_text = 'Optional: business subtype, essential supplies, settlement delays, production lead times and alternative suppliers. These are owner statements requiring review.'
 
     def clean_opening_date(self):
         value = self.cleaned_data["opening_date"]
@@ -120,6 +121,12 @@ class BusinessForm(forms.ModelForm):
 
 
 class TransactionForm(forms.ModelForm):
+    customer_alias = forms.CharField(required=False, max_length=80, label='Customer alias (optional, owner-recorded)')
+    follow_up_status = forms.ChoiceField(required=False, choices=[('', 'Not recorded'), ('not_contacted', 'Not contacted'), ('contacted', 'Owner contacted'), ('promised', 'Owner reports a promise')])
+    dispute_status = forms.ChoiceField(required=False, choices=[('', 'Unknown'), ('none', 'No dispute reported'), ('active', 'Disputed'), ('resolved', 'Owner reports resolved')])
+    promised_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date'}), label='Promised receipt date (unconfirmed)')
+    reported_partial_amount = forms.DecimalField(required=False, min_value=0, max_value=1000000000, decimal_places=2, label='Owner-reported partial receipt (not cash proof)', help_text='Does not settle this invoice or change cash. Record actual paid movements separately and reconcile the outstanding balance; avoid duplicate receipts.')
+    confirmation_reference = forms.CharField(required=False, max_length=160, label='Owner confirmation reference (not independently verified)')
     submission_key = forms.UUIDField(required=False, widget=forms.HiddenInput, initial=uuid.uuid4)
 
     class Meta:
@@ -139,6 +146,12 @@ class TransactionForm(forms.ModelForm):
         self.fields["account"].label_from_instance = lambda obj: obj.name
         self.fields["date"].initial = timezone.localdate()
         self.fields["account"].initial = business.accounts.first()
+        self.fields['is_critical'].help_text = 'Owner confirmation: delay could seriously interrupt operations. Industry-based suggestions do not automatically enable this protection.'
+        from .models import CollectionContext
+        details = CollectionContext.objects.filter(transaction=self.instance).first() if self.instance.pk else None
+        if details:
+            for name in ('customer_alias', 'follow_up_status', 'dispute_status', 'promised_date', 'reported_partial_amount', 'confirmation_reference'):
+                self.initial[name] = getattr(details, name)
 
     def clean(self):
         data = super().clean()
@@ -148,6 +161,10 @@ class TransactionForm(forms.ModelForm):
             self.add_error("status", "This transaction type must be paid.")
         if data.get("status") == "pending" and not data.get("due_date"):
             self.add_error("due_date", "Set an expected payment date.")
+        if data.get('reported_partial_amount') and data.get('amount') and data['reported_partial_amount'] > data['amount']:
+            self.add_error('reported_partial_amount', 'Owner-reported partial amount cannot exceed this recorded invoice amount; reconcile previous settlements separately.')
+        if data.get('kind') != 'receivable' and any(data.get(key) for key in ('customer_alias', 'follow_up_status', 'dispute_status', 'promised_date', 'reported_partial_amount', 'confirmation_reference')):
+            self.add_error('customer_alias', 'Collection follow-up fields apply to receivables only.')
         return data
 
 
@@ -303,3 +320,36 @@ class DecisionForm(forms.Form):
             except SchemaError:
                 raise forms.ValidationError('Use a named plan with at most eight valid bounded actions.')
         return None
+
+
+class InvoiceRecoveryForm(forms.Form):
+    include = forms.BooleanField(required=False, label='Assume recovery of this overdue invoice')
+    invoice = forms.ModelChoiceField(queryset=None, widget=forms.HiddenInput)
+    amount = forms.DecimalField(required=False, min_value=Decimal('0.01'), max_value=1000000000, decimal_places=2, label='Assumed receipt amount')
+    recovery_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date'}), label='Assumed receipt date')
+
+    def __init__(self, *args, business, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['invoice'].queryset = business.transactions.filter(archived=False, kind='receivable', status='pending', due_date__lt=timezone.localdate(), currency=business.currency)
+
+    def clean(self):
+        data = super().clean()
+        invoice = data.get('invoice')
+        if data.get('include') and (not data.get('amount') or not data.get('recovery_date')):
+            raise forms.ValidationError('Enter an explicit assumed amount and future recovery date.')
+        if data.get('include') and invoice and data.get('amount') and data['amount'] > invoice.amount:
+            raise forms.ValidationError('Partial recovery cannot exceed the outstanding recorded invoice.')
+        return data
+
+
+class RecoveryGoalForm(forms.Form):
+    target_reserve = forms.DecimalField(required=False, min_value=0, max_value=1000000000, decimal_places=2, label='Hypothetical reserve target (optional)')
+
+
+RecoveryFormSet = forms.formset_factory(InvoiceRecoveryForm, extra=0, max_num=8, absolute_max=8, validate_max=True)
+
+
+class LoanDiscoveryForm(forms.Form):
+    amount = forms.DecimalField(required=False, min_value=1, max_value=1000000000, decimal_places=2, label='Required amount in business currency')
+    months = forms.IntegerField(required=False, min_value=1, max_value=600, label='Preferred term (months)')
+    purpose = forms.CharField(required=False, max_length=160, label='Loan purpose')

@@ -1,7 +1,8 @@
 """Bounded deterministic investigation with persisted evidence and tool traces."""
 
 import uuid
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
+import calendar
 import re
 import time
 
@@ -25,6 +26,11 @@ def question_context(question, state):
     if any(word in text for word in ('supplier', 'inventory')) and not any(e['direction'] == 'outflow' and not e['payroll'] for e in state['events']):
         missing.append('No dated supplier/inventory outflow is recorded in this horizon.')
     today = date.fromisoformat(state['as_of'])
+    target = analyze_question(state, question)['intent'].get('reserve_target')
+    if target is not None and str(target) != str(state['policy']['reserve']):
+        from decimal import Decimal
+        if Decimal(target) != Decimal(state['policy']['reserve']):
+            missing.append('The hypothetical reserve target differs from saved Financial Preferences. Review it in Scenario Simulation or explicitly update preferences before accepting this decision.')
     requested = None
     match = re.search(r'\b\d{4}-\d{2}-\d{2}\b', text)
     if match:
@@ -33,18 +39,35 @@ def question_context(question, state):
         except ValueError:
             missing.append('The requested date is invalid.')
     else:
+        for month in list(calendar.month_name)[1:]+list(calendar.month_abbr)[1:]:
+            match = re.search(r'\b'+month.casefold()+r'\s+(\d{1,2})(?:,?\s+(20\d{2}))?\b', text)
+            if match:
+                try:
+                    requested = datetime.strptime(f"{month} {match.group(1)} {match.group(2) or today.year}", '%B %d %Y' if len(month) > 3 else '%b %d %Y').date()
+                except ValueError:
+                    missing.append('The requested calendar date is invalid.')
+                break
         for index, weekday in enumerate(('monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday')):
-            if weekday in text:
+            if requested is None and weekday in text:
                 requested = today + timedelta(days=(index-today.weekday()) % 7 or 7)
                 break
     if requested and not today < requested <= date.fromisoformat(state['end_date']):
         missing.append('The requested date is outside the saved planning horizon. Adjust preferences and investigate again.')
-    return {'analysis': analyze_question(state, question), 'requested_date': requested.isoformat() if requested else None, 'missing_information': missing,
+    analysis = analyze_question(state, question)
+    if requested and state['projection'].get('available'):
+        point = next((p for p in state['projection']['points'] if p['date'] == requested.isoformat()), None)
+        if point:
+            analysis['sections'].insert(0, {'title': 'Requested-date cash evidence', 'lines': [
+                f"On {point['date']}: closing cash {point['balance']} {state['currency']}; inflow assumptions {point['inflow']}; dated payments {point['outflow']}; source references {', '.join(point['refs']) or 'none that day'}. Prior dates also determine this balance."]})
+    return {'analysis': analysis, 'requested_date': requested.isoformat() if requested else None, 'missing_information': missing,
             'interpretation': 'Guided deterministic matching of recorded payroll, supplier obligations and optional weekday/ISO date. Ambiguous supplier identities require owner review.'}
 
 
 def run_investigation(user, business_id, question, issue_id=None, request_key=None, custom_plans=None):
     business = authorized_business(user, business_id, write=True)
+    from .ai_grounding import scope
+    if scope(question) == 'outside':
+        raise ValidationError('This question is outside FinPilot financial advisory scope. Ask about business finances.')
     if not question.strip() or len(question) > 4000:
         raise ValidationError('Enter a question of 1–4,000 characters.')
     request_key = uuid.UUID(str(request_key)) if request_key else uuid.uuid4()
@@ -74,7 +97,8 @@ def run_investigation(user, business_id, question, issue_id=None, request_key=No
     result = {'mode': 'deterministic investigation; not a generative AI answer', 'focus': focus,
               'issues': issues, 'comparison': comparison, 'evidence_graph': graph,
               'analysis': focus['analysis'], 'health': health_dimensions(state), 'recommended': comparison['recommended'],
-              'explanation': 'Alternatives use your dated records and explicit assumptions. Acceptance records an internal intention only; it never executes payments or contacts counterparties.',
+              'explanation': f"Planning horizon: {state['as_of']} to {state['end_date']}; dated commitments only, not guaranteed trading. Payment-date changes require counterparty agreement. "
+                             'Alternatives use your dated records and explicit assumptions. Acceptance records an internal intention only; it never executes payments or contacts counterparties.',
               'next_action': 'Review dependencies and choose, modify or reject a plan.' if comparison['recommended'] else 'Complete the missing financial information before choosing a plan.'}
     with transaction.atomic():
         # Lock only while persisting; computations and any future provider calls stay outside.

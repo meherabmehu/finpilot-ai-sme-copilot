@@ -83,6 +83,18 @@ class AuditEvent(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 
+class CollectionContext(models.Model):
+    """Optional owner statements; never substitute these for settled ledger cash."""
+    transaction = models.OneToOneField(Transaction, on_delete=models.PROTECT, related_name='collection_context')
+    customer_alias = models.CharField(max_length=80, blank=True)
+    follow_up_status = models.CharField(max_length=20, choices=[('unknown', 'Not recorded'), ('not_contacted', 'Not contacted'), ('contacted', 'Owner contacted'), ('promised', 'Owner reports a promise')], default='unknown')
+    dispute_status = models.CharField(max_length=12, choices=[('unknown', 'Unknown'), ('none', 'No dispute reported'), ('active', 'Disputed'), ('resolved', 'Owner reports resolved')], default='unknown')
+    promised_date = models.DateField(null=True, blank=True)
+    reported_partial_amount = models.DecimalField(max_digits=18, decimal_places=2, null=True, blank=True, validators=[MinValueValidator(Decimal('0'))])
+    confirmation_reference = models.CharField(max_length=160, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
 class DataImport(models.Model):
     business = models.ForeignKey(Business, on_delete=models.CASCADE)
     digest = models.CharField(max_length=64)

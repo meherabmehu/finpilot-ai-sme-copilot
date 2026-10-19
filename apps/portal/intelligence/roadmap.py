@@ -6,6 +6,7 @@ import json
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 
 from ..access import authorized_business
 from ..models import AuditEvent, Business, FinancialDecision
@@ -33,7 +34,20 @@ def roadmap_actions(decision):
                      'dependency': 'Counterparty confirmation, actual receipt and record review are required.' if action['kind'] in ('shift', 'split', 'collect') else
                                    'A lender must agree and disburse; no approval is inferred.' if action['kind'] == 'finance' else
                                    'Owner must confirm feasibility and any contractual impact before changing spending.'})
-    rows.append({'key': 'review-records', 'title': 'Recheck cash and reserve after new records',
+    obligations = sorted((e for e in snapshot['events'] if e['direction'] == 'outflow'), key=lambda e: e['date'])[:4]
+    for event in obligations:
+        recorded = next((r['date'] for r in snapshot['overdue'] if f"tx:{r['id']}" == event['id']), event['date'])
+        due = date.fromisoformat(recorded)
+        key = hashlib.sha256(event['id'].encode()).hexdigest()[:12]
+        for suffix, title, day in [('prepare', 'Confirm funding and agreements before payment deadline', max(date.fromisoformat(snapshot['as_of']), due-timedelta(days=1))),
+                                   ('deadline', 'Recorded payment deadline; verify actual settlement separately', due)]:
+            rows.append({'key': key+'-'+suffix, 'title': title, 'description': event['description'],
+                         'reference': event['id'], 'plan_date': day.isoformat(), 'payment_deadline': due.isoformat(),
+                         'dependency': 'Use actual cash and confirmed receipts; this reminder does not execute or confirm a payment.'})
+    rows.insert(0, {'key': 'immediate-review', 'title': 'Start required counterparty discussions and confirm dependencies',
+                   'description': 'Review accepted assumptions now; a later outcome review does not postpone payment deadlines.',
+                   'reference': '', 'plan_date': snapshot['as_of'], 'dependency': 'Owner action and external confirmation are required.'})
+    rows.append({'key': 'review-records', 'title': 'Final outcome review after recorded actuals',
                  'description': 'Enter actual paid movements in My Business, then request a monitoring review.',
                  'reference': '', 'plan_date': decision.review_date.isoformat(),
                  'dependency': 'Sufficient recorded actual outcomes and the fixed review date are required.'})
@@ -44,14 +58,24 @@ def recovery_roadmap(business, decision):
     if decision.business_id != business.pk:
         raise ValueError('Roadmap business mismatch.')
     rows = roadmap_actions(decision)
+    latest_by_key = {}
+    for event in AuditEvent.objects.filter(business=business, action='roadmap.updated', object_id=str(decision.pk)).order_by('-created_at', '-pk'):
+        latest_by_key.setdefault(event.details.get('action_key'), event)
     for row in rows:
-        latest = AuditEvent.objects.filter(business=business, action='roadmap.updated', object_id=str(decision.pk),
-                                           details__action_key=row['key']).order_by('-created_at', '-pk').first()
+        latest = latest_by_key.get(row['key'])
         progress = latest.details if latest else {}
         row.update(status=progress.get('status', 'planned'), status_label=dict(STATUSES).get(progress.get('status', 'planned')),
                    responsible=progress.get('responsible', ''), note=progress.get('note', ''),
                    target_date=progress.get('target_date', ''), updated_at=latest.created_at if latest else None)
+        target = row['target_date'] or row.get('plan_date')
+        row['overdue_task'] = bool(target and target < timezone.localdate().isoformat() and row['status'] != 'owner_confirmed')
+        row['deadline_warning'] = bool(row.get('payment_deadline') and target and target > row['payment_deadline'])
+    from .financial_state import build_state
+    from .freshness import snapshot_comparison
+    current = build_state(business)
     return {'decision': decision, 'actions': rows, 'editable': decision.state in ('accepted', 'monitoring'),
+            'freshness': snapshot_comparison(business, decision.investigation.snapshot, current),
+            'current_projection': current['projection'], 'manual_monitoring': 'Automatic alerts are inactive. Recheck before deadlines and after source records change.',
             'basis': 'Owner-reported task progress. It is not proof of payment, settlement, lender approval or causal improvement.'}
 
 

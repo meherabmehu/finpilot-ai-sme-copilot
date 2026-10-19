@@ -26,13 +26,15 @@ def cash_effect(row):
 
 def summary(business, start=None, end=None):
     end = end or timezone.localdate()
-    rows = business.transactions.filter(archived=False, date__lte=end)
+    source_rows = business.transactions.filter(archived=False, date__lte=end)
+    mixed_currency = source_rows.exclude(currency=business.currency).exists()
+    rows = source_rows.filter(currency=business.currency)
     period = rows.filter(date__gte=start) if start else rows
     revenue = sum((r.amount for r in period if r.kind in ("income", "receivable")), ZERO)
     refunds = sum((r.amount for r in period if r.kind == "refund"), ZERO)
     expenses = sum((r.amount for r in period if r.kind in ("expense", "payable")), ZERO)
     cash_rows = rows.filter(date__gte=business.opening_date)
-    cash = business.opening_balance + sum((cash_effect(r) for r in cash_rows), ZERO) if business.opening_balance is not None else None
+    cash = business.opening_balance + sum((cash_effect(r) for r in cash_rows), ZERO) if business.opening_balance is not None and not mixed_currency else None
     inflows = sum((max(cash_effect(r), ZERO) for r in period), ZERO)
     outflows = sum((-min(cash_effect(r), ZERO) for r in period), ZERO)
     net = revenue - refunds - expenses
@@ -47,6 +49,8 @@ def summary(business, start=None, end=None):
         "payables": sum((r.amount for r in rows if r.kind == "payable" and r.status == "pending"), ZERO),
         "count": period.count(),
         "margin": money(net / (revenue - refunds) * 100) if revenue != refunds else None,
+        "currency_scope": business.currency,
+        "mixed_currency_warning": 'Foreign-currency rows excluded from operating totals; cash unknown until reviewed. No conversion applied.' if mixed_currency else '',
     }
 
 

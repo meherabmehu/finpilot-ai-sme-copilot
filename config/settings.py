@@ -133,3 +133,14 @@ REST_FRAMEWORK = {
 LLM_API_KEY = os.getenv("LLM_API_KEY", "")
 LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
 LLM_MODEL = os.getenv("LLM_MODEL", "")
+XAI_API_KEY = os.getenv('XAI_API_KEY', '')
+XAI_BASE_URL = os.getenv('XAI_BASE_URL', 'https://api.x.ai/v1')
+XAI_MODEL = os.getenv('XAI_MODEL', '')
+XAI_TIMEOUT_SECONDS = min(max(float(os.getenv('XAI_TIMEOUT_SECONDS', '30')), 1), 40)
+XAI_MAX_OUTPUT_TOKENS = min(max(int(os.getenv('XAI_MAX_OUTPUT_TOKENS', '1800')), 128), 4000)
+XAI_TEMPERATURE = min(max(float(os.getenv('XAI_TEMPERATURE', '0.2')), 0), 1)
+FINPILOT_AI_ENABLED = os.getenv('FINPILOT_AI_ENABLED', 'true').lower() == 'true'
+# Preserve explicitly configured legacy adapters on older deployments. New setup
+# uses FINPILOT_AI_PROVIDER=xai as documented in .env.example.
+FINPILOT_AI_PROVIDER = os.getenv('FINPILOT_AI_PROVIDER', 'auto')
+FINPILOT_AI_FALLBACK_ENABLED = os.getenv('FINPILOT_AI_FALLBACK_ENABLED', 'true').lower() == 'true'

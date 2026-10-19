@@ -131,6 +131,9 @@ def run_tool(user, business_id, name, arguments):
 
 def answer(user, business, question, trace=None):
     authorized_business(user, business.pk)
+    from .intelligence.ai_grounding import grounded_answer, scope
+    if not settings.FINPILOT_AI_ENABLED or settings.FINPILOT_AI_PROVIDER == 'xai' or settings.XAI_API_KEY or not (settings.LLM_API_KEY and settings.LLM_MODEL) or scope(question) == 'outside':
+        return grounded_answer(user, business, question, trace)
     state = build_state(business)
     from .intelligence.investigation import question_context
     focus = question_context(question, state)
@@ -199,7 +202,18 @@ def answer(user, business, question, trace=None):
             message = response.json()["choices"][0]["message"]
             calls = message.get("tool_calls", [])
             if not calls:
-                return str(message.get("content") or "No answer returned.")[:16000]
+                content = str(message.get('content') or '')[:16000]
+                # The legacy adapter can only display server-reproducible statements.
+                # xAI uses the richer typed evidence-selection contract above.
+                allowed = {'Review the authorized deterministic evidence.'}
+                for tool_message in messages:
+                    if tool_message.get('role') == 'tool':
+                        data = json.loads(tool_message['content'])
+                        if isinstance(data, dict) and 'revenue' in data:
+                            allowed.add(f"Recorded revenue is {business.currency} {data['revenue']}, based on provided records.")
+                if content in allowed:
+                    return content
+                return grounded_answer(user, business, question, trace)
             if len(calls) > 6 or call_count + len(calls) > 8:
                 raise ValueError("Tool call limit exceeded.")
             messages.append({k: v for k, v in message.items() if k in ("role", "content", "tool_calls")})

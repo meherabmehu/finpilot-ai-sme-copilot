@@ -1,4 +1,4 @@
-<div class="stats-grid">
+{% if stats.mixed_currency_warning %}<p class="notice">{{ stats.mixed_currency_warning }}</p>{% endif %}<div class="stats-grid">
 <article class="stat-card"><div><span>Recorded revenue</span><span class="stat-icon blue">{% include 'partials/icon.html' with name='trend' %}</span></div><h2><small>{{ business.currency }}</small> {{ stats.revenue|floatformat:'2g' }}</h2><p><span class="status-dot"></span> Actual recorded activity</p></article>
 <article class="stat-card"><div><span>Operating expenses</span><span class="stat-icon orange">{% include 'partials/icon.html' with name='wallet' %}</span></div><h2><small>{{ business.currency }}</small> {{ stats.expenses|floatformat:'2g' }}</h2><p>Includes recorded unpaid bills</p></article>
 <article class="stat-card"><div><span>Operating surplus</span><span class="stat-icon green">{% include 'partials/icon.html' with name='chart' %}</span></div><h2><small>{{ business.currency }}</small> {{ stats.operating_surplus|floatformat:'2g' }}</h2><p>Revenue less recorded expenses</p></article>

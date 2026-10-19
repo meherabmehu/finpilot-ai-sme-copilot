@@ -150,6 +150,13 @@ a, .text-link, .add-business { color: #086c62; }
 .public-footer .brand img { width: 30px; height: 30px; }
 .public-footer > div { margin-left: auto; }
 :focus-visible, a:focus-visible, button:focus-visible, summary:focus-visible { outline-color: #087f73; }
+@media (max-width: 480px) {
+  .form-submit .button, .step-footer .button { white-space: normal; text-align: center; max-width: 100%; }
+  .product-card, fieldset { min-width: 0; overflow-wrap: anywhere; }
+  .product-card .pill { max-width: 100%; white-space: normal; }
+}
+table th, table td, .transaction-description small, .pagination span, .forecast-summary > div > span { color: #46586a; }
+.text-button.danger { color: #aa263b; }
 @media(max-width:1200px) {
   .topbar { gap: 16px; padding-inline: 24px; }
   .workspace-search { max-width: 240px; }

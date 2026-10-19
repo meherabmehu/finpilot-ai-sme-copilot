@@ -10,6 +10,8 @@ from .scenario_engine import suggested_plans, compare_plans
 def question_intent(question):
     text = question.casefold()
     categories = []
+    if re.search(r'\b(sales?|revenue|restaurant)\b', text):
+        categories.append('sales')
     if any(word in text for word in ('overdue', 'collection', 'receivable', 'customer', 'nonpayment')):
         categories.append('collections')
     if any(word in text for word in ('expense', 'spending', 'cost growth', 'cost increase')):
@@ -18,8 +20,14 @@ def question_intent(question):
         categories.append('liquidity')
     if 'risk' in text or not categories:
         categories = list(dict.fromkeys(categories + ['collections', 'expenses', 'liquidity']))
+    if re.search(r'\b(overdue|collections?|receivables?|customer payments?)\b', text) and re.search(r'\b(how much|which|list|total)\b', text) and not re.search(r'\b(cash|reserve|risk|supplier|payroll|borrow\w*|loan\w*|expense\w*|spend\w*)\b', text):
+        categories = ['collections']
     no_borrowing = bool(re.search(r'\b(?:without\s+(?:(?:taking|a|any|out)\s+)*(?:loan|borrow|debt)|no[\s-]+(?:loan|borrow|debt)|do not borrow|don.t borrow|avoid\s+(?:loan|borrow|debt))', text))
+    target = re.search(r'\b(?:protect|keep|reserve)\s+(?:at least\s+)?(?:[a-z]{3}\s+|\$|\u00a3)?([\d,]+(?:\.\d{1,2})?)', text)
+    reserve_target = str(Decimal(target.group(1).replace(',', ''))) if target else None
     return {'categories': categories, 'no_borrowing': no_borrowing,
+            'combined': bool(re.search(r'\b(combin\w*|close (?:the )?gap|protect at least)\b', text)),
+            'reserve_target': reserve_target,
             'basis': 'deterministic keyword intent; ambiguous wording requires owner review'}
 
 
@@ -27,6 +35,15 @@ def analyze_question(state, question):
     intent = question_intent(question)
     today = date.fromisoformat(state['as_of'])
     sections = []
+    if 'sales' in intent['categories']:
+        revenue = Decimal(state['trends']['revenue'])
+        lines = [f"Recorded revenue in the last 30 days: {state['currency']} {revenue}; this includes accrued invoices, not only paid cash."]
+        decline = re.search(r'\b(\d{1,3}(?:\.\d{1,2})?)\s*%', question)
+        if decline and 0 <= Decimal(decline.group(1)) <= 100:
+            percent = Decimal(decline.group(1))
+            lines.append(f"Illustrative {percent}% revenue decline against that recorded period: {money(revenue*percent/100)} less revenue, leaving {money(revenue*(1-percent/100))}. This is not a weekly cash prediction or a guaranteed sales response.")
+        lines.append('Use Scenario Simulation for dated future income shocks. Confirm future sales, receipt dates and essential operating costs before converting revenue assumptions into cash.')
+        sections.append({'title': 'Sales and operating sensitivity', 'lines': lines})
     overdue = [row for row in state['overdue'] if row['direction'] == 'inflow' and row['date'] < state['as_of']]
     if 'collections' in intent['categories']:
         total = money(sum((Decimal(row['amount']) for row in overdue), Decimal('0')))
@@ -63,10 +80,21 @@ def analyze_question(state, question):
         sections.append({'title': 'Liquidity and dated obligations', 'lines': lines})
     if intent['no_borrowing']:
         sections.append({'title': 'No-borrowing constraint', 'lines': ['Borrowing candidates are excluded from recommendations. Business policies still apply; supplier changes and customer receipts require external confirmation.']})
+    if re.search(r'\b(prioriti\w*|criticality|critical payment)\b', question, re.I):
+        from .business_domain import assess_payment
+        lines = []
+        for event in [e for e in state['events'] if e['direction'] == 'outflow'][:8]:
+            assessment = assess_payment(event, state)
+            lines.append(f"Payment {event['id']}: suggested {assessment['suggested_priority']}; urgency {assessment['urgency']}; due {event['date']}; {event['amount']} {state['currency']}. {assessment['impact']} Evidence: {assessment['evidence_sufficiency']}. Owner confirmation needed: {assessment['owner_confirmation_needed']}.")
+        lines.append('Confirm operational dependency, contract penalties and alternatives. Preliminary industry/category inference never changes protection rules automatically.')
+        sections.insert(0, {'title': 'Payment urgency and business criticality', 'lines': lines})
     return {'intent': intent, 'sections': sections, 'overdue_total': str(money(sum((Decimal(r['amount']) for r in overdue), Decimal('0'))))}
 
 
 def question_comparison(state, analysis, custom_plans=None):
+    if custom_plans is None and analysis['intent'].get('combined'):
+        from .recovery_solver import combined_solutions
+        return combined_solutions(state, no_borrowing=analysis['intent']['no_borrowing'], target_reserve=analysis['intent'].get('reserve_target'))['comparison']
     plans = custom_plans if custom_plans is not None else suggested_plans(state)
     if custom_plans is None and 'collections' in analysis['intent']['categories'] and state['complete']:
         overdue = sorted([r for r in state['overdue'] if r['direction'] == 'inflow' and r['date'] < state['as_of']], key=lambda r: -Decimal(r['amount']))

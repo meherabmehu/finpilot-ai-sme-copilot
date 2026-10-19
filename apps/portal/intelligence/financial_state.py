@@ -8,6 +8,7 @@ from decimal import Decimal
 
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
+from django.db import transaction
 
 from ..engine import cash_effect, money
 from ..models import FinancialPolicy
@@ -60,8 +61,13 @@ def cash_timeline(cash, events, as_of, days, reserve=ZERO):
             'intraday_gap': str(money(max(-min(Decimal(p['payment_first_low']) for p in points), ZERO)))}
 
 
+@transaction.atomic
 def build_state(business, as_of=None):
     """Internal service: business must come from authorization or trusted monitoring."""
+    # Application writers take the same lock. Keep all source reads coherent;
+    # release before any provider call, rendering or external work.
+    from ..models import Business
+    business = Business.objects.select_for_update().get(pk=business.pk)
     as_of = as_of or timezone.localdate()
     policy = policy_for(business)
     days = policy['horizon_days']
@@ -168,6 +174,8 @@ def build_state(business, as_of=None):
         for commitment in sorted(beyond_horizon, key=lambda e: (e['date'], e['id']))[:20]:
             limitations.append(f"Beyond horizon: {commitment['id']} {commitment['direction']} {commitment['amount']} {business.currency} on {commitment['date']}.")
     complete = bool(business.cash_records_complete and cash is not None and not capped and not foreign_currency and not undated)
+    if observed_out == 0:
+        limitations.append('Cash coverage in days is undefined when recorded paid operating outflows are zero; dated future payroll is a separate obligation, not historical burn.')
     projection = cash_timeline(cash, events, as_of, days, Decimal(policy['reserve'])) if complete else {'available': False, 'reason': ' '.join(blocking_reasons)}
     collection_source_ids = {row.pk for row in valid if row.kind in ('income', 'receivable')}
     revenue_source_ids = {row.pk for row in valid if row.kind == 'income'}
@@ -193,5 +201,17 @@ def build_state(business, as_of=None):
              'trends': {k: str(money(v)) for k, v in {'revenue': current_revenue, 'expenses': current_expenses, 'previous_revenue': previous_revenue,
                         'previous_expenses': previous_expenses, 'cash_inflows': observed_in, 'cash_outflows': observed_out, 'recurring_outflows': recurring_total}.items()},
              'expense_categories': [{'category': key, 'amount': str(money(value)), 'previous_amount': str(money(previous_categories[key])), 'share_percent': str(money(value / current_expenses * 100)) if current_expenses else None} for key, value in sorted(categories.items(), key=lambda item: -item[1])]}
+    state['business_context'] = {'category': business.category, 'size': business.size, 'country': business.country,
+                                 'description': business.description}
+    from ..models import CollectionContext
+    state['collection_context'] = list(CollectionContext.objects.filter(transaction__business=business, transaction__archived=False)
+        .order_by('transaction_id').values('transaction_id', 'customer_alias', 'follow_up_status', 'dispute_status',
+                                         'promised_date', 'reported_partial_amount', 'confirmation_reference')[:1000])
+    # These are owner statements, not cash movements or guaranteed collection dates.
+    state['collection_context'] = [{key: str(value) if isinstance(value, (date, Decimal)) else value for key, value in row.items()} for row in state['collection_context']]
+    # Include source identity/status/context even when an edit leaves cash totals unchanged.
+    revision = [[r.pk, str(r.date), str(r.due_date), str(r.amount), r.currency, r.kind, r.status,
+                 r.category, r.description, r.reference, r.notes, r.is_critical, r.recurring_obligation_id] for r in rows]
+    state['source_revision'] = hashlib.sha256(json.dumps(revision, sort_keys=True).encode()).hexdigest()
     state['fingerprint'] = hashlib.sha256(json.dumps(state, sort_keys=True).encode()).hexdigest()
     return state

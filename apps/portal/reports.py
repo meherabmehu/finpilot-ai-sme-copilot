@@ -1,9 +1,9 @@
 import csv
 import io
 from decimal import Decimal
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest
 from django.utils import timezone
-from .engine import summary, forecast
+from .engine import summary
 from .imports import safe_cell
 from .access import audit, authorized_business
 from .report_sections import agentic_sections, render_pdf, amount
@@ -11,6 +11,10 @@ from .report_sections import agentic_sections, render_pdf, amount
 
 def export_report(user, business, format, start, end, report_type="summary"):
     business = authorized_business(user, business.pk)
+    if report_type in ('transactions', 'receivables', 'payables') and business.transactions.filter(archived=False, date__gte=start, date__lte=end).count() > 20000:
+        return HttpResponseBadRequest('This export exceeds 20,000 source records. Narrow the reporting period; no partial file was generated.')
+    if report_type == 'scenarios' and business.scenarios.count() > 500:
+        return HttpResponseBadRequest('More than 500 scenario snapshots require a reviewed offline export; no partial report was generated.')
     values = summary(business, start, end)
     rows = [
         ["FinPilot financial report", business.name],
@@ -21,10 +25,14 @@ def export_report(user, business, format, start, end, report_type="summary"):
         ["Basis", "Recorded operating summary; not audited net profit. Cash balance is as of period end."],
     ]
     sections = None
+    from .intelligence.financial_state import build_state
+    source = build_state(business)
+    rows += [['Report type', report_type], ['Current source fingerprint (not archived decision evidence)', source['fingerprint']],
+             ['Completeness', str(source['complete'])], ['Currency warning', values['mixed_currency_warning'] or 'No currency conversion applied.']]
     metadata = list(rows)
-    if report_type in ('survival', 'scenarios'):
-        from .survival_report_sections import survival_sections, scenario_sections
-        sections = survival_sections(business) if report_type == 'survival' else scenario_sections(business)
+    if report_type in ('survival', 'scenarios', 'roadmap'):
+        from .survival_report_sections import survival_sections, scenario_sections, roadmap_sections
+        sections = {'survival': survival_sections, 'scenarios': scenario_sections, 'roadmap': roadmap_sections}[report_type](business)
         for section in sections:
             rows.append([section['title']])
             rows.append(section['headers'])
@@ -39,10 +47,13 @@ def export_report(user, business, format, start, end, report_type="summary"):
     elif report_type in ('receivables', 'payables'):
         kind = 'receivable' if report_type == 'receivables' else 'payable'
         rows.append(['Basis', 'Pending recorded invoices, filtered by record date. Unknown due dates remain unknown; no collection or payment is guaranteed.'])
-        rows.append(['Record date', 'Description', 'Amount', 'Currency', 'Due date', 'Reference', 'Timing status'])
+        rows.append(['Record date', 'Description', 'Amount', 'Currency', 'Due date', 'Reference', 'Timing status', 'Days overdue', 'Aging bucket'])
         rows.extend([
             [r.date, r.description, r.amount, r.currency, r.due_date or 'Unknown', r.reference,
-             'Unknown due date' if not r.due_date else 'Overdue' if r.due_date < timezone.localdate() else 'Upcoming / due today']
+             'Unknown due date' if not r.due_date else 'Overdue' if r.due_date < timezone.localdate() else 'Upcoming / due today',
+             max((timezone.localdate()-r.due_date).days, 0) if r.due_date else 'Unknown',
+             'Unknown due date' if not r.due_date else 'Not overdue' if r.due_date >= timezone.localdate() else
+             '1-30 days' if (timezone.localdate()-r.due_date).days <= 30 else '31-60 days' if (timezone.localdate()-r.due_date).days <= 60 else '61-90 days' if (timezone.localdate()-r.due_date).days <= 90 else '90+ days']
             for r in business.transactions.filter(archived=False, kind=kind, status='pending', date__gte=start, date__lte=end)
         ])
     elif report_type == "transactions":
@@ -54,7 +65,8 @@ def export_report(user, business, format, start, end, report_type="summary"):
             ]
         )
     elif report_type == "forecast":
-        result = forecast(business)
+        from .intelligence.forecasting import forecast_with_evaluation
+        result = forecast_with_evaluation(business)
         rows.append(["Method", result.get("limitations", result.get("reason"))])
         rows.append(["Date", "Projected balance", "Expected inflow", "Expected outflow"])
         rows.extend([[p["date"], amount(p["balance"]), amount(p["inflow"]), amount(p["outflow"])] for p in result.get("points", [])])

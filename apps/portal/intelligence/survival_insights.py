@@ -38,6 +38,9 @@ def cash_runway(business, state):
     estimate = cash / burn
     return result | {'days': str(estimate.quantize(Decimal('0.1'), rounding=ROUND_HALF_UP)),
                      'months': str((estimate/30).quantize(Decimal('0.1'), rounding=ROUND_HALF_UP)),
+                     'reserve_coverage_days': str((max(cash-Decimal(state['policy']['reserve']), ZERO)/burn).quantize(Decimal('0.1'), rounding=ROUND_HALF_UP)),
+                     'expense_growth_20_percent_days': str((cash/(burn+sum((-min(cash_effect(r), ZERO) for r in rows), ZERO)/days*Decimal('.2'))).quantize(Decimal('0.1'), rounding=ROUND_HALF_UP)),
+                     'sensitivity_basis': 'Explicit 20% increase in historical paid operating outflow, inflows unchanged; not a probability or dated forecast.',
                      'reason': 'Average-burn estimate, not a promised survival date or the dated reserve-risk timeline.'}
 
 
@@ -56,6 +59,7 @@ def financial_health(state):
 
 
 def payment_priorities(state):
+    from .business_domain import assess_payment
     policy = state['policy']
     restricted = {value.casefold() for value in policy['restricted_categories']}
     overdue_dates = {f"tx:{row['id']}": row['date'] for row in state['overdue'] if row['direction'] == 'outflow'}
@@ -77,7 +81,7 @@ def payment_priorities(state):
             tier, label, protected = 6, 'Review discretionary spending', False
         else:
             tier, label, protected = 5, 'Dated payment commitment', False
-        rows.append({**event, 'tier': tier, 'priority': label, 'protected': protected,
+        rows.append({**event, **assess_payment(event, state), 'tier': tier, 'priority': label, 'protected': protected,
                      'recorded_due': overdue_dates.get(event['id'], event['date']),
                      'timing_note': 'Due/overdue; next-day timeline is a stress assumption.' if event['id'] in overdue_dates else event['basis'],
                      'dependency': 'Keep recorded dates and amounts under current policy.' if protected else
@@ -105,13 +109,33 @@ def collection_risk(business, state):
                      'note': 'Overdue receipts are excluded from dated cash until a recovery assumption is supplied.' if overdue else
                              'Unknown due date.' if invoice.due_date is None else 'Receipt on this date is unconfirmed.'})
     matching = [row for row in state['overdue'] if row['direction'] == 'inflow' and row['days_overdue'] > 0]
-    return {'invoices': rows, 'truncated': len(shown) > 20, 'overdue_count': len(matching),
+    from ..models import CollectionContext
+    histories = {}
+    for detail in CollectionContext.objects.filter(transaction__business=business, transaction__archived=False,
+            transaction__currency=business.currency, transaction__kind='receivable').select_related('transaction')[:1000]:
+        if not detail.customer_alias:
+            continue
+        history = histories.setdefault(detail.customer_alias, {'alias': detail.customer_alias, 'settled_count': 0, 'late_count': 0, 'pending_count': 0, 'delay_days': []})
+        tx = detail.transaction
+        if tx.status == 'paid' and tx.date <= as_of and tx.due_date:
+            delay = (tx.date-tx.due_date).days
+            history['settled_count'] += 1
+            history['late_count'] += delay > 0
+            history['delay_days'].append(max(delay, 0))
+        elif tx.status == 'pending':
+            history['pending_count'] += 1
+    for history in histories.values():
+        delays = history.pop('delay_days')
+        history['average_recorded_delay'] = str(money(sum(delays)/Decimal(len(delays)))) if delays else None
+    return {'invoices': rows, 'truncated': len(shown) > 20, 'overdue_count': len(matching), 'alias_history': list(histories.values()),
             'overdue_amount': str(money(sum((Decimal(row['amount']) for row in matching), ZERO))) if state['diagnostics']['foreign_currency_rows'] == '0' else None,
-            'basis': 'Descriptive invoice exposure only. Customer identities and default probabilities are not recorded or inferred.'}
+            'basis': 'Descriptive invoice exposure only. Optional customer aliases and follow-up statements are owner-recorded, not inferred identities. Paid invoice dates support descriptive history only; partial receipt reports do not prove settlement. No calibrated default probabilities.'}
 
 
 def survival_overview(business, state):
+    from .business_domain import domain_context, obligation_summary
     priorities = payment_priorities(state)
     return {'health': financial_health(state), 'runway': cash_runway(business, state),
+            'domain': domain_context(business, state), 'obligations': obligation_summary(state, priorities),
             'priorities': priorities, 'priority_amount': str(money(sum((Decimal(row['amount']) for row in priorities
                         if row.get('payroll') or row.get('critical')), ZERO))), 'collections': collection_risk(business, state)}

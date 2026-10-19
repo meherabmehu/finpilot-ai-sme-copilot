@@ -38,6 +38,12 @@ from .engine import summary, monthly_chart, forecast, simulate, loan_schedule, b
 from .imports import preview_import, confirm_import, FIELDS
 from .reports import export_report
 from .advisor import answer
+from .forms import RecoveryFormSet, RecoveryGoalForm, LoanDiscoveryForm
+from .intelligence.recovery_solver import recovery_case, combined_solutions
+from .intelligence.forecasting import forecast_with_evaluation
+from .intelligence.loan_catalog import discover
+from .intelligence.business_domain import category_review
+from .intelligence.freshness import snapshot_comparison
 from .forms import FinancialPolicyForm, InvestigationForm, DecisionForm
 from .models import FinancialPolicy, FinancialIssue, Investigation, FinancialDecision, Business, AuditEvent
 from .intelligence.financial_state import build_state
@@ -268,12 +274,20 @@ def my_business(request, business_id):
         rows = rows.filter(kind__in=["expense", "payable"])
     query = request.GET.get("q", "")[:200]
     if query:
-        rows = rows.filter(description__icontains=query)
+        from django.db.models import Q
+        rows = rows.filter(Q(description__icontains=query) | Q(reference__icontains=query) | Q(category__icontains=query))
+    if request.GET.get('status') in ('paid', 'pending'):
+        rows = rows.filter(status=request.GET['status'])
+    if request.GET.get('due') == 'overdue':
+        rows = rows.filter(status='pending', due_date__lt=timezone.localdate())
+    elif request.GET.get('due') == 'week':
+        rows = rows.filter(status='pending', due_date__gte=timezone.localdate(), due_date__lte=timezone.localdate()+timedelta(days=7))
     if request.GET.get("kind") in dict(Transaction.TYPES):
         rows = rows.filter(kind=request.GET["kind"])
     data = context(request, business, "my_business")
     policy = FinancialPolicy.objects.filter(business=business).first() or FinancialPolicy(business=business)
     data['policy_form'] = FinancialPolicyForm(instance=policy, business=business)
+    data['category_review'] = category_review(business)
     from django.core.paginator import Paginator
 
     data.update(
@@ -282,6 +296,10 @@ def my_business(request, business_id):
             "form": form,
             "rows": Paginator(rows, 30).get_page(request.GET.get("p")),
             "query": query,
+            "transaction_types": Transaction.TYPES,
+            "selected_kind": request.GET.get('kind', ''),
+            "selected_status": request.GET.get('status', ''),
+            "selected_due": request.GET.get('due', ''),
             "chart": monthly_chart(business),
             "imports": DataImport.objects.filter(business=business).order_by("-created_at")[:10],
             "fields": FIELDS,
@@ -345,6 +363,12 @@ def transaction_edit(request, business_id, pk=None):
             item.business = business
             item.currency = business.currency
             item.save()
+            if item.kind == 'receivable':
+                from .models import CollectionContext
+                details = {key: form.cleaned_data.get(key) for key in ('customer_alias', 'follow_up_status', 'dispute_status', 'promised_date', 'reported_partial_amount', 'confirmation_reference')}
+                details['follow_up_status'] = details['follow_up_status'] or 'unknown'
+                details['dispute_status'] = details['dispute_status'] or 'unknown'
+                CollectionContext.objects.update_or_create(transaction=item, defaults=details)
             audit(
                 request.user,
                 business,
@@ -421,6 +445,33 @@ def planning(request, business_id):
     data['intelligence'] = survival_overview(business, data['financial_state'])
     data['investigation_form'] = InvestigationForm(initial={'request_key': uuid.uuid4()})
     data['decisions'] = business.decisions.select_related('investigation').order_by('-created_at')[:50]
+    recovery_request = request.method == 'POST' and tab == 'scenarios' and request.POST.get('intent') == 'recovery'
+    overdue_invoices = list(business.transactions.filter(archived=False, currency=business.currency, kind='receivable', status='pending', due_date__lt=timezone.localdate()).order_by('due_date', 'pk')[:8])
+    recovery_forms = RecoveryFormSet(request.POST if recovery_request else None, prefix='recovery', form_kwargs={'business': business},
+        initial=[{'invoice': r.pk, 'amount': r.amount, 'recovery_date': timezone.localdate()+timedelta(days=1)} for r in overdue_invoices])
+    recovery_goal = RecoveryGoalForm(request.POST if recovery_request else None, prefix='goal')
+    data.update(recovery_forms=recovery_forms, recovery_goal=recovery_goal, overdue_invoices=overdue_invoices)
+    if recovery_request and recovery_forms.is_valid() and recovery_goal.is_valid():
+        recoveries = [{'event_id': f"tx:{row['invoice'].pk}", 'amount': str(row['amount']), 'date': row['recovery_date'].isoformat()}
+                      for row in recovery_forms.cleaned_data if row.get('include')]
+        try:
+            result = recovery_case(data['financial_state'], {'recoveries': recoveries, 'target_reserve': recovery_goal.cleaned_data['target_reserve']})
+            data['recovery_result'] = result
+            data['combined_result'] = combined_solutions(data['financial_state'], target_reserve=recovery_goal.cleaned_data['target_reserve'])
+            if request.POST.get('save_recovery') and result['plan']['feasible']:
+                authorized_business(request.user, business_id, write=True)
+                Scenario.objects.create(business=business, name='Explicit overdue recovery', assumptions=result['assumptions'], result=result)
+                audit(request.user, business, 'scenario.recovery_saved')
+                messages.success(request, 'Hypothetical invoice scenario saved; actual cash and invoices are unchanged.')
+            if request.POST.get('transfer_recovery') and result['plan']['feasible']:
+                if Decimal(result['target_reserve']) != Decimal(data['financial_state']['policy']['reserve']):
+                    recovery_goal.add_error('target_reserve', 'To accept a plan using a different reserve, explicitly update Financial Preferences first. No policy was changed.')
+                else:
+                    item = run_investigation(request.user, business.pk, 'Compare explicit overdue recovery without borrowing', custom_plans=[
+                        {'name': 'Recorded schedule', 'actions': []}, {'name': result['plan']['name'], 'actions': result['plan']['actions']}])
+                    return redirect('investigation_detail', business_id=business.pk, pk=item.pk)
+        except ValueError:
+            recovery_goal.add_error(None, 'Use distinct authorized invoices, bounded amounts, and future dates inside the reviewed horizon.')
     stress_request = request.method == 'POST' and tab == 'scenarios' and request.POST.get('intent') == 'stress'
     stress_form = StressScenarioForm(request.POST if stress_request else None, business=business, prefix='stress')
     if stress_request and stress_form.is_valid():
@@ -459,9 +510,9 @@ def planning(request, business_id):
             for row in data['roadmap']['actions']:
                 row['form'] = RoadmapProgressForm(initial={'action_key': row['key'], 'status': row['status'], 'responsible': row['responsible'],
                                                           'target_date': row['target_date'], 'note': row['note']}, prefix=row['key'])
-    scenario_form = ScenarioForm(request.POST if request.method == "POST" and tab == "scenarios" and not stress_request else None)
+    scenario_form = ScenarioForm(request.POST if request.method == "POST" and tab == "scenarios" and not stress_request and not recovery_request else None)
     loan_form = LoanForm(request.POST if request.method == "POST" and tab == "loans" else None)
-    if request.method == "POST" and tab == "scenarios" and not stress_request:
+    if request.method == "POST" and tab == "scenarios" and not stress_request and not recovery_request:
         authorized_business(request.user, business_id, write=True)
         if scenario_form.is_valid():
             assumptions = {k: str(v) for k, v in scenario_form.cleaned_data.items() if k != "name"}
@@ -503,7 +554,7 @@ def planning(request, business_id):
         ]
     try:
         horizon = int(request.GET.get("horizon", 30))
-        projection = forecast(business, horizon)
+        projection = forecast_with_evaluation(business, horizon) if tab == 'forecast' else forecast(business, horizon)
     except ValueError:
         horizon, projection = 30, forecast(business, 30)
     data.update(
@@ -517,6 +568,10 @@ def planning(request, business_id):
             "scenarios": business.scenarios.order_by("-created_at")[:3],
         }
     )
+    if tab == 'loans':
+        discovery_form = LoanDiscoveryForm(request.GET if request.GET.get('discover') else None, prefix='discovery')
+        values = discovery_form.cleaned_data if discovery_form.is_valid() else {}
+        data.update(loan_discovery_form=discovery_form, public_products=discover(business, values.get('amount'), values.get('months'), purpose=values.get('purpose', '')))
     if projection.get('available'):
         data['forecast_reserve_breach'] = next((p['date'] for p in projection['points'] if Decimal(p['balance']) < business.low_cash_threshold), None)
         data['forecast_reserve'] = str(business.low_cash_threshold)
@@ -572,16 +627,19 @@ def advisor(request, business_id):
             "chat_messages": conversation.messages.order_by("created_at") if conversation else [],
             "investigation_form": InvestigationForm(initial={'request_key': uuid.uuid4()}),
             "latest_investigation": business.investigations.filter(user=request.user).order_by('-created_at').first(),
-            "configured": bool(settings.LLM_API_KEY and settings.LLM_MODEL),
-            "stats": summary(business),
+            "configured": bool((settings.XAI_API_KEY and settings.XAI_MODEL) or (settings.LLM_API_KEY and settings.LLM_MODEL)),
         }
     )
-    data['financial_state'] = build_state(business)
-    data['advisor_issues'] = detect_issues(data['financial_state'])[:3]
     data['advisor_question'] = (conversation.messages.filter(role='user').order_by('-created_at', '-pk').values_list('content', flat=True).first()
                                 if conversation else None) or 'Can I cover my scheduled payments and protect payroll?'
+    from .intelligence.ai_grounding import scope
+    history = list(conversation.messages.filter(role='user').order_by('-created_at', '-pk').values_list('content', flat=True)[1:5]) if conversation else []
+    data['advisor_in_scope'] = scope(data['advisor_question'], history) in ('financial', 'follow_up')
     from .intelligence.question_analysis import analyze_question
-    data['advisor_analysis'] = analyze_question(data['financial_state'], data['advisor_question'])
+    if data['advisor_in_scope']:
+        data['financial_state'] = build_state(business)
+        data['advisor_issues'] = detect_issues(data['financial_state'])[:3]
+        data['advisor_analysis'] = analyze_question(data['financial_state'], data['advisor_question'])
     return render(request, "advisor.html", data)
 
 
@@ -590,7 +648,7 @@ def reports(request, business_id):
     business = authorized_business(request.user, business_id)
     start, end, days = reporting_period(request)
     kind = request.GET.get("type", "summary")
-    if kind not in ("survival", "summary", "transactions", "forecast", "scenarios", "financing", "quality", "decisions", "investigations", "issues", "receivables", "payables"):
+    if kind not in ("survival", "summary", "transactions", "forecast", "scenarios", "financing", "quality", "decisions", "investigations", "issues", "receivables", "payables", "roadmap"):
         kind = "summary"
     if request.GET.get("format") in ("csv", "xlsx", "pdf"):
         return export_report(request.user, business, request.GET["format"], start, end, kind)
@@ -601,11 +659,17 @@ def reports(request, business_id):
         ('forecast', 'Cash flow forecast', 'Current 30-day historical baseline with its assumptions.'),
         ('decisions', 'Decision history & outcomes', 'Saved plans, simulated expectations and observed results.'),
         ('scenarios', 'Scenario analysis', 'Saved dated collection cases and earlier operating illustrations.'),
+        ('roadmap', 'Recovery roadmap progress', 'Deadline tasks, owner reports, historical expectations and current cash.'),
         ('receivables', 'Customer receivables', 'Pending customer invoices recorded in the selected period.'),
         ('payables', 'Supplier & other payments', 'Pending payables, including payroll, recorded in the selected period.'),
     ]
     data['report_format'] = request.GET.get('file_format', 'pdf') if request.GET.get('file_format') in ('pdf', 'csv', 'xlsx') else 'pdf'
     data["decisions"] = business.decisions.select_related("investigation").order_by("-created_at")[:20]
+    if request.method == 'POST' and request.POST.get('intent') == 'executive':
+        if cache.add(f'executive:{request.user.pk}:{business.pk}', True, 60):
+            data['executive_summary'] = answer(request.user, business, 'Explain business financial risks, overdue collections and reserve concerns')
+        else:
+            data['executive_summary'] = 'Please wait one minute before requesting another interpretation. Deterministic reports remain available.'
     data.update({"stats": summary(business, start, end), "chart": monthly_chart(business), "start": start, "end": end, "report_type": kind})
     return render(request, "reports.html", data)
 
@@ -667,7 +731,8 @@ def investigation_detail(request, business_id, pk):
     item = get_object_or_404(Investigation.objects.select_related('decision'), business=business, pk=pk)
     data = context(request, business, 'planning')
     data.update({'investigation': item, 'decision': item.decision,
-                 'stale': build_state(business)['fingerprint'] != item.snapshot['fingerprint']})
+                 'stale': build_state(business)['fingerprint'] != item.snapshot['fingerprint'],
+                 'freshness': snapshot_comparison(business, item.snapshot, build_state(business))})
     def bounded_integer(key, default, minimum, maximum):
         try:
             return max(minimum, min(maximum, int(request.GET.get(key, default))))
@@ -694,6 +759,10 @@ def issue_detail(request, business_id, pk):
     business = authorized_business(request.user, business_id)
     issue = get_object_or_404(FinancialIssue, business=business, pk=pk)
     data = context(request, business, 'planning')
+    current = build_state(business)
+    data['issue_current'] = next((i for i in detect_issues(current) if i['code'] == issue.code), None)
+    data['issue_stale'] = issue.evidence.get('state_fingerprint') != current['fingerprint']
+    data['issue_current_as_of'] = current['as_of']
     data.update({'issue': issue, 'investigation_form': InvestigationForm(initial={
         'request_key': uuid.uuid4(), 'issue_id': issue.pk, 'question': issue.title})})
     return render(request, 'issue.html', data)
