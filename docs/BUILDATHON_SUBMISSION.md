@@ -1,0 +1,104 @@
+# FinPilot AI — YUNet AIgnite 2026 submission
+
+## Verified competition requirements
+
+Official [rules](https://yunet-aignite26.devpost.com/rules) permit an existing project
+when meaningful improvements are made specifically for this buildathon. This release
+adds actual Personal Mode, conservative consumer calculations, four personal scenario
+types and an account-free synthetic demo to the existing SME project; these were not
+present at baseline `34be3b073ff16a2761f2c1defa86d7b1361ca3b1`.
+
+Use **5 November 2026, 10:00 PM Bangladesh time (UTC+06)** as the submission cutoff.
+The [official schedule](https://yunet-aignite26.devpost.com/details/dates) and page
+header show 10 PM; the prose rules say 11:59 PM. Follow the earlier platform cutoff.
+Solo participation and current Bangladesh student eligibility must be confirmed by
+the owner. Registration/eligibility has not been inferred from an email address.
+
+## Devpost-ready content
+
+**Title:** FinPilot AI — Personal & Micro-Business Financial Survival Copilot
+
+**Tagline:** Plan around irregular income, essential bills and your emergency reserve.
+
+**Problem:** A student, freelancer or individual seller can have enough expected
+monthly income and still run short before a bill deadline. An unpaid promise is not
+money available to spend. Simple monthly totals can hide that timing problem.
+
+**Solution:** A personal workspace separates received cash, expected income, essential
+bills and savings goals. A conservative spending buffer excludes all future receipts.
+Users compare dated scenarios before acting, ask a grounded AI Advisor and export
+their own financial snapshot. Existing business workspaces retain their SME tools.
+
+**Key features:** Short personal onboarding; cash/bill/reserve dashboard; received versus
+expected records; essential bill priorities; 7/14/30-day income delays; unexpected
+expenses; savings-transfer assumptions; 10/20/30% future-income reductions; historical
+saved comparisons; genuine PDF/CSV/XLSX reports; separate personal/business workspaces.
+
+**Technologies:** Django, PostgreSQL (SQLite locally), Python Decimal, Django templates,
+Tailwind and scoped CSS, vanilla JavaScript, Chart.js, Groq's OpenAI-compatible API,
+Pydantic schemas, Playwright and axe-core; existing Vercel/Render hosting.
+
+**Meaningful AI:** The private Advisor uses the selected workspace's authorized
+financial evidence. Groq selects relevant sources and can generate labeled conditional
+reasoning; dates and amounts come from deterministic calculations. Invalid output is
+rejected, outages use truthful fallback, and AI cannot alter the ledger. A real Groq
+call and browser response were verified using only an isolated synthetic Personal
+Mode workspace. The account-free public demo deliberately uses deterministic
+explanations and never spends shared API quota; it is not described as live AI.
+
+**Innovation:** The same ending balance can hide different interim risk. In the
+synthetic example, delaying a 10,000 BDT receipt by seven days preserves 16,000 BDT
+ending cash but creates a 2,000 BDT emergency-reserve shortfall before the bill is due.
+This connects consumer decisions to transparent, dated financial evidence.
+
+**Challenges:** Reusing a mature SME ledger without exposing inappropriate supplier
+or underwriting concepts to consumers; separating expected money from paid cash;
+keeping simulations read-only; validating AI output and preserving workspace isolation.
+
+**Accomplishments:** A complete personal setup → dashboard → scenario → private
+Advisor → report workflow; stateless public demo; real provider verification; existing
+business tests retained; tested mobile/tablet/desktop layouts; a real five-page PDF deck.
+
+**Future improvements:** Bank imports with explicit consent, richer personal budget
+categories, independently evaluated forecast calibration, automatic monitoring with
+delivery evidence, and a verified linked partial-settlement workflow. These are not
+claimed as implemented features.
+
+**Public app:** https://finpilot-ai-sme-copilot.vercel.app/
+
+**Account-free demo:** https://finpilot-ai-sme-copilot.vercel.app/demo/personal/
+
+**Presentation PDF:** https://finpilot-ai-sme-copilot.vercel.app/static/submission/finpilot-aignite-2026.pdf
+
+**Editable HTML deck:** `static/submission/finpilot-aignite-2026.html` (exactly five slides).
+The PDF is genuinely rendered from this source, with screenshots of working synthetic
+workspaces. It is not an editable PowerPoint file.
+
+**Repository:** https://github.com/meherabmehu/finpilot-ai-sme-copilot
+
+**Developer:** Solo repository creator/maintainer `meherabmehu`. Replace the public
+handle with your preferred verified full name if desired. No qualifications or
+student status have been fabricated.
+
+**Optional video:** Not recorded or uploaded. Use [the English script](BUILDATHON_VIDEO_SCRIPT.md).
+
+## Manual submission checklist
+
+1. Confirm student eligibility, registration and your Devpost participant details.
+2. Provide the actual original official sticker file. The chat reference is visible,
+   but no image bytes were present in the supplied attachment directory. Its prepared
+   destination is `static/buildathon/yunet-aignite-buildathon-2026-sticker.png` (or its
+   original `.jpg`/`.webp` extension). Do not redraw or substitute the event banner.
+3. Once supplied, preserve the original bytes, record dimensions/format/transparency
+   and check the top-of-page placement at all seven tested widths. The provided
+   component already uses `height:auto`, meaningful alt text and a dedicated top strip.
+4. Open the public demo and PDF link on an incognito/mobile browser after deployment.
+   Confirm you can explain the difference between public deterministic demo and
+   authenticated real AI. Email activation for new private accounts requires working
+   operator email delivery; the public demo needs no credentials.
+5. Upload the five-slide PDF or supply its verified public link. Add only an actual
+   video URL if you record/upload one. Submit manually before the earlier 10 PM cutoff.
+
+No Devpost entry, registration, mail, video or presentation upload has been submitted
+on the owner's behalf. Official sticker completion remains an asset dependency;
+choosing a local filename cannot recover missing original image bytes.

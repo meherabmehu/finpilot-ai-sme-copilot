@@ -1,6 +1,8 @@
 # FinPilot AI
 
-A Django financial copilot for SMEs, built for the 2026 FinTechathon, Topic E. One account can manage independent business workspaces through exactly five primary pages: Dashboard, My Business, AI Advisor, Financial Planning, and Reports.
+The [AIgnite buildathon extension](docs/BUILDATHON_IMPLEMENTATION.md) adds dedicated Personal Mode, conservative spending/savings calculations, four consumer scenarios and an [account-free synthetic demo](https://finpilot-ai-sme-copilot.vercel.app/demo/personal/) while preserving Business Mode. [Five-slide deck](static/submission/finpilot-aignite-2026.pdf), [editable HTML](static/submission/finpilot-aignite-2026.html), [Devpost content](docs/BUILDATHON_SUBMISSION.md) and [English video script](docs/BUILDATHON_VIDEO_SCRIPT.md). The original official sticker file is still required; no replacement artwork is claimed.
+
+A Django personal and micro-business financial copilot. Originally built for the 2026 FinTechathon SME track, it now includes dedicated Personal Mode for AIgnite 2026. One account can manage separate workspaces through five primary pages: Dashboard, My Money / My Business, AI Advisor, Financial Planning, and Reports.
 
 The [final competition verification](docs/FINAL_COMPETITION_VERIFICATION.md) records the current release: verified real Groq inference, bounded conditional synthesis, business-aware payment assessment, explicit recovery, conservative forecast selection and reviewed public lending sources. It includes actual test, benchmark, browser and production evidence, remaining limitations and the updated demo guide. [Groq setup](docs/GROQ_SETUP.md) and [forecast measurements](docs/FORECAST_ROBUSTNESS.md) are separate from the earlier [competition upgrade](docs/COMPETITION_UPGRADE.md).
 
