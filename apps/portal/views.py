@@ -226,6 +226,9 @@ def reporting_period(request):
 @login_required
 def dashboard(request, business_id):
     business = authorized_business(request.user, business_id)
+    if business.mode=='personal':
+        from .personal_views import personal_dashboard
+        return personal_dashboard(request,business)
     start, end, days = reporting_period(request)
     data = context(request, business, "dashboard")
     data.update(
@@ -253,6 +256,9 @@ def dashboard(request, business_id):
 @login_required
 def my_business(request, business_id):
     business = authorized_business(request.user, business_id)
+    if business.mode=='personal':
+        from .personal_views import personal_records
+        return personal_records(request,business)
     tab = request.GET.get("tab", "overview")
     if tab not in ("overview", "rules", "recurring", "transactions", "sales", "expenses", "upload"):
         tab = "overview"
@@ -318,7 +324,8 @@ def my_business(request, business_id):
 def recurring_add(request, business_id):
     business = authorized_business(request.user, business_id, write=True)
     business = Business.objects.select_for_update().get(pk=business.pk)
-    form = RecurringForm(request.POST)
+    from .personal_forms import PersonalRecurringForm
+    form = (PersonalRecurringForm if business.mode=='personal' else RecurringForm)(request.POST)
     if form.is_valid():
         item = form.save(commit=False)
         item.business = business
@@ -348,7 +355,8 @@ def transaction_edit(request, business_id, pk=None):
     business = authorized_business(request.user, business_id, write=True)
     item = get_object_or_404(Transaction, pk=pk, business=business, archived=False) if pk else None
     before = {field: str(getattr(item, field)) for field in TransactionForm.Meta.fields} if item else {}
-    form = TransactionForm(request.POST or None, instance=item, business=business)
+    from .personal_forms import PersonalTransactionForm
+    form = (PersonalTransactionForm if business.mode=='personal' else TransactionForm)(request.POST or None, instance=item, business=business)
     if request.method == "POST" and form.is_valid():
         with db_transaction.atomic():
             Business.objects.select_for_update().get(pk=business.pk)
@@ -363,7 +371,7 @@ def transaction_edit(request, business_id, pk=None):
             item.business = business
             item.currency = business.currency
             item.save()
-            if item.kind == 'receivable':
+            if item.kind == 'receivable' and business.mode!='personal':
                 from .models import CollectionContext
                 details = {key: form.cleaned_data.get(key) for key in ('customer_alias', 'follow_up_status', 'dispute_status', 'promised_date', 'reported_partial_amount', 'confirmation_reference')}
                 details['follow_up_status'] = details['follow_up_status'] or 'unknown'
@@ -436,6 +444,9 @@ def import_confirm(request, business_id, pk):
 @login_required
 def planning(request, business_id):
     business = authorized_business(request.user, business_id)
+    if business.mode=='personal':
+        from .personal_views import personal_planning
+        return personal_planning(request,business)
     tab = request.GET.get("tab", "overview")
     if tab not in ('overview', 'decisions', 'forecast', 'scenarios', 'loans', 'roadmap'):
         tab = 'overview'
@@ -634,21 +645,28 @@ def advisor(request, business_id):
         }
     )
     data['advisor_question'] = (conversation.messages.filter(role='user').order_by('-created_at', '-pk').values_list('content', flat=True).first()
-                                if conversation else None) or 'Can I cover my scheduled payments and protect payroll?'
+                                if conversation else None) or ('Can I cover my bills and protect my emergency reserve?' if business.mode=='personal' else 'Can I cover my scheduled payments and protect payroll?')
     from .intelligence.ai_grounding import scope
     history = list(conversation.messages.filter(role='user').order_by('-created_at', '-pk').values_list('content', flat=True)[1:5]) if conversation else []
     data['advisor_in_scope'] = scope(data['advisor_question'], history) in ('financial', 'follow_up')
     from .intelligence.question_analysis import analyze_question
     if data['advisor_in_scope']:
         data['financial_state'] = build_state(business)
-        data['advisor_issues'] = detect_issues(data['financial_state'])[:3]
-        data['advisor_analysis'] = analyze_question(data['financial_state'], data['advisor_question'])
+        data['advisor_issues'] = [] if business.mode=='personal' else detect_issues(data['financial_state'])[:3]
+        if business.mode=='personal':
+            from .intelligence.personal_finance import question_analysis
+            data['advisor_analysis']=question_analysis(data['financial_state'],data['advisor_question'])
+        else:
+            data['advisor_analysis'] = analyze_question(data['financial_state'], data['advisor_question'])
     return render(request, "advisor.html", data)
 
 
 @login_required
 def reports(request, business_id):
     business = authorized_business(request.user, business_id)
+    if business.mode=='personal':
+        from .personal_views import personal_reports
+        return personal_reports(request,business)
     start, end, days = reporting_period(request)
     kind = request.GET.get("type", "summary")
     if kind not in ("survival", "summary", "transactions", "forecast", "scenarios", "financing", "quality", "decisions", "investigations", "issues", "receivables", "payables", "roadmap"):

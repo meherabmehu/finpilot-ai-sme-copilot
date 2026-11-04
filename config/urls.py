@@ -2,8 +2,11 @@ from django.contrib import admin
 from django.contrib.auth import views as auth
 from django.urls import path
 from apps.portal import views as v
+from apps.portal import personal_views as pv
 
 urlpatterns = [
+    path('personal/new/',pv.personal_new,name='personal_new'),
+    path('demo/personal/',pv.personal_demo,name='personal_demo'),
     path("b/<uuid:business_id>/policy/", v.financial_policy, name="financial_policy"),
     path("b/<uuid:business_id>/investigations/start/", v.investigation_start, name="investigation_start"),
     path("b/<uuid:business_id>/investigations/<uuid:pk>/", v.investigation_detail, name="investigation_detail"),

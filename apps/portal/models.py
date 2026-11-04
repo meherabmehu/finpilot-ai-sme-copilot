@@ -6,6 +6,7 @@ from django.db import models
 
 
 class Business(models.Model):
+    mode = models.CharField(max_length=10, choices=[('business','Business'),('personal','Personal')], default='business')
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=120)
     category = models.CharField(max_length=40)
@@ -26,6 +27,12 @@ class Business(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class PersonalProfile(models.Model):
+    workspace = models.OneToOneField(Business,on_delete=models.CASCADE,related_name='personal_profile')
+    income_type = models.CharField(max_length=20,choices=[('salary','Salary'),('freelance','Freelance / irregular'),('student','Student'),('self_employed','Self-employed'),('other','Other')])
+    savings_target = models.DecimalField(max_digits=18,decimal_places=2,default=0,validators=[MinValueValidator(Decimal('0'))])
 
 
 class Membership(models.Model):

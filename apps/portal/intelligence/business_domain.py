@@ -25,6 +25,12 @@ QUESTIONS = {
 
 
 def domain_context(business, state):
+    if business.mode=='personal':
+        return {'type':'Personal','country':business.country,'currency':business.currency,
+            'question':'Which housing, health, study or essential living bill has a confirmed due date, and which expected income is still uncertain?',
+            'guidance':'Personal finance: protect explicitly essential bills and the emergency reserve. Future income is uncertain; savings assumptions never move money.',
+            'matched_references':[e['id'] for e in state['events'] if e.get('critical')],
+            'basis':'Personal workspace, owner-recorded essentials and dates. No supplier, payroll or lender eligibility is inferred.'}
     kind = business.category if business.category in DOMAINS else 'Other'
     matches = [e['id'] for e in state['events'] if any(w in e.get('category', '').casefold() for w in DOMAINS[kind])]
     return {'type': kind, 'size': business.size, 'country': business.country, 'currency': business.currency,

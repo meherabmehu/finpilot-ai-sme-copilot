@@ -19,6 +19,10 @@ from .financial_evidence import evidence_graph
 
 
 def question_context(question, state):
+    if state.get('workspace_mode')=='personal':
+        from .personal_finance import question_analysis
+        return {'analysis':question_analysis(state,question),'requested_date':None,'missing_information':state['blocking_reasons'],
+                'interpretation':'Personal cash and dated bills; expected income and hypothetical savings are separate from received money.'}
     from .question_language import normalize_question
     text = normalize_question(question)
     missing = []
@@ -68,6 +72,8 @@ def question_context(question, state):
 
 def run_investigation(user, business_id, question, issue_id=None, request_key=None, custom_plans=None):
     business = authorized_business(user, business_id, write=True)
+    if business.mode=='personal':
+        raise ValidationError('Use Personal Planning to compare income, essential bills and savings for this workspace.')
     from .ai_grounding import scope
     if scope(question) == 'outside':
         raise ValidationError('This question is outside FinPilot financial advisory scope. Ask about business finances.')

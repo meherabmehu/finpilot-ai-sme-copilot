@@ -59,6 +59,18 @@ def export_report(user, business, format, start, end, report_type="summary"):
              '1-30 days' if (timezone.localdate()-r.due_date).days <= 30 else '31-60 days' if (timezone.localdate()-r.due_date).days <= 60 else '61-90 days' if (timezone.localdate()-r.due_date).days <= 90 else '90+ days']
             for r in business.transactions.filter(archived=False, kind=kind, status='pending', date__gte=start, date__lte=end)
         ])
+    elif report_type == 'personal':
+        from .intelligence.personal_finance import overview
+        personal=overview(source)
+        rows += [['Workspace mode','Personal'],['Available paid cash',amount(personal['cash'])],
+            ['Upcoming bills',amount(personal['bills'])],['After bills excluding expected income',amount(personal['after_bills'])],
+            ['Emergency reserve',amount(personal['reserve'])],['Conservative spending / savings room',amount(personal['safe_to_spend'])],
+            ['Expected income, not available cash',amount(personal['expected_income'])],['Assumptions',personal['basis']],
+            ['Bill reference','Due date','Amount','Essential']]
+        rows += [[e['id'],e['date'],amount(e['amount']),e['essential']] for e in personal['priorities']]
+        rows.append(['Recent ten saved hypothetical comparisons','Assumptions','Historical source','Simulated ending','Reserve gap'])
+        for case in business.scenarios.filter(result__kind='personal_v1')[:10]:
+            rows.append([case.name,case.result['assumptions'],case.result['source_fingerprint'],amount(case.result['simulated']['ending_balance']),amount(case.result['simulated']['funding_gap'])])
     elif report_type == "transactions":
         rows.append(["Date", "Description", "Type", "Amount", "Currency", "Status", "Category", "Reference"])
         rows.extend(

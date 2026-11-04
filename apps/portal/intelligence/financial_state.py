@@ -220,5 +220,10 @@ def build_state(business, as_of=None):
     revision = [[r.pk, str(r.date), str(r.due_date), str(r.amount), r.currency, r.kind, r.status,
                  r.category, r.description, r.reference, r.notes, r.is_critical, r.recurring_obligation_id] for r in rows]
     state['source_revision'] = hashlib.sha256(json.dumps(revision, sort_keys=True).encode()).hexdigest()
+    if business.mode=='personal':
+        profile=getattr(business,'personal_profile',None)
+        state['workspace_mode']='personal'
+        state['personal_context']={'income_type':profile.income_type if profile else 'not recorded',
+                                   'savings_target':str(profile.savings_target) if profile else '0'}
     state['fingerprint'] = hashlib.sha256(json.dumps(state, sort_keys=True).encode()).hexdigest()
     return state

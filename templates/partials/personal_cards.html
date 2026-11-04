@@ -1,0 +1,6 @@
+<div class="personal-metrics">
+<article class="panel"><small>AVAILABLE CASH · PAID RECORDS</small><h2>{{ personal.currency }} {{ personal.cash|default_if_none:'Unknown' }}</h2><p>Expected income is separate.</p></article>
+<article class="panel"><small>UPCOMING BILLS</small><h2>{{ personal.currency }} {{ personal.bills }}</h2><p>Within the displayed {{ state.policy.horizon_days }}-day horizon.</p></article>
+<article class="panel"><small>CASH AFTER BILLS</small><h2>{{ personal.currency }} {{ personal.after_bills|default_if_none:'Unknown' }}</h2><p>Excludes every future receipt.</p></article>
+<article class="panel"><small>EMERGENCY RESERVE</small><h2>{{ personal.currency }} {{ personal.reserve }}</h2><p>Your recorded target, not a separate savings account.</p></article>
+</div><section class="personal-highlight"><div><p class="eyebrow">BEFORE YOU SPEND</p><h2>Conservative spending room: {{ personal.currency }} {{ personal.safe_to_spend|default_if_none:'Unknown' }}</h2><p>{{ personal.basis }}</p></div><div class="notice"><strong>{{ personal.risk }}</strong><p>{{ personal.next_action }}</p></div></section>
