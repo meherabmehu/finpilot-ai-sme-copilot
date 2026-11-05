@@ -1,14 +1,12 @@
 # Official competition sticker
 
-Place the original, unmodified artwork here as:
+Original user-supplied artwork, included without re-encoding or editing:
 
-`yunet-aignite-buildathon-2026-sticker.png`
+`yunet-aignite-buildathon-2026-sticker.jpeg`
 
-The existing integration also accepts the same basename with `.jpg`, `.jpeg`, or
-`.webp`. Preserve the original format; changing an extension is not conversion.
-No original image file was available with the pasted prompt, so this directory
-does not contain a replacement logo or a placeholder image.
+JPEG, 1600×567 pixels, RGB (no alpha/transparency).
+SHA-256: `6ec3e34ddd2f8f3550276637b4ee09b7bec50e07c5f4905546442136288798cd`.
 
-Once supplied, the shared context processor enables the top sticker strip on the
-landing page, app, onboarding, and public personal demo. Verify its full artwork
-and readability at all seven supported viewport widths before deploying it.
+The shared context processor enables the top sticker strip on the landing page,
+app, onboarding, and public personal demo. All 28 local visibility, image loading,
+aspect ratio and overflow checks passed across seven supported viewport widths.

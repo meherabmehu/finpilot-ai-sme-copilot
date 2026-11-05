@@ -1,3 +1,5 @@
+> Update: the user has now supplied the original sticker. It is integrated unchanged as a 1600x567 JPEG; all 28 local sticker checks passed across seven widths. Earlier missing-asset notes below describe the previous release and are superseded by this update. See static/buildathon/README.md for the SHA-256 and asset path.
+
 # AIgnite buildathon implementation and release evidence
 
 Prepared 5 November 2026, Bangladesh time. Branch: `feat/finpilot-platform`.

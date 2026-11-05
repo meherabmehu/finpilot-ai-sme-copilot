@@ -85,13 +85,11 @@ student status have been fabricated.
 ## Manual submission checklist
 
 1. Confirm student eligibility, registration and your Devpost participant details.
-2. Provide the actual original official sticker file. The chat reference is visible,
-   but no image bytes were present in the supplied attachment directory. Its prepared
-   destination is `static/buildathon/yunet-aignite-buildathon-2026-sticker.png` (or its
-   original `.jpg`/`.webp` extension). Do not redraw or substitute the event banner.
-3. Once supplied, preserve the original bytes, record dimensions/format/transparency
-   and check the top-of-page placement at all seven tested widths. The provided
-   component already uses `height:auto`, meaningful alt text and a dedicated top strip.
+2. Official sticker is now included as the original, unmodified 1600×567 JPEG at
+   `static/buildathon/yunet-aignite-buildathon-2026-sticker.jpeg`.
+3. Local browser verification passed all 28 sticker checks: landing, demo,
+   authenticated onboarding and dashboard across seven widths, with preserved aspect
+   ratio, successful image loading, visible top placement and no horizontal overflow.
 4. Open the public demo and PDF link on an incognito/mobile browser after deployment.
    Confirm you can explain the difference between public deterministic demo and
    authenticated real AI. Email activation for new private accounts requires working
@@ -100,5 +98,5 @@ student status have been fabricated.
    video URL if you record/upload one. Submit manually before the earlier 10 PM cutoff.
 
 No Devpost entry, registration, mail, video or presentation upload has been submitted
-on the owner's behalf. Official sticker completion remains an asset dependency;
-choosing a local filename cannot recover missing original image bytes.
+on the owner's behalf. The original sticker has now been supplied and integrated;
+registration, eligibility and the final Devpost submission remain manual steps.
