@@ -16,6 +16,7 @@ def main():
         overflow=page.locator('section.slide').evaluate_all('(slides)=>slides.map(s=>({id:s.id,overflow:s.scrollHeight>s.clientHeight+1}))')
         assert not any(s['overflow'] for s in overflow),overflow
         page.pdf(path=str(destination),width='1280px',height='720px',print_background=True,prefer_css_page_size=True)
+        page.locator('.slide-nav').evaluate("el => el.style.display = 'none'")
         output=Path('test-results/buildathon-slides')
         output.mkdir(parents=True,exist_ok=True)
         for index,slide in enumerate(page.locator('section.slide').all(),1):

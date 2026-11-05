@@ -72,13 +72,17 @@ claimed as implemented features.
 
 **Editable HTML deck:** `static/submission/finpilot-aignite-2026.html` (exactly five slides).
 The PDF is genuinely rendered from this source, with screenshots of working synthetic
-workspaces. It is not an editable PowerPoint file.
+workspaces.
+
+**PowerPoint:** `static/submission/finpilot-aignite-2026.pptx` (five slides).
+Cover presenter text is editable; remaining slide content preserves the HTML design
+as rendered images. Regenerate with `scripts/export_buildathon_deck.py`, then
+`scripts/export_buildathon_powerpoint.py` (optional local `python-pptx` dependency).
 
 **Repository:** https://github.com/meherabmehu/finpilot-ai-sme-copilot
 
-**Developer:** Solo repository creator/maintainer `meherabmehu`. Replace the public
-handle with your preferred verified full name if desired. No qualifications or
-student status have been fabricated.
+**Developer:** Md. Meherab Hossain Talukder — Solo Participant.
+Repository identity: `meherabmehu`. Name and participation label supplied by the owner.
 
 **Optional video:** Not recorded or uploaded. Use [the English script](BUILDATHON_VIDEO_SCRIPT.md).
 
