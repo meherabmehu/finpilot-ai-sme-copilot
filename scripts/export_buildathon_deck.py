@@ -9,7 +9,7 @@ def main():
     destination=source.with_suffix('.pdf')
     with sync_playwright() as pw:
         browser=pw.chromium.launch(channel='chromium')
-        page=browser.new_page(viewport={'width':1280,'height':720})
+        page=browser.new_page(viewport={'width':1280,'height':720},device_scale_factor=2)
         page.goto(source.as_uri())
         page.evaluate('document.fonts.ready')
         assert page.locator('section.slide').count()==5
