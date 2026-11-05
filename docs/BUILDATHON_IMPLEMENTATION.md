@@ -151,3 +151,38 @@ blocked by missing original bytes.** Confirm registration/eligibility and the ea
 presentation-platform upload has been made. The public deck URL is a hosted file,
 not evidence that a Devpost entry was submitted. Automatic alerts, bank connections,
 trained personal forecasts and automatic partial-settlement matching were not added.
+
+## I. Verified live release — 5 November 2026
+
+Implementation commit `1d56892151dd681675728a982399d6b8c207949c` and submission
+materials commit `24d71fae270c5150d7630e5599a90130ea1c60c4` were pushed to
+`feat/finpilot-platform`. Both providers deployed the latter release:
+
+- Render deployment `dep-dblng7vb9u1s73d2msbg` reached `live`.
+- Vercel production deployment reached `Ready`.
+- Both providers' startup/build logs confirmed `[X] 0006_personal_finance_mode`.
+- Public smoke checks on both origins passed: health, landing, Personal demo,
+  consumer CSS, editable five-slide deck, genuine five-page PDF, CSRF-protected
+  synthetic delayed-income comparison, synthetic PDF values and private-onboarding
+  authentication redirect. No production financial records or chats were written.
+- Both providers' authenticated read-only smoke passed all 12 existing Business pages and
+  recognized the configured AI provider. This badge is configuration evidence;
+  actual Groq inference was verified separately on isolated synthetic local data.
+
+Render initially exceeded the smoke clients' 40/45-second request timeouts. Runtime
+logs showed the free service starting again, applying no pending migrations and
+booting Gunicorn successfully. A subsequent health request returned 200 and the
+complete public smoke rerun passed. Initial timeout results are not counted as
+passes; first requests after idle may still be slow.
+
+Live origins: <https://finpilot-ai-web.onrender.com> and
+<https://finpilot-ai-sme-copilot.vercel.app>. Public demo: `/demo/personal/`.
+Presentation: `/static/submission/finpilot-aignite-2026.pdf`, editable `.html`
+beside it. Ignored release evidence: `buildathon-production-render.json`,
+`buildathon-production-vercel.json`, `final-production-render.json` and `final-production-vercel.json` under
+`test-results/`.
+
+The exact sticker filename and installation instructions are recorded in
+`static/buildathon/README.md`. Original artwork bytes are still absent; both live
+checks correctly report `official_sticker_present: false`. The asset and its actual
+visual checks remain outstanding, along with the manual submission steps in section H.
