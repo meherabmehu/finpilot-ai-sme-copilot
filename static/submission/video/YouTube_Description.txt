@@ -1,0 +1,40 @@
+Can an expected client payment still leave you short before a bill deadline?
+
+FinPilot AI is a Financial Survival Copilot for freelancers and small business owners. It helps users understand available cash, protect essential payments and compare financial decisions before acting.
+
+TRY IT OUT
+Account-free synthetic demo: https://finpilot-ai-web.onrender.com/demo/personal/
+Live application: https://finpilot-ai-web.onrender.com/
+Source code: https://github.com/meherabmehu/finpilot-ai-sme-copilot/tree/feat/finpilot-platform
+Presentation: https://finpilot-ai-web.onrender.com/static/submission/finpilot-aignite-2026.pdf
+
+WHAT THIS DEMO SHOWS
+• Personal Mode: paid cash, expected income, essential bills and emergency reserves.
+• Scenario planning: compare delayed income, unexpected expenses, savings transfers and reduced future income.
+• A timing insight: the same ending balance can hide an interim reserve shortfall.
+• Explainable AI guidance grounded in authorized financial evidence.
+• Separate personal/business workspaces, mobile layouts and report exports.
+
+CHAPTERS
+00:00 The cash-timing problem
+00:22 Meet FinPilot AI
+00:46 Paid cash vs expected income
+01:11 Simulate a seven-day income delay
+01:43 Explainable Groq AI guidance
+02:13 Mobile, business tools and reports
+02:35 Try the public demo
+
+CREATOR
+Md. Meherab Hossain Talukder — Solo Participant
+Entry for Ostad presents YUNet AIgnite Buildathon 2026.
+The buildathon work extends an existing SME application with dedicated Personal Mode and consumer financial scenarios.
+
+TECHNOLOGY
+Python, Django, PostgreSQL, Decimal arithmetic, Pydantic, Groq, Tailwind CSS, JavaScript and Chart.js. Deployed on Render and Vercel.
+
+DEMO TRANSPARENCY
+All financial examples and screenshots use synthetic records. The account-free public demo uses deterministic explanations; the private AI segment shows a saved, verified Groq response from a synthetic workspace. Financial figures come from calculated evidence. AI cannot execute payments or move money. English narration is AI-generated and is not the creator's voice.
+
+FinPilot AI provides decision support based on recorded data and assumptions. Projections are conditional estimates, not guarantees.
+
+#FinPilotAI #AIgnite2026 #FinTech
