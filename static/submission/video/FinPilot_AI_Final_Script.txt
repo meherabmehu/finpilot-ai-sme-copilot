@@ -1,0 +1,24 @@
+FinPilot AI — Financial Survival Copilot
+Md. Meherab Hossain Talukder — Solo Participant
+AI narration: Microsoft en-US-GuyNeural; not the founder’s voice.
+
+00:00:00,000 — 00:00:21,720
+A client payment is on its way. Your essential bill is due tomorrow. Can you spend today without putting your emergency reserve at risk? For freelancers and small business owners, monthly totals can miss the problem. Expected income is not available cash.
+
+00:00:21,720 — 00:00:45,816
+Meet FinPilot AI, a Financial Survival Copilot. Created by solo participant Md. Meherab Hossain Talukder, it extends an existing business application with dedicated Personal Mode. Personal records and business workspaces stay separate. This public demo uses synthetic data and needs no account.
+
+00:00:45,816 — 00:01:10,816
+Our synthetic freelancer has eighteen thousand taka available, twelve thousand in upcoming bills, ten thousand expected from a client, and an eight-thousand-taka reserve target. Excluding future receipts, cash after bills is only six thousand. Conservative spending room is zero. An unpaid promise does not become spending money.
+
+00:01:10,816 — 00:01:42,568
+Now delay the selected income by seven days. Ending cash is still sixteen thousand, but the lowest balance falls to six thousand before the delayed payment arrives. That creates a two-thousand-taka reserve shortfall. The same ending balance can hide a very different week. Users can also compare unexpected expenses, savings transfers and reduced future income. Simulations never change actual cash.
+
+00:01:42,568 — 00:02:12,976
+This saved response comes from the real Groq Advisor in an isolated synthetic private workspace. The financial engine calculates the figures; Groq explains relevant evidence and conditional trade-offs. AI cannot execute payments or freely invent amounts. Provider failures use a clearly labeled calculated fallback. The account-free public demo's explanations are deterministic, not live AI.
+
+00:02:12,976 — 00:02:34,480
+Users can review essential bills, correct their records and download financial reports. The interface supports phones, tablets and desktops while preserving the existing business tools. The PostgreSQL suite passed three hundred sixty-eight tests, with browser checks across seven screen widths.
+
+00:02:34,480 — 00:02:52,864
+FinPilot helps people make a clearer decision before spending. It combines personal financial context, transparent calculations, scenario planning and grounded AI. Try the account-free synthetic demo using the link on screen.

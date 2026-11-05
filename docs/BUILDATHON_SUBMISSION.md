@@ -84,7 +84,10 @@ as rendered images. Regenerate with `scripts/export_buildathon_deck.py`, then
 **Developer:** Md. Meherab Hossain Talukder — Solo Participant.
 Repository identity: `meherabmehu`. Name and participation label supplied by the owner.
 
-**Optional video:** Not recorded or uploaded. Use [the English script](BUILDATHON_VIDEO_SCRIPT.md).
+**Optional video:** A 2:53 English AI-narrated 1080p demo has been produced at
+`static/submission/video/FinPilot_AI_Demo_1080p.mp4`, with captions, actual public demo
+recording and a labeled saved private AI response. No YouTube upload has been made.
+See [production details](DEMO_VIDEO_DELIVERY.md).
 
 ## Manual submission checklist
 

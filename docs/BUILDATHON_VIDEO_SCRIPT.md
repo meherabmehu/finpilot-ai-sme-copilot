@@ -1,5 +1,9 @@
 # English demo script — approximately 2 minutes 40 seconds
 
+> Production update: the completed 2:53 video and the exact narration actually used
+> are documented in [DEMO_VIDEO_DELIVERY.md](DEMO_VIDEO_DELIVERY.md). The timings
+> below are the earlier outline. No YouTube upload has been made.
+
 **0:00–0:20 — Problem**
 
 “Imagine you freelance while studying. You have money in your account, essential bills
@@ -55,5 +59,5 @@ the public synthetic demo at the link on screen.”
 Use only marked synthetic workspaces in screenshots/video. Never record `.env`,
 passwords or real financial records. Use the live public demo for the account-free
 sequence and clearly identify the isolated synthetic environment for private AI.
-Do not imply a deterministic demo answer is a model response. A real video has not
-been recorded or uploaded by this implementation.
+Do not imply a deterministic demo answer is a model response. The completed video
+records the public synthetic workflow and labels the saved private Groq response.

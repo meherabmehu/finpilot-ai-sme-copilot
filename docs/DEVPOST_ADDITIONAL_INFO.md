@@ -32,7 +32,8 @@ lets judges explore the workflow using clearly labeled synthetic data.
 ## Product Demo Youtube Link (Not mandatory)
 
 Leave blank unless you have recorded and uploaded an actual YouTube demo.
-No video has been recorded or uploaded. The live app URL is not a YouTube URL.
+A narrated demo has now been produced at `static/submission/video/FinPilot_AI_Demo_1080p.mp4`.
+It has not been uploaded to YouTube. The live app URL is not a YouTube URL.
 
 ## After completing the fields
 

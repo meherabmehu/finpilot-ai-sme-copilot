@@ -1,0 +1,44 @@
+{
+  "duration_seconds": 172.864,
+  "resolution": "1920x1080",
+  "fps": 30,
+  "video_codec": "H.264",
+  "audio_codec": "AAC",
+  "voice": "en-US-GuyNeural",
+  "synthetic_neural_voice": true,
+  "captions_burned_in": true,
+  "full_file_decode_passed": true,
+  "no_black_gaps_over_0_7s": true,
+  "no_silence_gaps_over_5s": true,
+  "public_footage": [
+    {
+      "scene": 2,
+      "origin": "https://finpilot-ai-web.onrender.com",
+      "trim_start": 2.246335000032559,
+      "recorded_public_demo": true,
+      "financial_writes": false,
+      "scenario_post": false
+    },
+    {
+      "scene": 3,
+      "origin": "https://finpilot-ai-web.onrender.com",
+      "trim_start": 1.9371946998871863,
+      "recorded_public_demo": true,
+      "financial_writes": false,
+      "scenario_post": false
+    },
+    {
+      "scene": 4,
+      "origin": "https://finpilot-ai-web.onrender.com",
+      "trim_start": 1.896613199962303,
+      "recorded_public_demo": true,
+      "financial_writes": false,
+      "scenario_post": true
+    }
+  ],
+  "private_ai": "Saved verified synthetic response excerpt; no new private inference.",
+  "uploaded_to_youtube": false,
+  "submitted_to_devpost": false,
+  "bytes": 6432168,
+  "sha256": "d4e941121dbe327164465740fdc6b7f7cad42741c5af60eef99dbf8020a706aa"
+}
