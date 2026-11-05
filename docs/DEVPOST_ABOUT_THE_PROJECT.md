@@ -36,7 +36,7 @@ An account-free demo lets judges explore the consumer workflow using clearly
 labeled synthetic data. Its explanations are deterministic; private workspaces use
 the configured Groq integration.
 
-## How I built it
+## How we built it
 
 I developed FinPilot AI as a solo participant using **Python, Django and
 PostgreSQL**, with Django templates, Tailwind CSS, JavaScript and Chart.js for the
@@ -57,7 +57,7 @@ workspace controls and export safeguards instead of rebuilding them.
 The application is deployed on Render and Vercel with its backend and database
 connection. Screenshots and public demo examples use synthetic records.
 
-## Challenges I faced
+## Challenges we ran into
 
 The hardest design challenge was separating **expected money from available cash**.
 Counting an unpaid invoice as spendable would make the interface reassuring while
@@ -73,7 +73,7 @@ evidence references, explicit uncertainty and a fallback that does not pretend a
 model answered when it did not. Finally, financial tables and explanations needed
 to remain usable on phones as well as desktop screens.
 
-## Accomplishments I am proud of
+## Accomplishments that we're proud of
 
 One synthetic example demonstrates the project's central idea: delaying a
 **BDT 10,000** receipt by seven days leaves ending cash at **BDT 16,000**, yet creates
@@ -85,7 +85,7 @@ workflow, verified an actual Groq response using isolated synthetic records, and
 retained existing business regression coverage. The PostgreSQL suite passed
 **368 tests**, with additional browser checks across seven screen widths.
 
-## What I learned
+## What we learned
 
 Financial guidance becomes more useful when it explains timing and assumptions,
 not just a final number. Clear separation between received cash, uncertain income
@@ -95,7 +95,7 @@ I also learned to evaluate the complete workflow: calculations, authorization,
 fallback behavior, exports and responsive presentation. A fluent explanation is
 only one part of a trustworthy financial tool.
 
-## What's next for FinPilot AI
+## What's next for FinPilot AI – Financial Survival Copilot
 
 Next steps include consent-based bank imports, richer personal budgeting,
 independently evaluated forecast calibration and opt-in monitoring with verified
