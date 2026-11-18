@@ -2,24 +2,22 @@
 
 Md. Meherab Hossain Talukder · Solo Participant
 
-Timing guide: 15 + 40 + 45 + 45 + 35 seconds = 3:00. Rehearse with a timer; speaking speed varies.
+Exactly four slides, matching the original template. Solution-focused pitch with QR demo access.
+
+Timing: 15 + 60 + 55 + 50 seconds = 3:00. Rehearse with a timer; speaking speed varies.
 
 ## Slide 1 — 0:00–0:15
 
-Hello, I am Meherab Hossain Talukder, a solo participant. FinPilot AI is a Financial Survival Copilot for freelancers and small business owners. It answers a practical question: can I spend today without risking my next essential payment?
+Hello, I am Meherab Hossain Talukder, a solo participant. FinPilot AI is a Financial Survival Copilot for freelancers and small business owners. It helps answer one question: can I spend today without putting my next essential payment at risk?
 
-## Slide 2 — 0:15–0:55
+## Slide 2 — 0:15–1:15
 
-The problem is timing. A freelancer may expect enough income this month, yet a bill can be due before the client pays. Expected income is not available cash. Personal Mode separates received cash, expected payments, essential bills and an emergency reserve. Users see a conservative spending buffer, then compare choices before acting. An unexpected expense, delayed income, savings transfer or lower future income stays a simulation and never changes paid records. Personal and business workspaces remain separate, and the consumer experience works on phones as well as desktops.
+The problem is timing: an expected client payment may arrive after a bill is due. FinPilot makes that timing visible. Personal Mode starts with paid cash, expected income and its date, essential bills, and an emergency reserve. The dashboard separates money already received from promises of future income. A conservative spending buffer excludes future receipts. Next, the user can compare four decisions: delayed income, an unexpected expense, a proposed savings transfer, or reduced future income. Each comparison shows how the decision changes the cash position and reserve gap. Simulations never alter paid records. The private Advisor then explains relevant evidence and assumptions, while PDF, CSV and spreadsheet exports support review. Separate personal and business workspaces keep the context clear, and the same workflow works on mobile.
 
-## Slide 3 — 0:55–1:40
+## Slide 3 — 1:15–2:10
 
-Here is the central example, using synthetic data. Our freelancer has eighteen thousand taka in paid cash, twelve thousand in upcoming essential bills, ten thousand expected from a client, and an eight-thousand-taka reserve target. If income arrives on time, ending cash is sixteen thousand. Now delay that payment by seven days. Ending cash is still sixteen thousand, but the lowest balance falls to six thousand before the payment arrives. That creates a two-thousand-taka reserve shortfall. This is not negative cash: it is a breach of the chosen reserve. A monthly total alone misses the risk.
+Here is the solution in action, using synthetic data. Our freelancer has eighteen thousand taka in paid cash, twelve thousand in upcoming bills, ten thousand expected from a client, and an eight-thousand-taka reserve target. If the income arrives on time, ending cash is sixteen thousand. Now delay that receipt by seven days. Ending cash remains sixteen thousand, but the lowest balance falls to six thousand before the payment arrives. FinPilot reveals a two-thousand-taka reserve shortfall. This is not negative cash: it is a breach of the user’s chosen reserve. Cash after bills, excluding future receipts, is six thousand, so conservative spending room is zero. The practical benefit is seeing a risk that the monthly ending total hides, before making a spending decision.
 
-## Slide 4 — 1:40–2:25
+## Slide 4 — 2:10–3:00
 
-The architecture keeps calculations and explanations separate. Django and PostgreSQL hold authorized workspace records. A Decimal-based engine calculates dated cash positions and scenario differences. Groq explains the relevant evidence with references, assumptions and conditional trade-offs. Structured output is validated; an invalid or unavailable provider returns a clearly labeled calculated fallback. AI cannot execute payments or move money. The image is an actual saved Groq response from a synthetic private workspace. The account-free public demo is different: its explanations are deterministic. This separation makes the role of AI clear and keeps financial figures grounded in records.
-
-## Slide 5 — 2:25–3:00
-
-For this buildathon, I extended an existing SME application with dedicated Personal Mode, consumer onboarding, four personal scenarios and a public synthetic demo. Existing business tools were preserved. The documented PostgreSQL release passed three hundred sixty-eight tests, with browser checks across seven screen widths. Users can review records and export reports. The next steps are consent-based bank imports and richer personal budgeting. FinPilot helps people see timing risk and make a clearer decision before spending. You can try the account-free demo at this link. Thank you.
+The system keeps financial calculations separate from AI explanations. Django and PostgreSQL manage authorized records, and a Decimal engine calculates amounts and dated scenarios. Groq explains the evidence with references and conditional reasoning. Structured output is validated; if the provider fails, the app returns a clearly labeled calculated explanation. AI cannot move money. The account-free public demo is deterministic, while private workspaces use the configured AI. For this buildathon, I extended an existing SME application with dedicated consumer onboarding, Personal Mode and four consumer scenarios. The documented release passed three hundred sixty-eight PostgreSQL tests, with browser checks at seven screen widths. Scan this QR code to try the synthetic demo without an account. FinPilot helps people make a clearer decision before spending. Thank you.
