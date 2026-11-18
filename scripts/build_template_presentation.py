@@ -70,7 +70,7 @@ def main():
     cover = presentation.slides[0]
     text(cover, 2.88, 3.88, 5.38, .28, 'FinPilot AI – Financial Survival Copilot', 16, bold=True)
     text(cover, 3.69, 4.31, 3.5, .2, 'Md. Meherab Hossain Talukder', 12, bold=True)
-    text(cover, 3.69, 4.59, 4.2, .23, 'Solo Participant  |  3-minute project pitch', 10, GRAY)
+    text(cover, 3.69, 4.59, 4.2, .23, 'Solo Participant', 10, GRAY)
 
     slide = presentation.slides[1]
     header(slide, 'A payment promise cannot pay today’s bill.', 'The problem: monthly totals hide the gap between income dates and bill deadlines.', 2)
